@@ -131,7 +131,8 @@ describe("US and UK awareness days: the strategist's brief", () => {
     for (const id of [...US_DAYS, ...GB_DAYS]) {
       const a = byId(id).angle;
       expect(a, id).not.toMatch(selling);
-      expect(a, id).not.toMatch(/—|!|\d+ ?%/);
+      // One angle per observance in a ";"-separated brief: no semicolons inside it.
+      expect(a, id).not.toMatch(/—|!|;|\d+ ?%/);
     }
     // The cancer months: no figures and no fear, and in the US no screening offer.
     for (const id of ["us-oral-cancer-awareness-month", "gb-mouth-cancer-action-month"]) expect(byId(id).angle, id).toMatch(/no statistics.*no scare claims/);
@@ -150,9 +151,9 @@ describe("US and UK awareness days: the strategist's brief", () => {
 
   it("says when a year's dates are not yet published, so the video never states a guessed date", () => {
     expect(seasonalBrief("GB", "en", at("2026-05-20"))).toContain("National Smile Month (mid-May to mid-June) (2026-05-11–2026-06-11)");
-    expect(seasonalBrief("GB", "en", at("2026-05-20"))).not.toMatch(/not published this year's exact dates/);
+    expect(seasonalBrief("GB", "en", at("2026-05-20"))).not.toMatch(/not published yet/);
     const y2027 = seasonalBrief("GB", "en", at("2027-05-20"));
     expect(find("GB", "2027-05-20", "gb-national-smile-month")).toMatchObject({ approximate: true });
-    expect(y2027).toContain("around 2027-05-15–2027-06-15; the organiser has not published this year's exact dates, so name the season, never a specific date");
+    expect(y2027).toContain("around 2027-05-15–2027-06-15: this year's exact dates are not published yet, so name the season, never a specific date");
   });
 });

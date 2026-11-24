@@ -45,7 +45,7 @@ const fixed = (m1: number, d1: number, m2: number, d2: number) => (y: number) =>
 /** Days in month `m` (1–12) of year `y`: February has 29 in leap years. */
 const daysIn = (y: number, m: number) => new Date(Date.UTC(y, m, 0)).getUTCDate();
 /** The whole calendar month `m`, for month-long observances. */
-const month = (m: number) => (y: number) => ({ start: d(y, m, 1), end: d(y, m, daysIn(y, m)) });
+const wholeMonth = (m: number) => (y: number) => ({ start: d(y, m, 1), end: d(y, m, daysIn(y, m)) });
 const shift = (iso: string, days: number) => new Date(Date.parse(iso) + days * 86_400_000).toISOString().slice(0, 10);
 
 /** Gregorian Easter Sunday (anonymous / Meeus algorithm). */
@@ -128,7 +128,7 @@ export const OBSERVANCES: Observance[] = [
     countries: ["US"],
     name: { en: "National Children's Dental Health Month (February)" },
     angle: "children's teeth: first visit, toothpaste amount, sealants",
-    window: month(2),
+    window: wholeMonth(2),
     source: "https://www.ada.org/resources/community-initiatives/national-childrens-dental-health-month",
   },
   {
@@ -140,8 +140,8 @@ export const OBSERVANCES: Observance[] = [
     countries: ["US"],
     name: { en: "Oral Cancer Awareness Month (April)" },
     angle:
-      "what the dentist looks at for signs of oral cancer during a routine exam (lips, cheeks, tongue, the floor and roof of the mouth, the throat), the changes worth showing a dentist or doctor (a sore that does not heal, a red or white patch, a lump or thickening) and well-known risk factors such as tobacco and alcohol; calm and factual, no statistics or survival figures, no scare claims, and never a screening offer or event",
-    window: month(4),
+      "what the dentist looks at for signs of oral cancer during a routine exam (lips, cheeks, tongue, the floor and roof of the mouth, the throat), the changes worth showing a dentist or doctor (a sore that does not heal, a red or white patch, a lump or thickening) and well-known risk factors such as tobacco and alcohol, told calmly and factually with no statistics or survival figures, no scare claims, and never a screening offer or event",
+    window: wholeMonth(4),
     source: "https://oralcancerfoundation.org/events/oral-head-neck-cancer-awareness-month/",
   },
   {
@@ -153,8 +153,8 @@ export const OBSERVANCES: Observance[] = [
     countries: ["US"],
     name: { en: "National Facial Protection Month (April)" },
     angle:
-      "protecting teeth and face in spring sports and play: a mouthguard for contact sports and a helmet for bikes, scooters and skateboards; stock, boil-and-bite or custom-made mouthguards in plain words; what to do in the first minutes if a tooth is knocked out; no injury statistics",
-    window: month(4),
+      "protecting teeth and face in spring sports and play: a mouthguard for contact sports and a helmet for bikes, scooters and skateboards, the difference between stock, boil-and-bite and custom-made mouthguards, and what to do in the first minutes if a tooth is knocked out (no injury statistics)",
+    window: wholeMonth(4),
     source: "https://myoms.org/april-is-national-facial-protection-month-suit-up-for-spring-sports-and-outdoor-fun/",
   },
   {
@@ -166,7 +166,7 @@ export const OBSERVANCES: Observance[] = [
     name: { en: "National Dental Hygiene Month (October)" },
     angle:
       "what a dental hygienist does at a cleaning visit, step by step, or one daily habit done well (two minutes of brushing twice a day, cleaning between the teeth, water instead of sugary drinks between meals)",
-    window: month(10),
+    window: wholeMonth(10),
     source: "https://www.adha.org/ndhm",
   },
   {
@@ -187,8 +187,8 @@ export const OBSERVANCES: Observance[] = [
     countries: ["GB"],
     name: { en: "Mouth Cancer Action Month (November)" },
     angle:
-      "how to check your own mouth in about a minute (lips, cheeks, tongue, the roof of the mouth), the changes worth having checked by a dentist or doctor (a mouth ulcer that does not heal, a red or white patch, an unusual lump) and that a routine check-up includes a look for them; the campaign's message is 'if in doubt, get checked out'; calm and factual, no statistics or survival figures, no scare claims",
-    window: month(11),
+      "how to check your own mouth in about a minute (lips, cheeks, tongue, the roof of the mouth), the changes worth having checked by a dentist or doctor (a mouth ulcer that does not heal, a red or white patch, an unusual lump) and that a routine check-up includes a look for them, under the campaign's message 'if in doubt, get checked out', told calmly and factually with no statistics or survival figures and no scare claims",
+    window: wholeMonth(11),
     source: "https://www.dentalhealth.org/mouthcancer",
   },
   {
@@ -321,7 +321,7 @@ export function upcomingObservances(country: string, language: string, date: Dat
 /** The dates as the strategist sees them; an unconfirmed year is said to be approximate. */
 function when(u: Upcoming): string {
   return u.approximate
-    ? `around ${u.start}–${u.end}; the organiser has not published this year's exact dates, so name the season, never a specific date`
+    ? `around ${u.start}–${u.end}: this year's exact dates are not published yet, so name the season, never a specific date`
     : `${u.start}–${u.end}`;
 }
 
