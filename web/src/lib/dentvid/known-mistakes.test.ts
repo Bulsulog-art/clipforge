@@ -57,6 +57,16 @@ describe("known mistakes on the site", () => {
     }
   });
 
+  it("KM-13 sees the old English preview's \"strong colored\" and \"strongly colored\" (mirrored from the worker)", () => {
+    const km13 = (line: string) => scanKnownMistakes({ screen: [line] }, "en").map((h) => h.id);
+    expect(km13("Avoid strong colored foods for a day.")).toEqual(["KM-13"]);
+    expect(km13("Avoid strongly colored foods and drinks for a day or two.")).toEqual(["KM-13"]);
+    expect(km13("Avoid strong colors briefly")).toEqual(["KM-13"]);
+    expect(km13("Skip dark drinks")).toEqual([]);
+    // Naming the drinks makes it advice a patient can follow (worker accuracy.ts AFTERCARE_GUIDE's wording).
+    expect(km13("Avoid strongly coloured food and drink (coffee, tea, red wine) for the first day or two.")).toEqual([]);
+  });
+
   it("the re-rendered ES, FR and DE cards are the fixed ones", () => {
     const text = (slug: string) => EXAMPLES.find((e) => e.slug === slug)!.onScreen.join("\n");
     expect(text("limpieza-dental")).toContain("La limpieza llega al borde de la encía.");

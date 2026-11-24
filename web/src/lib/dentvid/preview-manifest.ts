@@ -6,86 +6,51 @@ export type PreviewEntry = { id: string; category?: ServiceCategory; service: st
 export const PREVIEW_MANIFEST: Record<"en" | "de" | "es" | "fr" | "tr" | "ja" | "ar" | "pl", PreviewEntry[]> = {
   "en": [
     {
-      "id": "cleaning-proper-brushing-technique",
-      "category": "cleaning",
-      "service": "Cleanings",
-      "title": "Proper Brushing Technique",
-      "seconds": 20
-    },
-    {
-      "id": "whitening-whitening-myths-debunked",
+      "id": "whitening-does-whitening-thin-your-enamel",
       "category": "whitening",
       "service": "Teeth whitening",
-      "title": "Whitening Myths Debunked",
-      "seconds": 26.9
+      "title": "Does whitening thin your enamel?",
+      "seconds": 25.2
     },
     {
-      "id": "aligners-caring-for-clear-aligners",
+      "id": "aligners-keeping-clear-aligners-fresh",
       "category": "aligners",
       "service": "Clear aligners",
-      "title": "Caring for Clear Aligners",
-      "seconds": 20.5
-    },
-    {
-      "id": "children-the-right-way-to-care-for-your-kid-s-teeth",
-      "category": "children",
-      "service": "Children's dentistry",
-      "title": "The Right Way to Care for Your Kid's Teeth",
+      "title": "Keeping clear aligners fresh",
       "seconds": 22
     },
     {
-      "id": "aligners-are-your-clear-aligners-getting-dirty",
-      "category": "aligners",
-      "service": "Clear aligners",
-      "title": "Are Your Clear Aligners Getting Dirty?",
-      "seconds": 20
-    },
-    {
-      "id": "whitening-whitening-myths-busted",
-      "category": "whitening",
-      "service": "Teeth whitening",
-      "title": "Whitening Myths Busted",
-      "seconds": 23
+      "id": "cleaning-brushing-the-spots-most-people-miss",
+      "category": "cleaning",
+      "service": "Cleanings and exams",
+      "title": "Brushing the spots most people miss",
+      "seconds": 27.4
     }
   ],
   "de": [
     {
-      "id": "aligners-wie-aligner-wirklich-funktionieren",
+      "id": "aligners-warum-aligner-sich-verfaerben",
       "category": "aligners",
-      "service": "Aligner-Behandlung",
-      "title": "Wie Aligner wirklich funktionieren",
-      "seconds": 29
+      "service": "Aligner-Therapie",
+      "title": "Warum Aligner sich verfärben",
+      "seconds": 28.4
     },
     {
-      "id": "aligners-aligner-richtig-pflegen",
-      "category": "aligners",
-      "service": "Aligner-Behandlung",
-      "title": "Aligner richtig pflegen",
-      "seconds": 27
+      "id": "whitening-bleaching-und-zahnschmelz",
+      "category": "whitening",
+      "service": "Bleaching",
+      "title": "Bleaching und Zahnschmelz",
+      "seconds": 27.7
     },
     {
-      "id": "children-kinderzahnheilkunde-zahnarztangst-vermeiden",
+      "id": "children-kind-ruhig-auf-den-zahnarztbesuch-vorbereiten",
       "category": "children",
       "service": "Kinderzahnheilkunde",
-      "title": "Kinderzahnheilkunde: Zahnarztangst vermeiden",
-      "seconds": 25.3
-    },
-    {
-      "id": "cleaning-regelma-ige-reinigung-verlangert-zahngesundheit",
-      "category": "cleaning",
-      "service": "Professionelle Zahnreinigung",
-      "title": "Regelmäßige Reinigung verlängert Zahngesundheit",
-      "seconds": 26
+      "title": "Ihr Kind ruhig auf den Zahnarztbesuch vorbereiten",
+      "seconds": 29.7
     }
   ],
   "es": [
-    {
-      "id": "children-cuidado-de-dientes-en-ninos",
-      "category": "children",
-      "service": "Odontopediatría",
-      "title": "Cuidado de dientes en niños",
-      "seconds": 22
-    },
     {
       "id": "gum-tratamiento-de-encias-sensible",
       "category": "gum",
@@ -116,13 +81,6 @@ export const PREVIEW_MANIFEST: Record<"en" | "de" | "es" | "fr" | "tr" | "ja" | 
     }
   ],
   "fr": [
-    {
-      "id": "cleaning-detartrage",
-      "category": "cleaning",
-      "service": "Détartrage",
-      "title": "Détartrage",
-      "seconds": 34.7
-    },
     {
       "id": "whitening-blanchiment-dentaire",
       "category": "whitening",
@@ -224,12 +182,6 @@ export const PREVIEW_MANIFEST: Record<"en" | "de" | "es" | "fr" | "tr" | "ja" | 
       "service": "小児歯科",
       "title": "仕上げみがきは何歳まで？",
       "seconds": 38
-    },
-    {
-      "id": "general-tsumetai-mono-de-shimiru",
-      "service": "知覚過敏",
-      "title": "冷たい物でしみる時",
-      "seconds": 34.3
     },
     {
       "id": "general-tsuyoku-migaku-kuse",
