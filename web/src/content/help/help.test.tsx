@@ -210,8 +210,97 @@ describe("help: how a video is checked, with its sources", () => {
     expect(answer(l).a.split("\n\n")).toHaveLength(4);
   });
 
-  it.each(LOCALES)("%s: names the clinical bodies the aftercare rules rest on", (l) => {
+  it.each(LOCALES)("%s: names the clinical bodies whose pages the aftercare rules were compared with", (l) => {
     for (const name of ["NHS", "ADA", "Oral Health Foundation", "AAO"]) expect(answer(l).a, name).toContain(name);
+  });
+
+  /**
+   * The rules came first and the pages were looked up for them, and for some
+   * rules the pages say less (lib/dentvid/clinical-sources.ts `gap`). So the
+   * answer and the list heading say the rules were compared with the pages,
+   * never that they agree with them or rest on them.
+   */
+  const COMPARED: Record<Locale, { says: RegExp; heading: RegExp; not: RegExp }> = {
+    en: { says: /aftercare rules were compared with the patient pages of the NHS/, heading: /^Patient pages we compared the aftercare rules with$/, not: /agree with|based on|rest on|behind the/i },
+    de: { says: /Regeln zur Nachsorge wurden mit den unten aufgeführten Patientenseiten .* verglichen\./, heading: /^Patientenseiten, mit denen wir die Nachsorge-Regeln verglichen haben/, not: /überein|hinter den|beruhen/ },
+    es: { says: /reglas de cuidados posteriores se compararon con las páginas para pacientes del NHS/, heading: /^Páginas para pacientes con las que comparamos las reglas/, not: /coinciden|se basan/ },
+    tr: { says: /aşağıda listelenen hasta sayfalarıyla karşılaştırıldı\./, heading: /^Tedavi sonrası bakım kurallarını karşılaştırdığımız hasta sayfaları/, not: /örtüşür|dayan/ },
+    fr: { says: /suites de soins ont été comparées aux pages patients du NHS/, heading: /^Pages patients auxquelles nous avons comparé les règles de suivi/, not: /concordent|reposent/ },
+    ja: { says: /患者向けページと照合しました。/, heading: /^術後ケアのルールと照合した患者向けページ/, not: /一致して|根拠/ },
+    ar: { says: /وقد قورنت قواعده الخاصة بالعناية بعد العلاج بصفحات المرضى/, heading: /^صفحات المرضى التي قارنّا بها قواعد العناية بعد العلاج/, not: /تتفق|تستند/ },
+    pl: { says: /zasady postępowania po zabiegach porównaliśmy ze stronami dla pacjentów NHS/, heading: /^Strony dla pacjentów, z którymi porównaliśmy zasady/, not: /są zgodne|opiera/ },
+  };
+
+  it.each(LOCALES)("%s: says the aftercare rules were compared with the pages, and claims no more", (l) => {
+    const c = COMPARED[l];
+    expect(answer(l).a).toMatch(c.says);
+    expect(HELP[l].checkSources.clinical).toMatch(c.heading);
+    for (const text of [answer(l).q, answer(l).a, HELP[l].checkSources.clinical]) expect(text).not.toMatch(c.not);
+  });
+
+  it("the wording check is not a no-op: the earlier claims fail it", () => {
+    expect("Its aftercare rules agree with the patient pages of the NHS").toMatch(COMPARED.en.not);
+    expect("Patient pages behind the aftercare rules").toMatch(COMPARED.en.not);
+    expect("Tedavi sonrası bakım kurallarının dayandığı hasta sayfaları").toMatch(COMPARED.tr.not);
+    expect("術後ケアのルールの根拠となる患者向けページ").toMatch(COMPARED.ja.not);
+  });
+
+  /**
+   * Some of the ad checker's sources are a body's home page or a court notice,
+   * not a text on health advertising: the answer calls them official sources.
+   */
+  const OFFICIAL: Record<Locale, { list: RegExp; heading: string; not: RegExp }> = {
+    en: { list: /The list names the official sources for each country/, heading: "Official sources by country", not: /official texts/i },
+    de: { list: /Die Liste nennt die offiziellen Quellen für jedes Land/, heading: "Offizielle Quellen nach Land", not: /amtliche|Texte (jedes|nach)/i },
+    es: { list: /La lista recoge las fuentes oficiales de cada país/, heading: "Fuentes oficiales por país", not: /textos oficiales/i },
+    tr: { list: /Listede her ülke için resmî kaynaklar yer alır/, heading: "Ülkelere göre resmî kaynaklar", not: /resmî metin/ },
+    fr: { list: /La liste indique les sources officielles de chaque pays/, heading: "Sources officielles par pays", not: /textes officiels/i },
+    ja: { list: /一覧には、各国の公式な情報源を挙げています/, heading: "国別の公式情報源", not: /公的な文書/ },
+    ar: { list: /وتذكر القائمة المصادر الرسمية لكل بلد/, heading: "المصادر الرسمية حسب البلد", not: /النصوص الرسمية/ },
+    pl: { list: /Lista podaje oficjalne źródła dla każdego kraju/, heading: "Oficjalne źródła według kraju", not: /teksty urzędowe/i },
+  };
+
+  it.each(LOCALES)("%s: calls the country list official sources, not official texts on health advertising", (l) => {
+    const o = OFFICIAL[l];
+    expect(answer(l).a).toMatch(o.list);
+    expect(HELP[l].checkSources.advertising).toBe(o.heading);
+    for (const text of [answer(l).a, HELP[l].checkSources.advertising]) expect(text).not.toMatch(o.not);
+  });
+
+  /**
+   * Script, caption and rewrite: true for the videos we write (dental/week.ts).
+   * A recorded clip is checked on the dentist's spoken words only, its caption
+   * is not reviewed, and nothing is rewritten (dental/recording.ts).
+   */
+  const WRITTEN: Record<Locale, RegExp> = {
+    en: /^Before you see one of the videos we write for you, software checks its script and caption twice\./,
+    de: /^Bevor Sie eines der Videos sehen, die wir für Sie schreiben, prüft Software/,
+    es: /^Antes de que veas uno de los vídeos que escribimos para ti, un software revisa/,
+    tr: /^Sizin için yazdığımız videolardan birini görmeden önce yazılım/,
+    fr: /^Avant que vous ne voyiez l'une des vidéos que nous écrivons pour vous, un logiciel vérifie/,
+    ja: /^こちらで原稿を書く動画は、ご覧いただく前に/,
+    ar: /^قبل أن تروا أي فيديو نكتبه لكم، يفحص البرنامج/,
+    pl: /^Zanim zobaczą Państwo jeden z filmów, które dla Państwa piszemy, program/,
+  };
+  const RECORDED: Record<Locale, RegExp> = {
+    en: /Clips cut from your own recordings get the same two checks on what you say, but your words are never changed: anything worth a second look is marked\./,
+    de: /Clips aus Ihren eigenen Aufnahmen durchlaufen dieselben beiden Prüfungen .*, aber Ihre Worte werden nie verändert/,
+    es: /Los clips de tus propias grabaciones pasan las mismas dos revisiones .*, pero tus palabras nunca se cambian/,
+    tr: /Kendi kayıtlarınızdan hazırlanan klipler .* aynı iki kontrolden geçer, ancak sözleriniz asla değiştirilmez/,
+    fr: /Les extraits tirés de vos propres enregistrements passent les deux mêmes contrôles .*, mais vos mots ne sont jamais modifiés/,
+    ja: /ご自身の撮影映像から作るクリップも.*同じ2つのチェックを行いますが、言葉が変えられることはありません/,
+    ar: /أما المقاطع المأخوذة من تسجيلاتكم فتمر بالفحصين نفسيهما .*، لكن كلماتكم لا تُغيَّر أبداً/,
+    pl: /Klipy z Państwa własnych nagrań przechodzą te same dwie kontrole .*, ale Państwa słowa nigdy nie są zmieniane/,
+  };
+
+  it.each(LOCALES)("%s: promises script, caption and rewrite only for the videos we write; recorded clips are checked on what was said, never changed", (l) => {
+    const paragraphs = answer(l).a.split("\n\n");
+    expect(paragraphs[0]).toMatch(WRITTEN[l]);
+    expect(paragraphs[3]).toMatch(RECORDED[l]);
+  });
+
+  it("the scope check is not a no-op: the earlier opening, which covered every video, fails it", () => {
+    expect("Before you see a video, software checks its script and caption twice.").not.toMatch(WRITTEN.en);
   });
 
   it("claims no compliance, guarantee or dentist's approval, and uses no dash as punctuation", () => {

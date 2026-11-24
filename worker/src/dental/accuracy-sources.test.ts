@@ -1,7 +1,7 @@
 import { createHash } from "node:crypto";
 import { describe, expect, it } from "vitest";
 import type OpenAI from "openai";
-import { AFTERCARE_GUIDE, AFTERCARE_SOURCES, reviewAccuracy, type AftercareRuleId } from "./accuracy.js";
+import { AFTERCARE_GUIDE, AFTERCARE_SOURCES, reviewAccuracy, type AftercareRuleId, type ClinicalSource } from "./accuracy.js";
 
 /**
  * The public pages behind the clinical reviewer's aftercare rules
@@ -83,6 +83,40 @@ describe("AFTERCARE_SOURCES: a public source for every aftercare rule", () => {
       const u = new URL(url);
       expect(u.protocol === "https:" && ALLOWED_HOSTS.includes(u.hostname), url).toBe(false);
     }
+  });
+});
+
+describe("AFTERCARE_SOURCES: says how far each rule's pages go", () => {
+  /**
+   * Measured on 2026-11-24 by reading every page against its rule: for these
+   * three rules no page says all the rule says (how long to avoid chewing
+   * after a root canal, that a routine cleaning needs no special care, how
+   * long to avoid coloured drinks after whitening). A rule like that names
+   * what its pages leave out; a rule its pages fully back names nothing.
+   */
+  const PARTLY: AftercareRuleId[] = ["root-canal", "professional-cleaning", "whitening"];
+
+  it("a rule its pages back only in part says what they leave out, and no other rule has a gap", () => {
+    for (const [id, r] of RULES) {
+      if (PARTLY.includes(id)) expect(r.gap?.trim().length ?? 0, id).toBeGreaterThan(40);
+      else expect(r.gap, id).toBeUndefined();
+    }
+  });
+
+  it("the temporary-filling note keeps the page's own time limit, and the gap says the rule goes further", () => {
+    const rc = AFTERCARE_SOURCES["root-canal"];
+    const ohf = rc.sources.find((s) => s.url === "https://www.dentalhealth.org/temporary-fillings");
+    expect(ohf?.supports).toContain("for a few hours after placement");
+    expect(rc.gap).toContain("until the permanent restoration");
+  });
+
+  it("professional cleaning is compared with a page on cleaning, not with one on deep cleaning", () => {
+    const deep = (s: Pick<ClinicalSource, "title" | "url">) => /scaling|root.planing|deep.clean/i.test(`${s.title} ${s.url}`);
+    // The check catches the deep-cleaning page that was listed for this rule before the review.
+    expect(deep({ title: "Scaling and Root Planing for Gum Disease", url: "https://www.mouthhealthy.org/all-topics-a-z/scaling-and-root-planing" })).toBe(true);
+    const cleaning = AFTERCARE_SOURCES["professional-cleaning"].sources;
+    expect(cleaning.length).toBeGreaterThan(0);
+    for (const s of cleaning) expect(deep(s), s.url).toBe(false);
   });
 });
 

@@ -12,21 +12,24 @@ import { CLINICAL_CHECKED, CLINICAL_SOURCE_LIST } from "@/lib/dentvid/clinical-s
  * both software checks, as links, folded so the answer stays short on a phone.
  *
  * - Clinical: the public patient pages the clinical reviewer's aftercare rules
- *   agree with (lib/dentvid/clinical-sources.ts, a copy of the worker's list).
+ *   were compared with (lib/dentvid/clinical-sources.ts, a copy of the worker's
+ *   list). Some say less than their rule; the copy says "compared with", never
+ *   "based on" or "agree with".
  * - Advertising: only the countries whose own rules the reviewer is given
  *   (content/dentvideo-showcase.ts RULE_MARKETS, kept in step with the worker),
- *   each with the official texts the free ad checker cites for it
+ *   each with the official sources the free ad checker cites for it (some are
+ *   a body's home page or a court notice rather than a legal text)
  *   (content/dentvideo-checker.ts). A country the reviewer has no rules for is
  *   not listed, even when the ad checker knows it.
  */
 
-/** One country in the advertising list: its name, its official texts, or the rule's name where we link none. */
+/** One country in the advertising list: its name, its official sources, or the rule's name where we link none. */
 export type CheckMarket = { code: RuleMarket["code"]; name: string; sources: Source[]; rule?: string };
 
 /** The countries with their own rules in the advertising check, the page's own first. */
 export function checkMarkets(locale: Locale): CheckMarket[] {
   return ruleMarketsFor(locale).map((m) => {
-    // The Gulf rules are one set for six states; the checker has official texts for two of them.
+    // The Gulf rules are one set for six states; the checker has official sources for two of them.
     // Singapore has rules in the reviewer but no page on the checker: its rule's name is shown instead.
     const keys = m.code === "GULF" ? [...MARKET_SOURCES.AE, ...MARKET_SOURCES.SA] : isCheckerMarket(m.code) ? MARKET_SOURCES[m.code] : [];
     const sources = keys.map((k) => CHECKER_SOURCES[k]);

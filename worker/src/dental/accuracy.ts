@@ -108,11 +108,14 @@ export type AftercareRuleId =
   | "whitening";
 
 /**
- * Where each line of AFTERCARE_GUIDE comes from: public patient pages of
- * national dental bodies, each one fetched and read against its rule on the
- * `checked` day. A page that could not be fetched, or did not say what the
- * rule says, was left out. `line` is a phrase from the guide line it backs
- * (accuracy-sources.test.ts ties every guide line to exactly one entry).
+ * The public patient pages each line of AFTERCARE_GUIDE was compared with:
+ * pages of national dental bodies, each one fetched and read against its rule
+ * on the `checked` day. A page that could not be fetched was left out. The
+ * rules came first and the pages were looked up for them afterwards, so a page
+ * can say less than its rule: `supports` records what the page itself says,
+ * and `gap` what none of the rule's pages say. `line` is a phrase from the
+ * guide line the entry belongs to (accuracy-sources.test.ts ties every guide
+ * line to exactly one entry).
  *
  * Not part of the prompt: AFTERCARE_GUIDE and SYSTEM stay as they are, because
  * a change there changes what the reviewer flags and needs a bench run first.
@@ -121,7 +124,15 @@ export type AftercareRuleId =
  * web/src/lib/dentvid/clinical-sources.ts (the web app cannot import the
  * worker); web/src/lib/dentvid/clinical-sources.test.ts keeps them the same.
  */
-export const AFTERCARE_SOURCES: Record<AftercareRuleId, { line: string; sources: readonly ClinicalSource[] }> = {
+export const AFTERCARE_SOURCES: Record<
+  AftercareRuleId,
+  {
+    line: string;
+    sources: readonly ClinicalSource[];
+    /** What the rule says that none of its pages say. Absent when the pages say all of it. */
+    gap?: string;
+  }
+> = {
   extraction: {
     line: "extractions and implant surgery:",
     sources: [
@@ -167,10 +178,11 @@ export const AFTERCARE_SOURCES: Record<AftercareRuleId, { line: string; sources:
         body: "Oral Health Foundation",
         title: "Temporary Fillings Explained",
         url: "https://www.dentalhealth.org/temporary-fillings",
-        supports: "Temporary fillings are more fragile than permanent ones: avoid chewing on that side and avoid hard, sticky or chewy food.",
+        supports: "Temporary fillings are more fragile than permanent ones: avoid chewing on that side for a few hours after placement, and avoid hard, sticky or chewy food. The page is about temporary fillings in general, not root canals.",
         checked: "2026-11-24",
       },
     ],
+    gap: "Neither page says to avoid chewing on that side until the permanent restoration: the ADA page gives no chewing advice, and the Oral Health Foundation says a few hours after the temporary filling is placed.",
   },
   "clear-aligners": {
     line: "→ clear aligners",
@@ -214,13 +226,14 @@ export const AFTERCARE_SOURCES: Record<AftercareRuleId, { line: string; sources:
     line: "professional cleaning:",
     sources: [
       {
-        body: "American Dental Association",
-        title: "Scaling and Root Planing for Gum Disease",
-        url: "https://www.mouthhealthy.org/all-topics-a-z/scaling-and-root-planing",
-        supports: "After a deep cleaning, gums may be tender and teeth sensitive for a short time (the page covers deep cleaning, the strongest kind).",
+        body: "NHS",
+        title: "Dental treatments",
+        url: "https://www.nhs.uk/live-well/healthy-teeth-and-gums/dental-treatments/",
+        supports: "A scale and polish is the hygienist carefully removing the plaque and tartar that build up on the teeth; the page gives no aftercare for it.",
         checked: "2026-11-24",
       },
     ],
+    gap: "No page found says in so many words that a routine cleaning needs no special care afterwards, or that gums can be a little tender. The ADA page on scaling and root planing is about deep cleaning, a different procedure with more aftercare, so it is not listed.",
   },
   whitening: {
     line: "whitening:",
@@ -240,5 +253,6 @@ export const AFTERCARE_SOURCES: Record<AftercareRuleId, { line: string; sources:
         checked: "2026-11-24",
       },
     ],
+    gap: "Neither page gives a time, such as the first day or two, for avoiding coloured food and drink after whitening: both name coffee, tea and red wine as stains.",
   },
 };
