@@ -11,9 +11,12 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { LOCALES, type Locale } from "@/content/dentvideo";
 import { APP_TEXT, countText, fmt } from "@/content/dentvideo-app";
 import { Library, NextStep, type LibraryItem } from "./library";
-import { DeclineForm, PostPanel, ReviewPanel, postText } from "./review-player";
+import { CHANGE_INSTEAD_REASONS, DeclineForm, PostPanel, ReviewPanel, ReviewPlayer, canAskChange, postText } from "./review-player";
 import { POSTING_TEXT } from "@/content/dentvideo-posting";
 import { REASON_TEXT } from "@/content/dentvideo-reasons";
+import { REQUESTS_TEXT } from "@/content/dentvideo-requests";
+import { REVIEW_TEXT } from "@/content/dentvideo-review";
+import { DECLINE_REASONS } from "@/lib/dentvid/app-ui";
 
 (globalThis as { React?: typeof React }).React = React;
 
@@ -295,5 +298,246 @@ describe("the bulk approve button reads naturally for any count", () => {
     expect(new Set([one, two, five]).size).toBe(3);
     expect(one).not.toMatch(/\d/);
     expect(five).toContain("5");
+  });
+});
+
+/* ------------------------------------------------ fixing a video without losing it */
+
+/** The interactive controls in DOM order, each by its accessible name (aria-label, else its text). */
+function controls(h: string): string[] {
+  const re = /<(button|a|summary|textarea)\b([^>]*)>([\s\S]*?)<\/\1>|<input\b([^>]*?)\/?>/g;
+  return [...h.matchAll(re)].map((m) => {
+    const attrs = m[2] ?? m[4] ?? "";
+    const label = /aria-label="([^"]*)"/.exec(attrs)?.[1];
+    const text = (m[3] ?? "").replace(/<[^>]+>/g, "").trim();
+    return label ?? (text || /value="([^"]*)"/.exec(attrs)?.[1] || m[1] || "input");
+  });
+}
+
+/** What a component renders, as React elements (its own hooks run inside a render), so a handler can be called. */
+function treeOf(render: () => React.ReactNode): React.ReactNode {
+  let out: React.ReactNode = null;
+  function Spy() {
+    out = render();
+    return <>{out}</>;
+  }
+  renderToStaticMarkup(<Spy />);
+  return out;
+}
+type Props = { children?: React.ReactNode; onClick?: () => void; className?: string };
+function textOf(n: React.ReactNode): string {
+  if (typeof n === "string" || typeof n === "number") return String(n);
+  if (Array.isArray(n)) return n.map(textOf).join("");
+  return React.isValidElement(n) ? textOf((n.props as Props).children) : "";
+}
+function buttonsIn(n: React.ReactNode, out: React.ReactElement<Props>[] = []): React.ReactElement<Props>[] {
+  if (Array.isArray(n)) n.forEach((c) => buttonsIn(c, out));
+  else if (React.isValidElement<Props>(n)) {
+    if (n.type === "button") out.push(n);
+    buttonsIn(n.props.children, out);
+  }
+  return out;
+}
+const buttonNamed = (tree: React.ReactNode, name: string) => buttonsIn(tree).find((b) => textOf(b.props.children).includes(name));
+
+/** A fake share (useSaveAndCopy) in a given state: an "ok" note is what a successful save or share leaves. */
+const shareIn = (note: { kind: "ok" | "error"; text: string } | null) => ({ method: "download" as const, busy: false, again: false, note, run: async () => {}, download: async () => {} });
+
+const photos = { suggested: ["a", "b"], chosen: [] as string[] };
+
+describe("ask for a change inside the review player", () => {
+  const panel = (l: Locale, it: LibraryItem, extra: Partial<React.ComponentProps<typeof ReviewPanel>> = {}) =>
+    html(<ReviewPanel locale={l} item={it} queue={[it]} index={0} onIndex={() => {}} decide={noop} posted={false} onPosted={() => {}} {...extra} />);
+
+  it.each(LOCALES)("%s: the open dialog offers it for review, look and approved videos with photos", (l: Locale) => {
+    const ask = REQUESTS_TEXT[l].change.button;
+    const t = APP_TEXT[l].library;
+    for (const it of [item({ photos }), item({ photos, status: "flagged", reasons: ["pause"] }), item({ photos, approval: "approved" })]) {
+      const h = html(<ReviewPlayer locale={l} queue={[it, item({ photos })]} index={0} onIndex={() => {}} onClose={() => {}} decide={noop} posted={{}} onPosted={() => {}} />);
+      const c = controls(h);
+      expect(c, it.approval).toContain(ask);
+      expect(c).toContain(t.close);
+      expect(c).toContain(t.review.next);
+    }
+  });
+
+  it("in review it sits right under the Decline / Approve row; once approved, under the posted tick and before More options", () => {
+    const t = APP_TEXT.en.library;
+    const ask = REQUESTS_TEXT.en.change.button;
+    const review = controls(panel("en", item({ photos })));
+    expect(review.indexOf(ask)).toBe(review.indexOf(t.approve) + 1);
+    expect(review.indexOf(t.decline)).toBe(review.indexOf(t.approve) - 1);
+    const approved = controls(panel("en", item({ photos, approval: "approved" })));
+    expect(approved.indexOf(ask)).toBeGreaterThan(approved.indexOf(t.post.markPosted));
+    expect(approved.indexOf(ask)).toBeLessThan(approved.indexOf(REVIEW_TEXT.en.moreOptions));
+  });
+
+  it("is not offered without photos (a recording, an older video), while photos are being updated, while a change runs, or right after one was asked here", () => {
+    const ask = REQUESTS_TEXT.en.change.button;
+    const at = new Date().toISOString();
+    const none = [
+      item(),
+      item({ kind: "recording", approval: "approved" }),
+      item({ photos: { ...photos, status: "queued" } }),
+      item({ photos, change: { status: "working", reason: null, at } }),
+      item({ photos, change: { status: "queued", reason: null, at }, approval: "approved" }),
+    ];
+    for (const it of none) expect(controls(panel("en", it)), JSON.stringify(it.change ?? it.photos ?? it.kind)).not.toContain(ask);
+    // Asked for a minute ago in this open player: it reads as requested, and cannot be asked twice.
+    const h = panel("en", item({ photos }), { changeQueued: true });
+    expect(controls(h)).not.toContain(ask);
+    expect(h).toContain(REQUESTS_TEXT.en.change.status.queued);
+  });
+
+  it("a running change is named in the player, the way the card names it", () => {
+    const h = panel("en", item({ photos, change: { status: "working", reason: null, at: new Date().toISOString() } }));
+    expect(h).toContain(REQUESTS_TEXT.en.change.status.working);
+  });
+
+  it("uses exactly the library card's rule (same answer as the card, case by case)", () => {
+    const at = new Date().toISOString();
+    const cases: LibraryItem[] = [
+      item({ photos }),
+      item({ photos, status: "flagged", reasons: ["pause"] }),
+      item({ photos, approval: "approved" }),
+      item({ photos, approval: "rejected" }),
+      item(),
+      item({ photos, videoUrl: undefined }),
+      item({ photos, status: "working", videoUrl: undefined }),
+      item({ photos, status: "failed", videoUrl: undefined }),
+      item({ photos: { ...photos, status: "queued" } }),
+      item({ photos: { ...photos, status: "failed" } }),
+      item({ photos, change: { status: "queued", reason: null, at } }),
+      item({ photos, change: { status: "working", reason: null, at } }),
+      item({ photos, change: { status: "done", reason: null, at } }),
+      item({ photos, change: { status: "refused", reason: "checks", at } }),
+      item({ photos, change: { status: "failed", reason: "technical", at } }),
+    ];
+    const ask = REQUESTS_TEXT.en.change.button;
+    for (const it of cases) {
+      const card = html(<Library locale="en" items={[it]} canStartWeek={false} currentWeek={WEEK} />).includes(ask);
+      expect(canAskChange(it), JSON.stringify({ a: it.approval, s: it.status, p: it.photos?.status, c: it.change?.status, v: !!it.videoUrl })).toBe(card);
+    }
+    expect(cases.filter((c) => canAskChange(c)).length).toBeGreaterThan(3);
+  });
+});
+
+describe("decline, or keep the video and ask for a change", () => {
+  const f = APP_TEXT.en.library.declineForm;
+  const rv = REVIEW_TEXT.en;
+  const note = "The second sentence says three times a day. We say twice.";
+  const offer = (l: Locale, onChoose: (reason: string, words: string) => void = () => {}) => ({ text: REVIEW_TEXT[l], onChoose });
+
+  it.each(LOCALES)("%s: for 'wrong' and 'look' the first offer is a change that keeps the video; declining stays, as the second choice", (l: Locale) => {
+    const t = APP_TEXT[l].library.declineForm;
+    const r = REVIEW_TEXT[l];
+    for (const reason of CHANGE_INSTEAD_REASONS) {
+      const h = html(<DeclineForm t={t} busy={false} initial={{ reason, words: note }} onCancel={() => {}} onSubmit={() => {}} changeInstead={offer(l)} />);
+      const c = controls(h);
+      expect(c).toContain(r.changeInstead);
+      expect(h).toContain(r.changeInsteadHint);
+      // The change comes before the decline, and is the one primary button.
+      expect(c.indexOf(r.changeInstead)).toBeLessThan(c.indexOf(t.submit));
+      expect(h).toMatch(new RegExp(`class="dv-btn dv-btn-primary[^"]*"[^>]*>(<svg[\\s\\S]*?</svg>)?${r.changeInstead.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}`));
+      expect(h).toMatch(/<button type="submit"[^>]*class="dv-btn flex-1[^"]*dv-btn-secondary/);
+      expect(h.match(/dv-btn-primary/g)).toHaveLength(1);
+    }
+  });
+
+  it("the typed note is carried over, with the reason", () => {
+    const onChoose = vi.fn();
+    const onSubmit = vi.fn();
+    const tree = treeOf(() => DeclineForm({ t: f, busy: false, initial: { reason: "wrong", words: note }, onCancel: () => {}, onSubmit, changeInstead: offer("en", onChoose) }));
+    buttonNamed(tree, rv.changeInstead)!.props.onClick!();
+    expect(onChoose).toHaveBeenCalledWith("wrong", note);
+    expect(onSubmit).not.toHaveBeenCalled();
+  });
+
+  it("is not offered for the other reasons, with no reason yet, or where the video cannot be changed (no handler: the library card, no photos)", () => {
+    for (const reason of DECLINE_REASONS.filter((r) => !CHANGE_INSTEAD_REASONS.includes(r))) {
+      const h = html(<DeclineForm t={f} busy={false} initial={{ reason, words: note }} onCancel={() => {}} onSubmit={() => {}} changeInstead={offer("en")} />);
+      expect(h).not.toContain(rv.changeInstead);
+      expect(h).toMatch(/<button type="submit"[^>]*class="dv-btn flex-1[^"]*dv-btn-primary/);
+    }
+    expect(html(<DeclineForm t={f} busy={false} onCancel={() => {}} onSubmit={() => {}} changeInstead={offer("en")} />)).not.toContain(rv.changeInstead);
+    expect(html(<DeclineForm t={f} busy={false} initial={{ reason: "wrong", words: note }} onCancel={() => {}} onSubmit={() => {}} />)).not.toContain(rv.changeInstead);
+  });
+
+  it("reopened, the decline form keeps the chosen reason and the words", () => {
+    const h = html(<DeclineForm t={f} busy={false} initial={{ reason: "look", words: note }} onCancel={() => {}} onSubmit={() => {}} />);
+    expect(h).toMatch(/checked="" value="look"/);
+    expect(h.match(/checked=""/g)).toHaveLength(1);
+    expect(h).toContain(`>${note}</textarea>`);
+  });
+
+  it.each(LOCALES)("%s: the decline copy promises only what happens (the team reads it, next week's planning sees it), never an email or a reply", (l: Locale) => {
+    const t = APP_TEXT[l].library.declineForm;
+    for (const s of [t.lead, t.done, REVIEW_TEXT[l].changeInstead, REVIEW_TEXT[l].changeInsteadHint]) {
+      expect(s).not.toMatch(/mail|メール|بريد|correo|courriel|e-posta|reply|respond|antworten wir|responderemos|répondrons|yanıtlayacağız|odpowiemy|返信|سنرد/i);
+      expect(s).not.toMatch(/[–—!]/);
+    }
+  });
+});
+
+describe("the post sheet: the posted tick in reach", () => {
+  it.each(LOCALES)("%s: 'Mark as posted' and 'Next video' are the next controls after the save / share button", (l: Locale) => {
+    const p = APP_TEXT[l].library.post;
+    const ps = POSTING_TEXT[l];
+    const a = item({ approval: "approved", photos, subtitles: true });
+    const c = controls(html(<PostPanel locale={l} item={a} posted={false} onPosted={() => {}} slot="Tue 12:30" onNext={() => {}} />));
+    const primary = c.indexOf(ps.downloadAndCopy);
+    expect(primary).toBeGreaterThanOrEqual(0);
+    expect(c[primary + 1]).toBe(p.markPosted);
+    expect(c[primary + 2]).toContain(ps.nextVideo);
+  });
+
+  it.each(LOCALES)("%s: subtitles, the caption tabs and the app steps fold into 'More options'", (l: Locale) => {
+    const p = { ...APP_TEXT[l].library.post, ...REVIEW_TEXT[l] };
+    const a = item({ approval: "approved", subtitles: true });
+    const h = html(<PostPanel locale={l} item={a} posted={false} onPosted={() => {}} />);
+    const open = h.indexOf("<details");
+    const close = h.indexOf("</details>");
+    expect(open).toBeGreaterThan(h.indexOf(p.markPosted));
+    expect(h.slice(open, close)).toMatch(new RegExp(`<summary[^>]*>${p.moreOptions.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}`));
+    const inside = h.slice(open, close);
+    expect(inside).toContain(`/api/dentvideo/items/${a.id}/subtitles?format=srt`);
+    expect(inside.match(/role="tab"/g)).toHaveLength(6);
+    expect(inside).toContain(p.tipsTitle);
+    expect(inside).toContain(p.format);
+    // Folded until opened, and nothing of it before the tick.
+    expect(h).not.toMatch(/<details[^>]*open/);
+    expect(h.slice(0, open)).not.toContain('role="tab"');
+  });
+
+  it.each(LOCALES)("%s: after a successful save or share it asks 'Posted it?', and yes ticks it", (l: Locale) => {
+    const p = { ...APP_TEXT[l].library.post, ...REVIEW_TEXT[l] };
+    const ps = POSTING_TEXT[l];
+    const a = item({ approval: "approved" });
+    const share = shareIn({ kind: "ok", text: ps.downloadedHint });
+    const h = html(<PostPanel locale={l} item={a} posted={false} onPosted={() => {}} share={share} />);
+    expect(h).toContain(p.postedPrompt);
+    const c = controls(h);
+    expect(c[c.indexOf(ps.downloadAndCopy) + 1]).toBe(p.postedYes);
+    expect(c).not.toContain(p.markPosted);
+    // The question is the one primary now; the share button steps back.
+    expect(h.match(/dv-btn-primary/g)).toHaveLength(1);
+    const onPosted = vi.fn();
+    const tree = treeOf(() => PostPanel({ locale: l, item: a, posted: false, onPosted, share }));
+    buttonNamed(tree, p.postedYes)!.props.onClick!();
+    expect(onPosted).toHaveBeenCalledWith(true);
+  });
+
+  it("no question before sharing, after a failed share, or once it is ticked", () => {
+    const p = { ...APP_TEXT.en.library.post, ...REVIEW_TEXT.en };
+    const a = item({ approval: "approved" });
+    expect(html(<PostPanel locale="en" item={a} posted={false} onPosted={() => {}} share={shareIn(null)} />)).not.toContain(p.postedPrompt);
+    expect(html(<PostPanel locale="en" item={a} posted={false} onPosted={() => {}} share={shareIn({ kind: "error", text: "no" })} />)).not.toContain(p.postedPrompt);
+    const ticked = html(<PostPanel locale="en" item={a} posted onPosted={() => {}} share={shareIn({ kind: "ok", text: "ok" })} />);
+    expect(ticked).not.toContain(p.postedPrompt);
+    expect(ticked).toContain('aria-pressed="true"');
+    // Before sharing the tick is a toggle that undoes too.
+    const onPosted = vi.fn();
+    buttonNamed(treeOf(() => PostPanel({ locale: "en", item: a, posted: true, onPosted, share: shareIn(null) })), p.posted)!.props.onClick!();
+    expect(onPosted).toHaveBeenCalledWith(false);
   });
 });

@@ -1,10 +1,12 @@
 "use client";
 
 import { useEffect, useId, useRef, useState } from "react";
-import { AlertTriangle, CalendarClock, Check, ChevronLeft, ChevronRight, CircleCheck, Download, Loader2, RotateCcw, Share2, X } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { AlertTriangle, CalendarClock, Check, ChevronLeft, ChevronRight, CircleCheck, Download, Loader2, PencilLine, RotateCcw, Share2, X } from "lucide-react";
 import { dirOf, type Locale } from "@/content/dentvideo";
 import { appText, fmt, type AppText } from "@/content/dentvideo-app";
 import { postingText } from "@/content/dentvideo-posting";
+import { reviewText, type ReviewText } from "@/content/dentvideo-review";
 import { reasonText } from "@/content/dentvideo-reasons";
 import { capHashtags, postTexts, type PostTexts } from "@/lib/dentvid/posting";
 import { CaptionTabs, useSaveAndCopy } from "./share-kit";
@@ -24,14 +26,15 @@ import {
   type PostPlatform,
 } from "@/lib/dentvid/app-ui";
 import type { LibraryItem } from "./library";
-import { SubtitlesLink } from "./clinic-requests";
+import { ChangeNote, ChangeRequest, SubtitlesLink, type ChangeView } from "./clinic-requests";
 
 /**
  * The Monday review, on a phone: one big vertical player per video, swipe
  * (or the arrows, or the keyboard) between the week's videos, and decide in
- * place — approve, or decline with a reason the team reads. An approved video
- * turns into its "post it" step: share or download the MP4, copy the caption
- * and hashtags, follow the steps for the app, tick it as posted.
+ * place: approve, ask for a change that keeps the video, or decline with a
+ * reason the team reads. An approved video turns into its "post it" step:
+ * share or download the MP4, tick it as posted right under that button, and
+ * find the caption texts, subtitles and app steps under "More options".
  */
 
 export type Decide = (id: string, approval: LibraryItem["approval"], note?: string) => Promise<boolean>;
@@ -126,6 +129,10 @@ export function ReviewPlayer({
   const start = useRef<{ x: number; y: number } | null>(null);
   const item = index >= 0 ? queue[index] : undefined;
   const open = !!item;
+  const router = useRouter();
+  // Changes asked for while the player is open. The library does not look again while it is open
+  // (the video would reload), so these read as "requested" here and the library refreshes on close.
+  const [queuedIds, setQueuedIds] = useState<ReadonlySet<string>>(() => new Set());
 
   useEffect(() => {
     const d = ref.current;
@@ -133,6 +140,12 @@ export function ReviewPlayer({
     if (open && !d.open) d.showModal?.();
     if (!open && d.open) d.close();
   }, [open]);
+
+  useEffect(() => {
+    if (open || queuedIds.size === 0) return;
+    setQueuedIds(new Set());
+    router.refresh();
+  }, [open, queuedIds, router]);
 
   const go = (step: "next" | "previous") => {
     const n = step === "next" ? index + 1 : index - 1;
@@ -244,12 +257,34 @@ export function ReviewPlayer({
             posted={!!posted[item.id]}
             onPosted={(on) => onPosted(item, on)}
             slot={slots?.get(item.id)}
+            changeQueued={queuedIds.has(item.id)}
+            onChangeQueued={() => setQueuedIds((ids) => new Set(ids).add(item.id))}
           />
         </div>
       )}
     </dialog>
   );
 }
+
+/** "Ask for a change" is being made for this video (the same test as the library card). */
+const changeRunning = (i: Pick<LibraryItem, "change">) => i.change?.status === "queued" || i.change?.status === "working";
+
+/**
+ * Whether "Ask for a change" can be offered on this video: exactly the library
+ * card's rule (a video we made, so it has photos and a stored plan; playable;
+ * one change at a time, never while it is being re-made). `queuedHere` is a
+ * change asked for in this open player, which the library has not seen yet.
+ */
+export function canAskChange(item: LibraryItem, queuedHere = false): boolean {
+  const changing = changeRunning(item) || queuedHere;
+  const c = cardState(item);
+  const state = changing && c !== "making" ? "updating" : c;
+  const playable = !!item.videoUrl && state !== "making" && state !== "failed";
+  return !!item.photos && playable && state !== "updating" && !changing;
+}
+
+/** The decline reasons where a change keeps the video better than a decline does. */
+export const CHANGE_INSTEAD_REASONS: readonly DeclineReason[] = ["wrong", "look"];
 
 /** The decision (or, once approved, the posting) under the player: a sheet on a phone, a side column on a desktop. */
 export function ReviewPanel({
@@ -262,6 +297,8 @@ export function ReviewPanel({
   posted,
   onPosted,
   slot,
+  changeQueued = false,
+  onChangeQueued,
 }: {
   locale: Locale;
   item: LibraryItem;
@@ -272,6 +309,10 @@ export function ReviewPanel({
   posted: boolean;
   onPosted: (on: boolean) => void;
   slot?: string;
+  /** A change for this video was asked for earlier in this open player. */
+  changeQueued?: boolean;
+  /** A change was just asked for (the player refreshes the library when it closes). */
+  onChangeQueued?: () => void;
 }) {
   const text = appText(locale);
   const t = text.library;
@@ -292,6 +333,33 @@ export function ReviewPanel({
   const [justDecided, setJustDecided] = useState(false);
   const decided = state === "approved" || state === "declined" || state === "updating";
   const allDone = justDecided && decided && queue.length > 1 && nextUndecided(queue, index) < 0;
+
+  // "Ask for a change": whether its form is open, where it was just sent from, and what the decline form handed over.
+  const deciding = state === "look" || state === "review";
+  const place = deciding ? "decide" : "post";
+  const [changeOpen, setChangeOpen] = useState(false);
+  const [queuedAt, setQueuedAt] = useState<typeof place | null>(null);
+  const [draft, setDraft] = useState<{ n: number; reason: DeclineReason; words: string } | null>(null);
+  const canChange = canAskChange(item, changeQueued);
+  // Right after sending, the form stays where it was to confirm it (and say how many changes are left);
+  // anywhere else the note under the state chip says it was requested.
+  const confirming = queuedAt === place;
+  const change: ChangeView | undefined = changeQueued && !changeRunning(item) ? { status: "queued", reason: null } : item.change;
+  const changeRequest = (canChange || confirming) && (
+    <ChangeRequest
+      key={`change-${draft?.n ?? 0}`}
+      locale={locale}
+      itemId={item.id}
+      initialNote={draft?.words}
+      startOpen={!!draft}
+      once
+      onOpenChange={setChangeOpen}
+      onQueued={() => {
+        setQueuedAt(place);
+        onChangeQueued?.();
+      }}
+    />
+  );
 
   /** Approve and share in the same tap: the decision saves in the background while the share sheet opens. */
   function approveAndShare() {
@@ -322,13 +390,21 @@ export function ReviewPanel({
     if (n >= 0) window.setTimeout(() => onIndex(n), approval === "approved" ? 450 : 1100);
   }
 
+  /** From the decline form: keep the video and open the change form with what was typed. */
+  function keepAndChange(reason: DeclineReason, words: string) {
+    setDeclining(false);
+    setDraft((d) => ({ n: (d?.n ?? 0) + 1, reason, words }));
+  }
+
   return (
-    <section className={`${declining ? "max-h-[72dvh]" : "max-h-[48dvh]"} shrink-0 overflow-y-auto rounded-t-3xl bg-white px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-4 text-dv-ink shadow-[0_-12px_32px_-16px_rgba(0,0,0,0.5)] sm:px-6 lg:max-h-none lg:rounded-none lg:px-10 lg:py-12 lg:shadow-none`}>
+    <section className={`${declining || changeOpen ? "max-h-[72dvh]" : "max-h-[48dvh]"} shrink-0 overflow-y-auto rounded-t-3xl bg-white px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-4 text-dv-ink shadow-[0_-12px_32px_-16px_rgba(0,0,0,0.5)] sm:px-6 lg:max-h-none lg:rounded-none lg:px-10 lg:py-12 lg:shadow-none`}>
       <div className="mx-auto max-w-xl">
         <StateChip state={state} posted={posted} t={t} />
         <h2 dir="auto" className="dv-display sr-only text-balance text-start text-[1.875rem] leading-tight text-dv-ink [overflow-wrap:anywhere] lg:not-sr-only lg:mb-5 lg:mt-3">{item.title}</h2>
+        {/* What became of a change (requested, being made, made, or why not); the form says it itself right after asking. */}
+        {!confirming && state !== "making" && state !== "failed" && <ChangeNote locale={locale} change={change} approval={item.approval} />}
 
-        {item.reasons.length > 0 && (state === "look" || state === "review") && (
+        {item.reasons.length > 0 && deciding && (
           <div className="mt-3 rounded-xl bg-[#fdf6ea] p-3 text-sm">
             <p className="font-semibold text-[#7a4b00]">{t.whatToCheck}</p>
             <ul className="mt-1 list-disc space-y-1 ps-5 text-[#5c4a2a]">
@@ -340,7 +416,7 @@ export function ReviewPanel({
         )}
 
         {/* The caption is part of what is approved: readable before the decision, folded so the buttons stay in reach. */}
-        {(state === "look" || state === "review") && !declining && item.caption && (
+        {deciding && !declining && item.caption && (
           <details className="group/cap mt-3 rounded-xl bg-dv-sand/60 text-sm ring-1 ring-inset ring-dv-line">
             <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-2 px-3 font-medium text-dv-ink [&::-webkit-details-marker]:hidden">
               {t.captionAndHashtags}
@@ -350,27 +426,38 @@ export function ReviewPanel({
           </details>
         )}
 
-        {(state === "look" || state === "review") &&
+        {deciding &&
           (declining ? (
-            <DeclineForm t={t.declineForm} busy={busy} onCancel={() => setDeclining(false)} onSubmit={(note) => choose("rejected", note)} />
+            <DeclineForm
+              t={t.declineForm}
+              busy={busy}
+              initial={draft ? { reason: draft.reason, words: draft.words } : undefined}
+              onCancel={() => setDeclining(false)}
+              onSubmit={(note) => choose("rejected", note)}
+              changeInstead={canChange ? { text: reviewText(locale), onChoose: keepAndChange } : undefined}
+            />
           ) : (
             <>
-              {state === "review" && item.videoUrl && (
+              {/* While the change form is open it is the one thing on the sheet; Cancel brings the decision back. */}
+              {!changeOpen && state === "review" && item.videoUrl && (
                 <button type="button" disabled={busy || share.busy} onClick={approveAndShare} className="dv-btn dv-btn-primary mt-4 w-full px-5 py-3">
                   {share.busy ? <Loader2 className="h-4 w-4 animate-spin motion-reduce:animate-none" aria-hidden="true" /> : <Share2 className="h-4 w-4 rtl:-scale-x-100" aria-hidden="true" />}
                   {p.approveSaveCopy}
                 </button>
               )}
-              <div className={`${state === "review" && item.videoUrl ? "mt-2" : "mt-4"} flex gap-2`}>
-                <button type="button" disabled={busy} onClick={() => setDeclining(true)} className="dv-btn dv-btn-secondary px-5 py-3">
-                  {t.decline}
-                </button>
-                <button type="button" disabled={busy} onClick={() => choose("approved")} className={`dv-btn flex-1 px-5 py-3 ${state === "review" && item.videoUrl ? "dv-btn-secondary !text-dv-teal" : "dv-btn-primary"}`}>
-                  {busy ? <Loader2 className="h-4 w-4 animate-spin motion-reduce:animate-none" aria-hidden="true" /> : <Check className="h-4 w-4" aria-hidden="true" />}
-                  {t.approve}
-                </button>
-              </div>
-              {slot && <SlotLine label={fmt(p.suggested, { slot })} />}
+              {!changeOpen && (
+                <div className={`${state === "review" && item.videoUrl ? "mt-2" : "mt-4"} flex gap-2`}>
+                  <button type="button" disabled={busy} onClick={() => setDeclining(true)} className="dv-btn dv-btn-secondary px-5 py-3">
+                    {t.decline}
+                  </button>
+                  <button type="button" disabled={busy} onClick={() => choose("approved")} className={`dv-btn flex-1 px-5 py-3 ${state === "review" && item.videoUrl ? "dv-btn-secondary !text-dv-teal" : "dv-btn-primary"}`}>
+                    {busy ? <Loader2 className="h-4 w-4 animate-spin motion-reduce:animate-none" aria-hidden="true" /> : <Check className="h-4 w-4" aria-hidden="true" />}
+                    {t.approve}
+                  </button>
+                </div>
+              )}
+              {changeRequest}
+              {slot && !changeOpen && <SlotLine label={fmt(p.suggested, { slot })} />}
             </>
           ))}
 
@@ -405,6 +492,7 @@ export function ReviewPanel({
             share={share}
             slot={slot}
             onNext={queue.length > 1 && index < queue.length - 1 ? () => onIndex(index + 1) : undefined}
+            change={changeRequest || undefined}
           />
         )}
       </div>
@@ -433,13 +521,46 @@ function StateChip({ state, posted, t }: { state: ReturnType<typeof cardState>; 
   );
 }
 
-/** Decline with a reason: one tap for the usual ones, and room to say what should change. */
-export function DeclineForm({ t, busy, onCancel, onSubmit }: { t: AppText["library"]["declineForm"]; busy: boolean; onCancel: () => void; onSubmit: (note: string | undefined) => void }) {
-  const [reason, setReason] = useState<DeclineReason | null>(null);
-  const [words, setWords] = useState("");
+/**
+ * Decline with a reason: one tap for the usual ones, and room to say what should change.
+ * When something is wrong or does not look right and the video can be changed
+ * (`changeInstead`), asking for a change is the first offer: it keeps the
+ * video in the week and carries the typed words over; declining stays possible.
+ */
+export function DeclineForm({
+  t,
+  busy,
+  onCancel,
+  onSubmit,
+  changeInstead,
+  initial,
+}: {
+  t: AppText["library"]["declineForm"];
+  busy: boolean;
+  onCancel: () => void;
+  onSubmit: (note: string | undefined) => void;
+  /** Offered for CHANGE_INSTEAD_REASONS when given (the review player, a video that can be changed): its words, and opening the change form with the reason and the typed words. */
+  changeInstead?: { text: Pick<ReviewText, "changeInstead" | "changeInsteadHint">; onChoose: (reason: DeclineReason, words: string) => void };
+  /** The reason and words to start from (the form reopened after "Ask for a change instead"). */
+  initial?: { reason: DeclineReason | null; words: string };
+}) {
+  const [reason, setReason] = useState<DeclineReason | null>(initial?.reason ?? null);
+  const [words, setWords] = useState(initial?.words ?? "");
   const id = useId();
   const first = useRef<HTMLInputElement>(null);
   useEffect(() => first.current?.focus(), []);
+  const changeFirst = !!changeInstead && !!reason && CHANGE_INSTEAD_REASONS.includes(reason);
+  const focusOn = initial?.reason ?? DECLINE_REASONS[0];
+  // On a small phone the offer appears below the fold when the reason is picked: bring it into view, once.
+  const offer = useRef<HTMLDivElement>(null);
+  const offered = useRef(changeFirst);
+  useEffect(() => {
+    if (changeFirst && !offered.current) {
+      const still = typeof matchMedia === "function" && matchMedia("(prefers-reduced-motion: reduce)").matches;
+      offer.current?.scrollIntoView?.({ block: "nearest", behavior: still ? "auto" : "smooth" });
+    }
+    offered.current = changeFirst;
+  }, [changeFirst]);
   return (
     <form
       className="mt-4 rounded-2xl bg-dv-sand/60 p-4 ring-1 ring-inset ring-dv-line"
@@ -452,9 +573,9 @@ export function DeclineForm({ t, busy, onCancel, onSubmit }: { t: AppText["libra
         <legend className="font-semibold text-dv-ink">{t.title}</legend>
         <p className="mt-1 text-sm text-dv-body">{t.lead}</p>
         <div className="mt-3 flex flex-wrap gap-2">
-          {DECLINE_REASONS.map((k, n) => (
+          {DECLINE_REASONS.map((k) => (
             <label key={k} className="cursor-pointer">
-              <input ref={n === 0 ? first : undefined} type="radio" name={`${id}-reason`} value={k} checked={reason === k} onChange={() => setReason(k)} className="peer sr-only" />
+              <input ref={k === focusOn ? first : undefined} type="radio" name={`${id}-reason`} value={k} checked={reason === k} onChange={() => setReason(k)} className="peer sr-only" />
               <span className="inline-flex min-h-11 items-center rounded-full bg-white px-4 py-2 text-sm font-medium text-dv-ink ring-1 ring-inset ring-dv-edge peer-checked:bg-dv-teal peer-checked:text-white peer-checked:ring-dv-teal peer-focus-visible:outline peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-dv-teal">
                 {t.reasons[k]}
               </span>
@@ -466,11 +587,22 @@ export function DeclineForm({ t, busy, onCancel, onSubmit }: { t: AppText["libra
         {t.noteLabel}
       </label>
       <textarea id={`${id}-note`} rows={2} maxLength={400} value={words} onChange={(e) => setWords(e.target.value)} placeholder={t.notePlaceholder} className="dv-field resize-none text-sm" />
+      {changeFirst && (
+        <div ref={offer} className="scroll-mb-4">
+          <button type="button" onClick={() => changeInstead!.onChoose(reason!, words)} aria-describedby={`${id}-keeps`} className="dv-btn dv-btn-primary mt-3 w-full px-5 py-2.5 text-sm">
+            <PencilLine className="h-4 w-4" aria-hidden="true" />
+            {changeInstead!.text.changeInstead}
+          </button>
+          <p id={`${id}-keeps`} className="mt-1.5 text-xs text-dv-body">
+            {changeInstead!.text.changeInsteadHint}
+          </p>
+        </div>
+      )}
       <div className="mt-3 flex gap-2">
         <button type="button" onClick={onCancel} className="dv-btn dv-btn-secondary px-5 py-2.5 text-sm">
           {t.cancel}
         </button>
-        <button type="submit" disabled={busy} className="dv-btn dv-btn-primary flex-1 px-5 py-2.5 text-sm">
+        <button type="submit" disabled={busy} className={`dv-btn flex-1 px-5 py-2.5 text-sm ${changeFirst ? "dv-btn-secondary" : "dv-btn-primary"}`}>
           {busy && <Loader2 className="h-4 w-4 animate-spin motion-reduce:animate-none" aria-hidden="true" />}
           {t.submit}
         </button>
@@ -492,9 +624,10 @@ export function SlotLine({ label }: { label: string }) {
 type Share = ReturnType<typeof useSaveAndCopy>;
 
 /**
- * "Post it": one tap saves the video and copies the caption, the Instagram
- * and TikTok / Shorts texts, the suggested time, then a tick for the week's
- * checklist.
+ * "Post it": one tap saves the video and copies the caption, and the posted
+ * tick sits right under it (after a share it asks "Posted it?"), so a small
+ * phone reaches both without scrolling. The caption texts, subtitles and the
+ * steps for each app are folded under "More options".
  */
 export function PostPanel({
   locale,
@@ -506,6 +639,7 @@ export function PostPanel({
   share: given,
   slot,
   onNext,
+  change,
 }: {
   locale: Locale;
   item: LibraryItem;
@@ -517,11 +651,14 @@ export function PostPanel({
   share?: Share;
   slot?: string;
   onNext?: () => void;
+  /** "Ask for a change" for this video, when it can be offered (ReviewPanel). */
+  change?: React.ReactNode;
 }) {
   const text = appText(locale);
   const t = text.library;
   const p = t.post;
   const ps = postingText(locale);
+  const rv = reviewText(locale);
   const own = useSaveAndCopy({
     videoUrl: item.videoUrl,
     title: item.title,
@@ -534,6 +671,14 @@ export function PostPanel({
   const [tab, setTab] = useState<PostPlatform>("instagram");
   const tabs = useRef<(HTMLButtonElement | null)[]>([]);
   const id = useId();
+  // Once the video was saved or shared (the share's "ok" note), the tick becomes the question "Posted it?".
+  // The note fades after a few seconds; the question stays until it is answered.
+  const okNow = share.note?.kind === "ok";
+  const [shared, setShared] = useState(okNow);
+  useEffect(() => {
+    if (okNow) setShared(true);
+  }, [okNow]);
+  const askPosted = !posted && (shared || okNow);
 
   function onTabKey(e: React.KeyboardEvent, n: number) {
     const rtl = dirOf(locale) === "rtl";
@@ -550,7 +695,7 @@ export function PostPanel({
       <h3 className="sr-only lg:not-sr-only lg:font-dv-serif lg:font-normal lg:mb-3 lg:text-[1.75rem] lg:leading-tight">{p.title}</h3>
 
       <div className="flex gap-2">
-        <button type="button" disabled={share.busy || !item.videoUrl} onClick={() => void share.run()} className="dv-btn dv-btn-primary flex-1 px-5 py-3">
+        <button type="button" disabled={share.busy || !item.videoUrl} onClick={() => void share.run()} className={`dv-btn flex-1 px-5 py-3 ${askPosted ? "dv-btn-secondary !text-dv-teal" : "dv-btn-primary"}`}>
           {share.busy ? (
             <Loader2 className="h-4 w-4 animate-spin motion-reduce:animate-none" aria-hidden="true" />
           ) : share.method === "download" ? (
@@ -566,28 +711,31 @@ export function PostPanel({
           </button>
         )}
       </div>
-      <p className="mt-1.5 text-xs text-dv-muted">{p.format}</p>
-      {/* The narration as a subtitle file, next to the video download (YouTube, Facebook). */}
-      {item.subtitles && <SubtitlesLink locale={locale} itemId={item.id} className="mt-1" />}
-      {share.note && (
-        <p role={share.note.kind === "error" ? "alert" : "status"} className={`mt-2 rounded-xl px-3 py-2 text-sm ${share.note.kind === "error" ? "bg-[#fbeaea] text-[#8a1f1f]" : "bg-dv-teal-50 text-dv-teal"}`}>
-          {share.note.text}
+
+      {/* The posted tick, directly under the share button: it drives the week's checklist and streak. */}
+      {askPosted && (
+        <p id={`${id}-ask`} className="mt-3 text-sm font-semibold text-dv-ink">
+          {rv.postedPrompt}
         </p>
       )}
-      {slot && <SlotLine label={fmt(ps.suggested, { slot })} />}
-
-      {texts && <CaptionTabs texts={texts} locale={locale} />}
-
-      <div className="mt-3 flex gap-2">
-        <button
-          type="button"
-          aria-pressed={posted}
-          onClick={() => onPosted(!posted)}
-          className={`dv-btn flex-1 px-5 py-3 ${posted ? "bg-dv-teal-50 text-dv-teal ring-1 ring-inset ring-dv-teal/30" : "dv-btn-secondary"}`}
-        >
-          <CircleCheck className={`h-5 w-5 ${posted ? "fill-dv-teal text-white" : "text-dv-muted"}`} aria-hidden="true" />
-          {posted ? p.posted : p.markPosted}
-        </button>
+      <div className={`${askPosted ? "mt-1.5" : "mt-2"} flex gap-2`}>
+        {askPosted ? (
+          <button key="ask" type="button" aria-describedby={`${id}-ask`} onClick={() => onPosted(true)} className="dv-btn dv-btn-primary flex-1 px-5 py-3">
+            <CircleCheck className="h-5 w-5" aria-hidden="true" />
+            {rv.postedYes}
+          </button>
+        ) : (
+          <button
+            key="tick"
+            type="button"
+            aria-pressed={posted}
+            onClick={() => onPosted(!posted)}
+            className={`dv-btn flex-1 px-5 py-3 ${posted ? "bg-dv-teal-50 text-dv-teal ring-1 ring-inset ring-dv-teal/30" : "dv-btn-secondary"}`}
+          >
+            <CircleCheck className={`h-5 w-5 ${posted ? "fill-dv-teal text-white" : "text-dv-muted"}`} aria-hidden="true" />
+            {posted ? p.posted : p.markPosted}
+          </button>
+        )}
         {onNext && (
           <button type="button" onClick={onNext} className="dv-btn dv-btn-secondary shrink-0 px-4 py-3 !text-dv-teal">
             {ps.nextVideo}
@@ -596,46 +744,68 @@ export function PostPanel({
         )}
       </div>
 
-      <div className="mt-5">
-        <p className="text-sm font-semibold" id={`${id}-tips`}>
-          {p.tipsTitle}
+      {share.note && (
+        <p role={share.note.kind === "error" ? "alert" : "status"} className={`mt-2 rounded-xl px-3 py-2 text-sm ${share.note.kind === "error" ? "bg-[#fbeaea] text-[#8a1f1f]" : "bg-dv-teal-50 text-dv-teal"}`}>
+          {share.note.text}
         </p>
-        <div role="tablist" aria-labelledby={`${id}-tips`} className="mt-2 grid grid-cols-2 gap-1 rounded-2xl bg-dv-sand p-1 sm:flex sm:rounded-full">
-          {POST_PLATFORMS.map((k, n) => (
-            <button
-              key={k}
-              ref={(el) => {
-                tabs.current[n] = el;
-              }}
-              type="button"
-              role="tab"
-              id={`${id}-tab-${k}`}
-              aria-selected={tab === k}
-              aria-controls={`${id}-panel`}
-              tabIndex={tab === k ? 0 : -1}
-              onClick={() => setTab(k)}
-              onKeyDown={(e) => onTabKey(e, n)}
-              className={`min-h-11 grow rounded-full px-3 text-sm font-medium sm:whitespace-nowrap ${tab === k ? "bg-white text-dv-ink shadow-sm" : "text-dv-body hover:text-dv-ink"}`}
-            >
-              {p.platforms[k]}
-            </button>
-          ))}
+      )}
+      {slot && <SlotLine label={fmt(ps.suggested, { slot })} />}
+      {change}
+
+      <details className="group/more mt-3 rounded-xl ring-1 ring-inset ring-dv-line">
+        <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-2 px-3 text-sm font-medium text-dv-ink [&::-webkit-details-marker]:hidden">
+          {rv.moreOptions}
+          <ChevronRight className="h-4 w-4 shrink-0 text-dv-muted transition-transform group-open/more:rotate-90 rtl:-scale-x-100 rtl:group-open/more:-rotate-90" aria-hidden="true" />
+        </summary>
+        <div className="px-3 pb-4">
+          <p className="text-xs text-dv-muted">{p.format}</p>
+          {/* The narration as a subtitle file, next to the video download (YouTube, Facebook). */}
+          {item.subtitles && <SubtitlesLink locale={locale} itemId={item.id} className="mt-1" />}
+
+          {texts && <CaptionTabs texts={texts} locale={locale} />}
+
+          <div className="mt-5">
+            <p className="text-sm font-semibold" id={`${id}-tips`}>
+              {p.tipsTitle}
+            </p>
+            <div role="tablist" aria-labelledby={`${id}-tips`} className="mt-2 grid grid-cols-2 gap-1 rounded-2xl bg-dv-sand p-1 sm:flex sm:rounded-full">
+              {POST_PLATFORMS.map((k, n) => (
+                <button
+                  key={k}
+                  ref={(el) => {
+                    tabs.current[n] = el;
+                  }}
+                  type="button"
+                  role="tab"
+                  id={`${id}-tab-${k}`}
+                  aria-selected={tab === k}
+                  aria-controls={`${id}-panel`}
+                  tabIndex={tab === k ? 0 : -1}
+                  onClick={() => setTab(k)}
+                  onKeyDown={(e) => onTabKey(e, n)}
+                  className={`min-h-11 grow rounded-full px-3 text-sm font-medium sm:whitespace-nowrap ${tab === k ? "bg-white text-dv-ink shadow-sm" : "text-dv-body hover:text-dv-ink"}`}
+                >
+                  {p.platforms[k]}
+                </button>
+              ))}
+            </div>
+            <ol id={`${id}-panel`} role="tabpanel" aria-labelledby={`${id}-tab-${tab}`} className="mt-3 space-y-2">
+              {p.tips[tab].map((s, n) => (
+                <li key={n} className="flex gap-3 text-sm leading-relaxed text-dv-body">
+                  <span aria-hidden="true" className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-dv-teal-50 text-xs font-semibold text-dv-teal">
+                    {n + 1}
+                  </span>
+                  {s}
+                </li>
+              ))}
+            </ol>
+            <HelpLink locale={locale} id={tab === "instagram" ? "instagram" : tab === "tiktok" ? "tiktok-shorts" : tab === "facebook" ? "facebook" : "share"} className="mt-2" />
+          </div>
         </div>
-        <ol id={`${id}-panel`} role="tabpanel" aria-labelledby={`${id}-tab-${tab}`} className="mt-3 space-y-2">
-          {p.tips[tab].map((s, n) => (
-            <li key={n} className="flex gap-3 text-sm leading-relaxed text-dv-body">
-              <span aria-hidden="true" className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-dv-teal-50 text-xs font-semibold text-dv-teal">
-                {n + 1}
-              </span>
-              {s}
-            </li>
-          ))}
-        </ol>
-        <HelpLink locale={locale} id={tab === "instagram" ? "instagram" : tab === "tiktok" ? "tiktok-shorts" : tab === "facebook" ? "facebook" : "share"} className="mt-2" />
-      </div>
+      </details>
 
       {onUndo && (
-        <button type="button" disabled={undoBusy} onClick={onUndo} className="mt-5 inline-flex min-h-11 items-center gap-1.5 text-sm font-medium text-dv-muted underline-offset-4 hover:text-dv-ink hover:underline">
+        <button type="button" disabled={undoBusy} onClick={onUndo} className="mt-3 inline-flex min-h-11 items-center gap-1.5 text-sm font-medium text-dv-muted underline-offset-4 hover:text-dv-ink hover:underline">
           <RotateCcw className="h-4 w-4" aria-hidden="true" />
           {t.undo}
         </button>

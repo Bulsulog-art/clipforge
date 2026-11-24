@@ -9,7 +9,8 @@ import { changeViews } from "@/lib/dentvid/items";
 import { retentionDates } from "@/lib/dentvid/plan";
 
 vi.mock("next/navigation", () => ({ useRouter: () => ({ refresh: () => {} }) }));
-const { ChangeNote, ChangeRequest, RetentionNotice, SubtitlesLink, TopicRequests } = await import("./clinic-requests");
+const { ChangeNote, ChangeRequest, RetentionNotice, SubtitlesLink, TopicRequests, clipChangeNote } = await import("./clinic-requests");
+const { CHANGE_NOTE_MAX } = await import("@/content/dentvideo-requests");
 
 const esc = (s: string) => s.replace(/&/g, "&amp;").replace(/'/g, "&#x27;").replace(/"/g, "&quot;");
 
@@ -77,5 +78,40 @@ describe("what the library reads", () => {
     expect(retentionDates("cancelled", "2026-11-16T00:00:00Z", null)?.deleteOn).toBe("2027-02-14T00:00:00.000Z");
     expect(retentionDates("cancelled", "2026-11-16T00:00:00Z", "2027-03-01T00:00:00Z")?.deleteOn).toBe("2027-03-01T00:00:00.000Z");
     expect(retentionDates("cancelled", "2026-11-16T00:00:00Z", "2026-12-01T00:00:00Z")?.deleteOn).toBe("2027-02-14T00:00:00.000Z");
+  });
+});
+
+describe("a change request opened with words already in it (from the review player's decline form)", () => {
+  const t = REQUESTS_TEXT.en.change;
+  const render = (props: Partial<Parameters<typeof ChangeRequest>[0]> = {}) => renderToStaticMarkup(createElement(ChangeRequest, { locale: "en", itemId: "x", onQueued: () => {}, ...props }));
+
+  it("initialNote prefills the open form, with its count", () => {
+    const h = render({ startOpen: true, initialNote: "  Say twice a day, not three times.  " });
+    expect(h).toContain(">Say twice a day, not three times.</textarea>");
+    expect(h).toContain(`${[..."Say twice a day, not three times."].length}/${CHANGE_NOTE_MAX}`);
+    expect(h).toContain(esc(t.title));
+    expect(h).toContain(esc(t.submit));
+    // Open, the form is the whole control: no second "Ask for a change" button beside it.
+    expect(h).not.toContain(esc(t.button));
+  });
+
+  it.each(LOCALES)("%s: a longer note from the decline form (up to 400) is cut to what a change takes, never sent over the limit", (locale) => {
+    const long = "ä".repeat(CHANGE_NOTE_MAX + 100);
+    expect([...clipChangeNote(long)]).toHaveLength(CHANGE_NOTE_MAX);
+    const h = renderToStaticMarkup(createElement(ChangeRequest, { locale, itemId: "x", onQueued: () => {}, startOpen: true, initialNote: long }));
+    expect(h).toContain(`${CHANGE_NOTE_MAX}/${CHANGE_NOTE_MAX}`);
+    expect(h).toContain(`maxLength="${CHANGE_NOTE_MAX}"`);
+  });
+
+  it("emoji and other astral characters count as one, the way the server counts them", () => {
+    expect(clipChangeNote("😀".repeat(CHANGE_NOTE_MAX + 5))).toBe("😀".repeat(CHANGE_NOTE_MAX));
+  });
+
+  it("without the new props it behaves as before: a closed button, an empty note (the library card)", () => {
+    const h = render();
+    expect(h).toContain(esc(t.button));
+    expect(h).not.toContain("<textarea");
+    expect(render({ initialNote: "ignored until opened" })).not.toContain("ignored until opened");
+    expect(render({ once: true })).toContain(esc(t.button));
   });
 });
