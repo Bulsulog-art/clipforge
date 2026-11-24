@@ -67,26 +67,27 @@ function Seconds({ locale, seconds }: { locale: Locale; seconds: number }) {
 }
 
 /**
- * `row`: on phones the poster sits beside the title (a full-width 9:16 poster per card made the
- * hub's first three videos over two thousand pixels tall); from sm up it stacks like the others.
+ * On phones the poster sits beside the title, one card per row (a full-width 9:16 poster per card made
+ * the hub over two thousand pixels tall, and two-up cards broke words mid-word); from sm up it stacks,
+ * three cards across, each wide enough for its title. `eager`: the hub's first cards.
  */
-function ExampleCard({ e, row = false }: { e: ExampleVideo; row?: boolean }) {
+function ExampleCard({ e, eager = false }: { e: ExampleVideo; eager?: boolean }) {
   const s = sampleOf(e);
   return (
     <Link
       href={dvHref(examplePath(e))}
-      className={`dv-card dv-lift group flex h-full overflow-hidden p-4 ${row ? "items-center gap-4 sm:flex-col sm:items-stretch sm:gap-0" : "flex-col"}`}
+      className="dv-card dv-lift group flex h-full items-center gap-4 overflow-hidden p-4 sm:flex-col sm:items-stretch sm:gap-0"
       lang={e.locale}
       dir={dirOf(e.locale)}
     >
       {/* The poster only: the card links to the video's page, where it plays. */}
-      {/* The `row` cards are the hub's first screen (the desktop LCP): fetched by the preload scanner, not lazily after layout. */}
+      {/* The `eager` cards are the hub's first screen (the desktop LCP): fetched by the preload scanner, not lazily after layout. */}
       {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src={examplePosterSrc(e)} alt="" width={1080} height={1920} loading={row ? "eager" : "lazy"} decoding="async" className={`aspect-[9/16] rounded-xl bg-dv-sand object-cover ${row ? "w-24 shrink-0 sm:w-full" : "w-full"}`} />
-      <span className={`flex min-w-0 flex-1 flex-col ${row ? "sm:mt-4" : "mt-4"}`}>
+      <img src={examplePosterSrc(e)} alt="" width={1080} height={1920} loading={eager ? "eager" : "lazy"} decoding="async" className="aspect-[9/16] w-24 shrink-0 rounded-xl bg-dv-sand object-cover sm:w-full" />
+      <span className="flex min-w-0 flex-1 flex-col sm:mt-4">
         <span className="flex items-start justify-between gap-3">
-          {/* min-w-0 + break-words: a long first word (Beyazlatmadan, Zahnschmelz) wraps inside the narrow two-up card instead of pushing the arrow out of it. */}
-          <span className="min-w-0 break-words font-semibold leading-snug text-dv-ink [hyphens:auto]">{s.name}</span>
+          {/* Whole words; break-words only as a last resort, so a long word can never push the arrow out of the card. */}
+          <span className="min-w-0 break-words font-semibold leading-snug text-dv-ink">{s.name}</span>
           <ArrowUpRight className="mt-0.5 h-5 w-5 shrink-0 text-dv-teal transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5 rtl:-scale-x-100 rtl:group-hover:-translate-x-0.5" aria-hidden="true" />
         </span>
         <span className="mt-1 text-sm text-dv-muted">
@@ -126,7 +127,7 @@ export function ExamplesHub({ locale }: { locale: Locale }) {
           <ul className="grid gap-5 sm:grid-cols-3" data-testid="examples-own">
             {mine.map((e) => (
               <li key={e.slug}>
-                <ExampleCard e={e} row />
+                <ExampleCard e={e} eager />
               </li>
             ))}
           </ul>
@@ -144,8 +145,8 @@ export function ExamplesHub({ locale }: { locale: Locale }) {
 
         <section className="mt-16" aria-labelledby="other-languages">
           <h2 id="other-languages" className="text-[1.5rem] font-semibold leading-snug tracking-tight text-dv-ink sm:text-[1.75rem]">{ui.moreHeading}</h2>
-          {/* Two languages side by side from lg: each row of three cards fills its half instead of leaving half the page empty. */}
-          <div className="mt-6 grid gap-x-10 gap-y-10 lg:grid-cols-2">
+          {/* One language per row: three cards across the page, as wide as the hub's own (two languages side by side made them ~150px). */}
+          <div className="mt-6 grid gap-10">
             {(Object.keys(EXAMPLES_PATH) as Locale[])
               .filter((l) => l !== locale && examplesFor(l).length > 0)
               .map((l) => (
@@ -153,7 +154,7 @@ export function ExamplesHub({ locale }: { locale: Locale }) {
                   <h3 className="text-sm font-semibold uppercase tracking-[0.08em] text-dv-muted rtl:tracking-normal" lang={l}>
                     {LANGUAGE_NAME[l]}
                   </h3>
-                  <ul className="mt-3 grid grid-cols-2 gap-4 sm:grid-cols-3">
+                  <ul className="mt-3 grid gap-4 sm:grid-cols-3">
                     {examplesFor(l).map((e) => (
                       <li key={e.slug}>
                         <ExampleCard e={e} />
@@ -259,13 +260,13 @@ export function ExampleView({ e }: { e: ExampleVideo }) {
 
         <nav aria-label={ui.moreHeading} className="mt-14">
           <h2 className="text-lg font-semibold text-dv-ink">{ui.moreHeading}</h2>
-          <ul className="mt-4 grid max-w-3xl grid-cols-2 gap-4 sm:grid-cols-3">
+          <ul className="mt-4 grid max-w-3xl gap-4 sm:grid-cols-3">
             {siblings.map((o) => (
               <li key={o.slug}>
                 <ExampleCard e={o} />
               </li>
             ))}
-            <li className="col-span-2 flex sm:col-span-1">
+            <li className="flex">
               <Link href={dvHref(EXAMPLES_PATH[L])} className="dv-card flex min-h-14 w-full items-center justify-center p-5 text-center font-semibold text-dv-teal">
                 {ui.seeAll}
               </Link>

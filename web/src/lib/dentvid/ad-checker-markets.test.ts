@@ -117,6 +117,15 @@ describe("ad checker markets: known examples per market", () => {
     expect(verdictIn("Our team is board-certified.", "US", "board-certified")).toBe("specialist:banned");
     expect(verdictIn("Read our patient testimonials.", "GB", "testimonials")).toBe("testimonial:risky");
     expect(verdictIn("Painless whitening.", "US", "Painless")).toBe("absolute:risky");
+    // The promo phrases US and UK clinic sites use: risky in both (no phrase-level ban to cite).
+    for (const m of ["US", "GB"] as const) {
+      expect(verdictIn("Rated 5 stars by our happy patients.", m, "Rated 5 stars")).toBe("testimonial:risky");
+      expect(verdictIn("Voted top dentist in town.", m, "Voted top dentist")).toBe("superlative:risky");
+      expect(verdictIn("Award-winning dental care.", m, "Award-winning")).toBe("superlative:risky");
+      expect(verdictIn("No pain, no fuss.", m, "No pain, no fuss")).toBe("absolute:risky");
+      expect(verdictIn("Call now to book.", m, "Call now")).toBe("fear:risky");
+      expect(checkText("Gum disease is a leading cause of tooth loss. Call your dentist if your gums bleed.", m)).toEqual([]);
+    }
     // A referral is education, not a claim.
     expect(checkText("Your dentist may refer you to a specialist.", "GB")).toEqual([]);
   });

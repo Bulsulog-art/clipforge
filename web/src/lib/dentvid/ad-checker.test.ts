@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { LOCALES } from "@/content/dentvideo-locales";
 import { CHECKER } from "@/content/dentvideo-checker";
-import { CHECKER_MAX_CHARS, CHECKER_RULE_IDS, REWRITES, checkText, checkerEventProps, guessLanguage, segments, suggestRewrite, widenNumber } from "./ad-checker";
+import { CHECKER_MAX_CHARS, CHECKER_RULE_IDS, REWRITES, checkText, checkerEventProps, guessLanguage, segments, sentencesOf, suggestRewrite, widenNumber } from "./ad-checker";
 import { CHECKER_RULES, HARD_RULES, findHardSpans, type RuleId } from "./hard-rules";
 import { parseClientEvent, sanitizeProps } from "./events";
 
@@ -51,6 +51,124 @@ describe("ad checker: engine", () => {
       expect(fear?.fix, t).toBeTruthy();
       expect(guessLanguage(fear!.fix!), `${t} → ${fear!.fix}`).toBe(lang);
     }
+  });
+
+  it("a push to book gets the appointment sentence, not the symptom sentence", () => {
+    const appointment = "Whenever it suits you, ask us about an appointment.";
+    for (const t of ["Book now.", "Book today!", "Book now before the offer ends."]) {
+      const fear = checkText(t).find((h) => h.rule === "fear");
+      expect(fear?.fix, t).toBe(appointment);
+      const [s] = sentencesOf(t, checkText(t));
+      expect(s.safer, t).toBe(appointment);
+    }
+    // A symptom someone should not sit on still gets the pointer to their dentist.
+    expect(checkText("Don't wait until it's too late.").find((h) => h.rule === "fear")?.fix).toBe("If you notice this, ask your dentist at your next visit.");
+    // Advice to call one's own dentist is not pressure.
+    expect(checkText("Call your dentist if your gums bleed.")).toEqual([]);
+  });
+
+  it("the same push in German, Turkish, Arabic and Japanese gets that language's appointment sentence", () => {
+    for (const [t, appointment, symptom] of [
+      ["Jetzt Termin buchen.", "Wann immer es Ihnen passt: Fragen Sie uns nach einem Termin.", "Wenn Ihnen das auffällt, sprechen Sie uns beim nächsten Termin an."],
+      ["Hemen randevu alın.", "Size uygun bir zamanda diş hekiminize danışabilirsiniz.", "Bu belirtiyi fark ederseniz diş hekiminize danışabilirsiniz."],
+      ["احجزوا الآن.", "اسألونا عن موعد في الوقت الذي يناسبكم.", "إذا لاحظتم ذلك، استشيروا طبيب الأسنان."],
+      ["今すぐ予約してください。", "ご都合のよいときに、ご予約についてお問い合わせください。", "気になる症状があれば、歯科医師にご相談ください。"],
+      ["期間限定のホワイトニング。", "ご都合のよいときに、ご予約についてお問い合わせください。", "気になる症状があれば、歯科医師にご相談ください。"],
+    ] as const) {
+      const hits = checkText(t);
+      expect(hits.find((h) => h.rule === "fear")?.fix, t).toBe(appointment);
+      expect(sentencesOf(t, hits)[0].safer, t).toBe(appointment);
+      expect(appointment).not.toBe(symptom);
+    }
+    // A symptom someone should not sit on still gets each language's pointer to the dentist.
+    for (const [t, symptom] of [
+      ["Warten Sie nicht länger.", "Wenn Ihnen das auffällt, sprechen Sie uns beim nächsten Termin an."],
+      ["Daha fazla beklemeyin.", "Bu belirtiyi fark ederseniz diş hekiminize danışabilirsiniz."],
+      ["لا تنتظروا أكثر.", "إذا لاحظتم ذلك، استشيروا طبيب الأسنان."],
+      ["手遅れになる前に。", "気になる症状があれば、歯科医師にご相談ください。"],
+    ] as const) expect(checkText(t).find((h) => h.rule === "fear")?.fix, t).toBe(symptom);
+  });
+
+  it("'Call now' keeps the call and loses the rush: a phrase fix, never 'whenever it suits you' for the sentence", () => {
+    for (const t of ["Call now.", "Call now to book.", "Call us today to book your check-up.", "Spaces are limited, call now!"]) {
+      const hits = checkText(t);
+      expect(hits.find((h) => h.rule === "fear")?.fix, t).toBe("call us");
+      for (const s of sentencesOf(t, hits)) expect(s.safer, t).not.toBe("Whenever it suits you, ask us about an appointment.");
+    }
+  });
+
+  it("urgent-care advice to call is left alone in every market", () => {
+    for (const m of ["XX", "US", "GB", "TR", "DE"] as const) {
+      for (const t of [
+        "Knocked-out tooth? Call us today: the first hour matters.",
+        "If a tooth is knocked out, call us today and keep the tooth in milk.",
+        "If your face is swelling, call us today.",
+        "If your face swells and you have a fever, call us now.",
+        "Dental emergency? Call us now.",
+        "Severe toothache that keeps you up at night? Call us today.",
+        "Give us a call today if your filling feels high.",
+        "Call us now when a tooth is knocked out.",
+        "Call us today as soon as you notice swelling.",
+      ]) expect(checkText(t, m as Parameters<typeof checkText>[1]).filter((h) => h.rule === "fear"), `${m}: ${t}`).toEqual([]);
+    }
+  });
+
+  it("catches the US and UK promo phrases, each with a safer wording or the rule's tip", () => {
+    const tips = CHECKER.en.ui.rules;
+    for (const [t, want] of [
+      ["Best dentist in Austin, rated 5 stars by our happy patients.", ["superlative:Best dentist", "testimonial:rated 5 stars", "testimonial:our happy patients"]],
+      ["Read our five-star Google reviews.", ["testimonial:our five-star Google reviews"]],
+      ["Award-winning dental care in Leeds.", ["superlative:Award-winning"]],
+      ["Voted top dentist in Manchester.", ["superlative:Voted top dentist"]],
+      ["London's leading implant clinic.", ["superlative:leading implant clinic"]],
+      ["Patients love our gentle hygienists.", ["testimonial:Patients love our"]],
+      ["No pain, no fuss.", ["absolute:No pain, no fuss"]],
+      ["Completely pain-free fillings.", ["absolute:Completely pain-free"]],
+      ["Get the perfect smile you deserve.", ["absolute:Get the perfect smile"]],
+      ["Call now to book.", ["fear:Call now"]],
+      // A made-up deadline does not make "call now" care advice.
+      ["Offer valid until Friday, call now!", ["fear:call now"]],
+      ["Call now as soon as possible!", ["fear:Call now"]],
+      ["Call us today when you want brighter teeth!", ["fear:Call us today"]],
+      ["Your perfect smile awaits.", ["absolute:Your perfect smile awaits"]],
+      ["Five-star care.", ["testimonial:Five-star"]],
+    ] as const) {
+      const hits = checkText(t);
+      expect(hits.map((h) => `${h.rule}:${h.match}`), t).toEqual(want);
+      for (const h of hits) {
+        expect(h.fix ?? tips[h.rule as RuleId].tip, `${t}: ${h.match}`).toBeTruthy();
+        if (h.fix) expect(guessLanguage(h.fix), `${t}: ${h.fix}`).toBe("en");
+      }
+    }
+    expect(checkText("No pain, no fuss.")[0].fix).toBe("comfortable for most patients, with local anesthesia");
+    expect(checkText("London's leading implant clinic.")[0].fix).toBe("our team (say what you do, not that you are the best)");
+    expect(checkText("Read our five-star Google reviews.").map((h) => h.fix)).toEqual(["questions our patients often ask"]);
+    expect(checkText("Call now to book.")[0].fix).toBe("call us");
+  });
+
+  it("leaves the education the new English patterns could be confused with alone", () => {
+    for (const t of [
+      "Gum disease often causes no pain in its early stages.",
+      "No pain doesn't mean no problem.",
+      "Gum disease is a leading cause of tooth loss.",
+      "Call your dentist if your gums bleed.",
+      "Top practices for healthy gums: brush twice a day and floss.",
+      "Braces will not give you a perfect smile overnight, but they can straighten crowded teeth.",
+      "Tooth decay can reach the nerve, leading your dentist to recommend a root canal.",
+      "Tooth decay is the leading problem dentists see in children.",
+      "Kids can earn five stars on their brushing chart.",
+      "Whitening alone won't give you your perfect smile.",
+      "Your perfect smile does not need to be bright white.",
+      "Zero pain doesn't mean zero problems.",
+      "On a scale from zero to ten, zero pain means you feel nothing at all.",
+      "Happy patients are more likely to keep their check-ups.",
+      "Read patient reviews when you choose a new dentist.",
+      "Give your child a five-star sticker for every brush.",
+      "Make brushing a five-star habit.",
+      "Wear your retainer to protect your perfect smile.",
+      "Braces take time, but your perfect smile is worth the wait.",
+      "Whitening strips won't really magically give you your perfect smile.",
+    ]) expect(checkText(t), t).toEqual([]);
   });
 
   it("does not mistake ordinary time words for pressure", () => {
