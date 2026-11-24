@@ -12,9 +12,13 @@ import type { Locale } from "./dentvideo";
  * dentist's approval is the final say, and "How we check" opens the help
  * answer that says exactly what they do and do not do (help #how-we-check).
  *
- * `{country}` is the clinic's country in the page's language, named only when
- * the advertising reviewer is given that country's own rules
- * (lib/dentvid/rule-countries.ts); elsewhere the line says the general rules.
+ * The line never names a country. A stored row does not say which country's
+ * rules its video was reviewed under, and a clinic can change its country in
+ * settings after a week was made (sign-up starts from the page's language), so
+ * a name could claim rules that were never applied. A clinic whose country has
+ * rules of its own in the reviewer (lib/dentvid/rule-countries.ts) reads
+ * "advertising rules"; anywhere else, "general advertising rules", which is
+ * true whatever the country was. "How we check" lists the countries.
  * `{parts}` is the list, joined with `sep`. `{time}` is "0:14".
  *
  * Kept apart from dentvideo-app.ts, which also ships with the sign-up page
@@ -28,8 +32,12 @@ export type CheckedText = {
   /** Between the parts of the list. */
   sep: string;
   accuracy: string;
-  /** The advertising review with the clinic's own country's rules. */
-  adsIn: string;
+  /**
+   * The advertising review, for a clinic in a country whose own rules the reviewer has. No country is
+   * named: the row does not store which country's rules a video was reviewed under, and the clinic's
+   * country can have changed since (the help answer lists the countries).
+   */
+  ads: string;
   /** The advertising review where we have no country rules: the general ones only. */
   adsGeneral: string;
   /** The picture and sound measurement of the rendered file. */
@@ -55,7 +63,7 @@ export const CHECKED_TEXT: Record<Locale, CheckedText> = {
     line: "Software-checked: {parts}.",
     sep: ", ",
     accuracy: "clinical accuracy",
-    adsIn: "advertising rules ({country})",
+    ads: "advertising rules",
     adsGeneral: "general advertising rules",
     picture: "picture and sound",
     how: "How we check",
@@ -70,7 +78,7 @@ export const CHECKED_TEXT: Record<Locale, CheckedText> = {
     line: "Von der Software geprüft: {parts}.",
     sep: ", ",
     accuracy: "fachliche Richtigkeit",
-    adsIn: "Werberegeln ({country})",
+    ads: "Werberegeln",
     adsGeneral: "allgemeine Werberegeln",
     picture: "Bild und Ton",
     how: "So prüfen wir",
@@ -85,7 +93,7 @@ export const CHECKED_TEXT: Record<Locale, CheckedText> = {
     line: "Revisado por software: {parts}.",
     sep: ", ",
     accuracy: "exactitud clínica",
-    adsIn: "normas de publicidad ({country})",
+    ads: "normas de publicidad",
     adsGeneral: "normas generales de publicidad",
     picture: "imagen y sonido",
     how: "Cómo lo revisamos",
@@ -100,7 +108,7 @@ export const CHECKED_TEXT: Record<Locale, CheckedText> = {
     line: "Vérifié par logiciel : {parts}.",
     sep: ", ",
     accuracy: "exactitude clinique",
-    adsIn: "règles de publicité ({country})",
+    ads: "règles de publicité",
     adsGeneral: "règles générales de publicité",
     picture: "image et son",
     how: "Comment nous vérifions",
@@ -115,7 +123,7 @@ export const CHECKED_TEXT: Record<Locale, CheckedText> = {
     line: "Yazılımla kontrol edildi: {parts}.",
     sep: ", ",
     accuracy: "klinik doğruluk",
-    adsIn: "reklam kuralları ({country})",
+    ads: "reklam kuralları",
     adsGeneral: "genel reklam kuralları",
     picture: "görüntü ve ses",
     how: "Nasıl kontrol ediyoruz?",
@@ -130,7 +138,7 @@ export const CHECKED_TEXT: Record<Locale, CheckedText> = {
     line: "ソフトウェアでチェック済み：{parts}。",
     sep: "、",
     accuracy: "臨床的な正確さ",
-    adsIn: "広告ルール（{country}）",
+    ads: "広告ルール",
     adsGeneral: "一般的な広告ルール",
     picture: "映像と音声",
     how: "チェックの方法",
@@ -145,7 +153,7 @@ export const CHECKED_TEXT: Record<Locale, CheckedText> = {
     line: "فحصه البرنامج: {parts}.",
     sep: "، ",
     accuracy: "الدقة السريرية",
-    adsIn: "قواعد الإعلان ({country})",
+    ads: "قواعد الإعلان",
     adsGeneral: "قواعد الإعلان العامة",
     picture: "الصورة والصوت",
     how: "كيف نفحص",
@@ -160,7 +168,7 @@ export const CHECKED_TEXT: Record<Locale, CheckedText> = {
     line: "Sprawdzone przez oprogramowanie: {parts}.",
     sep: ", ",
     accuracy: "poprawność kliniczna",
-    adsIn: "zasady reklamy ({country})",
+    ads: "zasady reklamy",
     adsGeneral: "ogólne zasady reklamy",
     picture: "obraz i dźwięk",
     how: "Jak sprawdzamy",

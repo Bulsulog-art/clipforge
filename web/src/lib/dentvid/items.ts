@@ -105,10 +105,14 @@ const WEEKS_PER_QUERY = 40;
 /** Posted rows read from before the window, for the posting streak: two years of a clinic that posts all five. */
 const POSTED_ROWS = 520;
 /**
- * Videos, newest first, that carry their script to the page (the review's "Script and caption"):
- * about fourteen weeks of five, so a library opened to years of weeks does not send years of text.
+ * The review shows a video's script ("Script and caption") only while the video waits for a decision,
+ * so only those carry it to the page (and to the iPhone app's list, which spreads each item): a few
+ * kilobytes a week, not every narration in the window. At most this many, newest first, so a
+ * library opened to years of undecided weeks still stays light.
  */
-const SCRIPT_ITEMS = 70;
+const SCRIPT_ITEMS = 40;
+/** A video the review can still decide on: made, playable, approval pending (app-ui.ts cardState "review" / "look"). */
+const awaitsDecision = (r: Pick<Row, "status" | "approval">) => r.approval === "pending" && (r.status === "ready" || r.status === "flagged");
 
 const day = (v: unknown): string | null => (typeof v === "string" && /^\d{4}-\d{2}-\d{2}/.test(v) ? v.slice(0, 10) : null);
 /** The Monday of the week a week_of falls in (a recording's week_of need not be a Monday). */
@@ -316,7 +320,7 @@ export async function loadItems(
   let scripts = 0;
   const items = rows.map((r) => {
     const checked = checkedOf(r);
-    const script = scripts < SCRIPT_ITEMS ? scriptOf(r) : undefined;
+    const script = scripts < SCRIPT_ITEMS && awaitsDecision(r) ? scriptOf(r) : undefined;
     if (script) scripts++;
     return {
       id: r.id,

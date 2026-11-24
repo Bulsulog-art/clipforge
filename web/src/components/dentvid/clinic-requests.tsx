@@ -181,6 +181,15 @@ export function ChangeRequest({
   const button = useRef<HTMLButtonElement>(null);
   // Cancel puts the keyboard back on the button that opened the form.
   const refocus = useRef(false);
+  // A change sent: the form closes under the keyboard, so the confirmation that replaces it takes the focus.
+  const said = useRef<HTMLParagraphElement>(null);
+  const focusSaid = useRef(false);
+  useEffect(() => {
+    if (focusSaid.current && said.current) {
+      focusSaid.current = false;
+      said.current.focus();
+    }
+  });
   const told = useRef(onOpenChange);
   told.current = onOpenChange;
   useEffect(() => {
@@ -203,6 +212,7 @@ export function ChangeRequest({
         setOpen(false);
         setNote("");
         setMessage({ kind: "ok", text });
+        focusSaid.current = true;
         onQueued(text, typeof body.left === "number" ? body.left : undefined);
       } else {
         const text = body.error ?? t.errors.unavailable;
@@ -219,10 +229,14 @@ export function ChangeRequest({
   return (
     <div className="mt-2">
       {!open ? (
-        <button ref={button} type="button" onClick={() => setOpen(true)} className="-ms-2 inline-flex min-h-11 items-center gap-1.5 rounded-full px-2 text-sm font-medium text-dv-teal underline-offset-4 hover:underline">
-          <PencilLine className="h-4 w-4" aria-hidden="true" />
-          {t.button}
-        </button>
+        // Once a change is sent, this video's next one waits for it (the server says "busy"): the
+        // confirmation stands alone until the library shows the change's own status.
+        message?.kind !== "ok" && (
+          <button ref={button} type="button" onClick={() => setOpen(true)} className="-ms-2 inline-flex min-h-11 items-center gap-1.5 rounded-full px-2 text-sm font-medium text-dv-teal underline-offset-4 hover:underline">
+            <PencilLine className="h-4 w-4" aria-hidden="true" />
+            {t.button}
+          </button>
+        )
       ) : (
         <form onSubmit={send} className="mt-2 rounded-2xl bg-dv-sand/60 p-4 ring-1 ring-inset ring-dv-line">
           <p className="font-semibold text-dv-ink">{t.title}</p>
@@ -254,7 +268,7 @@ export function ChangeRequest({
         </form>
       )}
       {message && (
-        <p role={message.kind === "error" ? "alert" : "status"} className={`mt-2 ${message.kind === "error" ? ERROR : OK}`}>
+        <p ref={message.kind === "ok" ? said : undefined} tabIndex={message.kind === "ok" ? -1 : undefined} role={message.kind === "error" ? "alert" : "status"} className={`mt-2 ${message.kind === "error" ? ERROR : OK}`}>
           {message.text}
         </p>
       )}

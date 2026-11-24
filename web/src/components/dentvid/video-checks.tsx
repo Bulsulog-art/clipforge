@@ -3,14 +3,14 @@ import type { Locale } from "@/content/dentvideo";
 import { checkedText, fillChecked } from "@/content/dentvideo-checked";
 import { helpHref } from "@/content/dentvideo-help-links";
 import { dvHref } from "@/lib/dentvid/host";
-import { countryName, ruleCountry } from "@/lib/dentvid/rule-countries";
+import { ruleCountry } from "@/lib/dentvid/rule-countries";
 
 /**
  * Showing the work on a video, on its library card and in the review:
  *
- *   CheckedLine  "Software-checked: clinical accuracy, advertising rules (Germany),
- *                picture and sound. How we check", one quiet line, only for a
- *                video whose stored results prove it (lib/dentvid/item-checks.ts)
+ *   CheckedLine  "Software-checked: clinical accuracy, advertising rules, picture
+ *                and sound. How we check", one quiet line, only for a video
+ *                whose stored results prove it (lib/dentvid/item-checks.ts)
  *   ScriptText   the narration (or what the dentist says in a recorded clip),
  *                sentence by sentence, with a time to play from where the
  *                stored subtitles give one, and the sentence our check marked
@@ -35,11 +35,15 @@ export function clock(seconds: number): string {
   return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
 }
 
-/** The parts of the line, in the page's language: what was checked, and nothing it cannot prove. */
+/**
+ * The parts of the line, in the page's language: what was checked, and nothing it cannot prove.
+ * `country` is the clinic's country now, which need not be the one a video was reviewed under (the
+ * row does not store that), so it never names a country: it only says "general" where the reviewer
+ * has no rules of the country's own, which is true either way (content/dentvideo-checked.ts).
+ */
 export function checkedParts(locale: Locale, checked: Checked, country?: string | null): string[] {
   const t = checkedText(locale);
-  const own = ruleCountry(country);
-  return [t.accuracy, own ? fillChecked(t.adsIn, { country: countryName(locale, own) }) : t.adsGeneral, ...(checked.picture ? [t.picture] : [])];
+  return [t.accuracy, ruleCountry(country) ? t.ads : t.adsGeneral, ...(checked.picture ? [t.picture] : [])];
 }
 
 export function CheckedLine({ locale, checked, country, className = "" }: { locale: Locale; checked?: Checked; country?: string | null; className?: string }) {

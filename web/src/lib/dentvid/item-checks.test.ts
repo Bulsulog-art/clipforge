@@ -51,13 +51,35 @@ describe("checkedOf: says 'checked' only where the stored results prove it", () 
     expect(checkedOf(ready({ status: "flagged", findings: ["[dv:unchecked] qa unavailable", "[dv:pause] quality: 3.2s of silence (max 3s)"] }))).toBeUndefined();
   });
 
-  it("no measurement stored, a failed one, or a malformed one: the reviews only", () => {
-    expect(checkedOf(ready({ qa: undefined }))).toEqual({ picture: false });
-    expect(checkedOf(ready({ qa: null }))).toEqual({ picture: false });
-    expect(checkedOf(ready({ qa: { ok: true } }))).toEqual({ picture: false });
-    expect(checkedOf(ready({ qa: { ok: "true", issues: [] } }))).toEqual({ picture: false });
+  it("no measurement stored, or one that cannot be read: nothing, as for '[dv:unchecked]' (QA never ran on this file)", () => {
+    // Rows stored before '[dv:unchecked]' existed: inspectVideo threw, the row said "ready" with no qa.
+    for (const qa of [undefined, null, { ok: true }, { issues: [] }, { ok: "true", issues: [] }, { ok: 1, issues: [] }, { ok: true, issues: "none" }, "ok", [], true]) {
+      expect(checkedOf(ready({ qa })), JSON.stringify(qa)).toBeUndefined();
+    }
+  });
+
+  it("a measurement that ran and found something: the reviews only", () => {
     expect(checkedOf(ready({ qa: { ...cleanQa, ok: false } }))).toEqual({ picture: false });
     expect(checkedOf(ready({ qa: { ...cleanQa, issues: ["too long: 95.0s (max 90s)"] } }))).toEqual({ picture: false });
+    expect(checkedOf(ready({ status: "flagged", qa: pauseQa, findings: ["[dv:audio] quality: effectively silent in places"] }))).toEqual({ picture: false });
+  });
+
+  it("fails closed on any finding that is not a QA measurement: wording, an opening line, a reviewer note, a hidden technical marker, a code it does not know", () => {
+    for (const finding of [
+      '[dv:wording] "painless": absolute claim',
+      '[dv:opening] hook removed: "Painless!"',
+      '"painless": promise',
+      "[dv:voice] a code the web does not know yet",
+      "[dv:xyz] anything",
+      "[dv:skipped] did not meet the bar",
+      "the video file is missing",
+      "could not store the render",
+      "something a reviewer wrote",
+    ]) {
+      expect(checkedOf(ready({ status: "flagged", findings: [finding] })), finding).toBeUndefined();
+      // Next to a QA finding as well: the unknown one still hides the line.
+      expect(checkedOf(ready({ status: "flagged", qa: pauseQa, findings: ["[dv:pause] quality: 3.1s of silence (max 3s)", finding] })), finding).toBeUndefined();
+    }
   });
 
   it("after a photo update (or the owner's retry) the file was rendered again without being measured: picture and sound is not claimed", () => {
@@ -143,6 +165,41 @@ describe("scriptOf: the narration, sentence by sentence", () => {
     expect(scriptOf(ready({ subtitles: { cues: [{ start: 3, end: 1, text: "Backwards." }] } }))).toBeUndefined();
   });
 
+  it("a decimal point or a title does not end a sentence (a transcript often has 'Dr.')", () => {
+    expect(sentences("Dr. Smith says brush for 2.5 minutes. Floss daily.")).toEqual(["Dr. Smith says brush for 2.5 minutes.", "Floss daily."]);
+    expect(sentences("Mrs. Jones and Prof. Lee agree, e.g. on fluoride. Ask us.")).toEqual(["Mrs. Jones and Prof. Lee agree, e.g. on fluoride.", "Ask us."]);
+    expect(sentences("Putzen Sie z.B. zweimal täglich ca. 2 Minuten. Fertig.")).toEqual(["Putzen Sie z.B. zweimal täglich ca. 2 Minuten.", "Fertig."]);
+    expect(sentences("Op. Dr. Ayşe Yılmaz ve Dt. Can anlatıyor. Sorularınızı bekliyoruz.")).toEqual(["Op. Dr. Ayşe Yılmaz ve Dt. Can anlatıyor.", "Sorularınızı bekliyoruz."]);
+    expect(sentences("Radzi lek. dent. Anna Nowak. Proszę pytać.")).toEqual(["Radzi lek. dent. Anna Nowak.", "Proszę pytać."]);
+    expect(sentences("La Dra. García lo explica. Pregúntanos.")).toEqual(["La Dra. García lo explica.", "Pregúntanos."]);
+    // A real end stays an end: a single letter, an acronym, an ellipsis, and the end of the text.
+    expect(sentences("Take vitamin D. It helps.")).toEqual(["Take vitamin D.", "It helps."]);
+    expect(sentences("This matters for patients with MS. Ask us.")).toEqual(["This matters for patients with MS.", "Ask us."]);
+    expect(sentences("Wait... really? Yes.")).toEqual(["Wait...", "really?", "Yes."]);
+    expect(sentences("Brush for 2. Then floss.")).toEqual(["Brush for 2.", "Then floss."]);
+    expect(sentences("See your Dr.")).toEqual(["See your Dr."]);
+    expect(sentences("歯みがきは2.5分。毎日です。")).toEqual(["歯みがきは2.5分。", "毎日です。"]);
+  });
+
+  it("with stored cues: a cue cut at a decimal point or after a title does not end the sentence either", () => {
+    const cues = {
+      cues: [
+        { start: 0, end: 0.6, text: "Dr." },
+        { start: 0.6, end: 2.9, text: "Smith says brush for 2." },
+        { start: 2.9, end: 4, text: "5 minutes." },
+        { start: 4.4, end: 6, text: "Floss daily." },
+        { start: 6.2, end: 7, text: "Brush for 2." },
+        { start: 7.3, end: 8, text: "Then floss." },
+      ],
+    };
+    expect(linesFromCues(cues, "en")).toEqual([
+      { text: "Dr. Smith says brush for 2.5 minutes.", at: 0 },
+      { text: "Floss daily.", at: 4.4 },
+      { text: "Brush for 2.", at: 6.2 },
+      { text: "Then floss.", at: 7.3 },
+    ]);
+  });
+
   it("a very long narration is cut to a readable length", () => {
     const text = Array.from({ length: 200 }, (_, n) => `Sentence number ${n} is here.`).join(" ");
     const lines = scriptOf(ready({ plan: { voiceover: { text } } }))!;
@@ -188,6 +245,36 @@ describe("a recorded clip flagged for its wording points at the words its review
     const lines = sentences("Brush twice. Floss once. Smile.").map((text) => ({ text }));
     expect(markQuoted(lines, quotesOf({ accuracy: { issues: [{ quote: "Brush twice. Floss once." }] } })).map((l) => !!l.marked)).toEqual([true, true, false]);
     expect(quotesOf({ compliance: { hard: [{ match: "a" }], issues: [{ quote: "" }, { quote: 3 }] } })).toEqual([]);
+  });
+
+  const marks = (text: string, review: unknown) => markQuoted(sentences(text).map((t) => ({ text: t })), quotesOf(review)).map((l) => !!l.marked);
+
+  it("whole words only, as the hard rules find them: 'cure' never marks 'secure', 'yes' never marks 'eyes'", () => {
+    expect(marks("This cure works. Keep your teeth secure.", { compliance: { hard: [{ match: "cure" }] } })).toEqual([true, false]);
+    expect(marks("Keep your teeth secure. Ask us.", { compliance: { hard: [{ match: "cure" }] } })).toEqual([false, false]);
+    expect(marks("Your eyes may water. Yes, it is safe.", { compliance: { issues: [{ quote: "yes" }] } })).toEqual([false, true]);
+    expect(marks("Die Behandlung ist schmerzfrei. Sie ist frei von Risiken.", { compliance: { hard: [{ match: "frei" }] } })).toEqual([false, true]);
+    // Arabic and accented words have edges too.
+    expect(marks("العلاج بدون ألم. اسألونا.", { compliance: { hard: [{ match: "بدون ألم" }] } })).toEqual([true, false]);
+  });
+
+  it("a short sentence is marked only where the quote is, not because a quote elsewhere holds its words", () => {
+    const text = "Is a root canal painful? Absolutely. With modern anaesthesia it is absolutely painless today.";
+    expect(sentences(text)).toHaveLength(3);
+    expect(marks(text, { compliance: { issues: [{ quote: "it is absolutely painless today" }] } })).toEqual([false, false, true]);
+    for (const short of ["Exactly.", "Of course.", "Okay."]) {
+      expect(marks(`${short} We say it is exactly of course okay painless.`, { compliance: { issues: [{ quote: "exactly of course okay painless" }] } }), short).toEqual([false, true]);
+    }
+    // The quote that really is that short sentence still marks it.
+    expect(marks(text, { compliance: { issues: [{ quote: "Absolutely." }] } })).toEqual([false, true, true]);
+  });
+
+  it("Japanese: a quote in 「」 is found without its brackets, also over two sentences; a quote not in the words marks nothing", () => {
+    const text = "インプラントは誰にでも痛みがありません。ご相談ください。";
+    expect(sentences(text)).toEqual(["インプラントは誰にでも痛みがありません。", "ご相談ください。"]);
+    expect(marks(text, { compliance: { issues: [{ quote: "「誰にでも痛みがありません」" }] } })).toEqual([true, false]);
+    expect(marks(text, { compliance: { issues: [{ quote: "『痛みがありません。ご相談』" }] } })).toEqual([true, true]);
+    expect(marks(text, { compliance: { issues: [{ quote: "「必ず白くなります」" }] } })).toEqual([false, false]);
   });
 });
 
@@ -251,12 +338,34 @@ describe("loadItems carries both to the page", () => {
     expect(b.script).toHaveLength(2);
   });
 
-  it("only the newest seventy videos carry their script, so a library opened to years of weeks stays light", async () => {
-    const many = Array.from({ length: 75 }, (_, n) => row(`v${String(n).padStart(3, "0")}`));
-    const { items } = await loadItems(fakeDb(many), "o1", { now: new Date("2026-11-24T10:00:00Z") });
-    expect(items).toHaveLength(75);
-    expect(items.filter((i) => i.script).length).toBe(70);
-    // Every video still says what was checked.
+  it("only videos waiting for a decision carry their script (the review shows it only then), so the page and the iPhone list stay light", async () => {
+    const { items } = await loadItems(
+      fakeDb([
+        row("pending"),
+        row("flagged", { status: "flagged", qa: pauseQa, findings: ["[dv:pause] quality: 3.1s of silence (max 3s)"] }),
+        row("approved", { approval: "approved" }),
+        row("declined", { approval: "rejected" }),
+        row("notmade", { status: "rejected", video_path: null }),
+      ]),
+      "o1",
+      { now: new Date("2026-11-24T10:00:00Z") },
+    );
+    const by = (id: string) => items.find((i) => i.id === id)!;
+    expect(by("pending").script).toHaveLength(2);
+    expect(by("flagged").script).toHaveLength(2);
+    for (const id of ["approved", "declined", "notmade"]) expect("script" in by(id), id).toBe(false);
+    // Every decided video still says what was checked.
+    expect(by("approved").checked).toEqual({ picture: true });
+    expect(by("declined").checked).toEqual({ picture: true });
+  });
+
+  it("decided videos never use up the scripts of the ones waiting; a library of years of undecided weeks is still held to forty", async () => {
+    const decided = Array.from({ length: 60 }, (_, n) => row(`d${String(n).padStart(3, "0")}`, { approval: "approved" }));
+    const waiting = Array.from({ length: 45 }, (_, n) => row(`w${String(n).padStart(3, "0")}`));
+    const { items } = await loadItems(fakeDb([...decided, ...waiting]), "o1", { now: new Date("2026-11-24T10:00:00Z") });
+    expect(items).toHaveLength(105);
+    expect(items.filter((i) => i.script).length).toBe(40);
+    expect(items.filter((i) => i.script).every((i) => i.approval === "pending")).toBe(true);
     expect(items.every((i) => i.checked?.picture === true)).toBe(true);
   });
 });
@@ -291,7 +400,7 @@ describe("the worker still stores what these rules read", () => {
   });
 });
 
-describe("the countries named in the line are exactly those with their own rules in the advertising review", () => {
+describe("the countries with their own rules in the advertising review (the line says 'advertising rules' there, 'general' elsewhere)", () => {
   const locale = worker("dental/locale.ts");
   const body = locale.slice(locale.indexOf("export function marketRules"), locale.indexOf("export function captionRules"));
   const briefed = new Set([...body.matchAll(/c === "([A-Z]{2})"/g)].map((m) => m[1]));

@@ -17,7 +17,7 @@ import { ItemCard, Library, type LibraryItem } from "./library";
 import { DeclineForm, ReviewPanel } from "./review-player";
 import { ChangeRequest } from "./clinic-requests";
 import { CheckedLine, ScriptText, checkedParts, clock } from "./video-checks";
-import { countryName } from "@/lib/dentvid/rule-countries";
+import { RULE_COUNTRIES } from "@/lib/dentvid/rule-countries";
 
 (globalThis as { React?: typeof React }).React = React;
 
@@ -115,30 +115,45 @@ const cardProps = (it: LibraryItem, over: Partial<CardProps> = {}): CardProps =>
 /* ------------------------------------------------------------------ the line */
 
 describe("the 'checked' line says only what was checked", () => {
-  it.each(LOCALES)("%s: a ready video names clinical accuracy, the clinic's own country's advertising rules, and picture and sound, and links to how we check", (l: Locale) => {
+  it.each(LOCALES)("%s: a ready video names clinical accuracy, advertising rules, and picture and sound, and links to how we check", (l: Locale) => {
     const c = CHECKED_TEXT[l];
     const h = card(l, item());
     expect(lineCount(h)).toBe(1);
-    const parts = [c.accuracy, fillChecked(c.adsIn, { country: countryName(l, "DE") }), c.picture];
+    const parts = [c.accuracy, c.ads, c.picture];
     expect(h).toContain(fillChecked(c.line, { parts: parts.join(c.sep) }));
     expect(h).toContain(`#how-we-check"`);
     expect(h).toContain(`>${c.how}</a>`);
     expect(h).toMatch(/href="[^"]*#how-we-check"[^>]*target="_blank"/);
   });
 
-  it("a country whose own rules the reviewer does not have reads 'general advertising rules', never its name", () => {
+  it("a country whose own rules the reviewer does not have reads 'general advertising rules'", () => {
     expect(checkedParts("en", { picture: true }, "FR")).toEqual(["clinical accuracy", "general advertising rules", "picture and sound"]);
     expect(checkedParts("en", { picture: true }, null)).toEqual(["clinical accuracy", "general advertising rules", "picture and sound"]);
-    expect(checkedParts("de", { picture: false }, "uk")).toEqual(["fachliche Richtigkeit", "Werberegeln (Vereinigtes Königreich)"]);
-    expect(checkedParts("tr", { picture: true }, "TR")).toEqual(["klinik doğruluk", "reklam kuralları (Türkiye)", "görüntü ve ses"]);
+    expect(checkedParts("de", { picture: false }, "uk")).toEqual(["fachliche Richtigkeit", "Werberegeln"]);
+    expect(checkedParts("tr", { picture: true }, "TR")).toEqual(["klinik doğruluk", "reklam kuralları", "görüntü ve ses"]);
     const fr = card("fr", item(), "FR");
     expect(fr).toContain(CHECKED_TEXT.fr.adsGeneral);
     expect(fr).not.toContain("France");
   });
 
+  it("never names a country: the row does not say which country's rules a video was reviewed under, and the clinic's can change", () => {
+    // A UK clinic that signed up in English (so its first week was reviewed under US rules), then set GB:
+    // its line must not say "United Kingdom", nor any other country.
+    for (const l of LOCALES) {
+      for (const code of [...RULE_COUNTRIES, "FR", "uk", null]) {
+        const h = card(l, item(), code);
+        const names = [...RULE_COUNTRIES, "FR"].map((cc) => new Intl.DisplayNames([l], { type: "region" }).of(cc)!);
+        for (const name of names) expect(h, `${l} ${code} ${name}`).not.toContain(name);
+        expect(h).toContain(code && code !== "FR" ? fillChecked(CHECKED_TEXT[l].line, { parts: [CHECKED_TEXT[l].accuracy, CHECKED_TEXT[l].ads, CHECKED_TEXT[l].picture].join(CHECKED_TEXT[l].sep) }) : CHECKED_TEXT[l].adsGeneral);
+      }
+    }
+    // The same clinic before and after the switch reads the same words.
+    expect(card("en", item(), "US").match(/Software-checked:[^<]*/)?.[0]).toBe(card("en", item(), "GB").match(/Software-checked:[^<]*/)?.[0]);
+  });
+
   it("picture and sound only when it was measured clean on this file", () => {
     const h = card("en", item({ checked: { picture: false } }));
-    expect(h).toContain("Software-checked: clinical accuracy, advertising rules (Germany).");
+    expect(h).toContain("Software-checked: clinical accuracy, advertising rules.");
     expect(h).not.toContain("picture and sound");
   });
 
@@ -155,7 +170,7 @@ describe("the 'checked' line says only what was checked", () => {
   it("a flagged video whose reviews passed says so next to what to check (the pause), without picture and sound", () => {
     const h = card("en", item({ status: "flagged", reasons: ["pause"], checked: { picture: false } }));
     expect(h).toContain(APP_TEXT.en.library.whatToCheck);
-    expect(h).toContain("Software-checked: clinical accuracy, advertising rules (Germany).");
+    expect(h).toContain("Software-checked: clinical accuracy, advertising rules.");
     expect(h.indexOf(APP_TEXT.en.library.whatToCheck)).toBeLessThan(h.indexOf("data-checked-line"));
   });
 
@@ -174,8 +189,8 @@ describe("the 'checked' line says only what was checked", () => {
   });
 
   it("the library passes the clinic's country to the cards", () => {
-    const h = html(<Library locale="en" items={[item()]} canStartWeek={false} currentWeek={WEEK} country="US" />);
-    expect(h).toContain("advertising rules (United States)");
+    expect(html(<Library locale="en" items={[item()]} canStartWeek={false} currentWeek={WEEK} country="US" />)).toContain("clinical accuracy, advertising rules, picture");
+    expect(html(<Library locale="en" items={[item()]} canStartWeek={false} currentWeek={WEEK} country="FR" />)).toContain("clinical accuracy, general advertising rules, picture");
   });
 
   it.each(LOCALES)("%s: in the review, next to the decision while deciding, and after the post step once approved", (l: Locale) => {
@@ -198,12 +213,14 @@ describe("the 'checked' line says only what was checked", () => {
     expect(all).not.toMatch(/approv|complian|guarant|certif|freigegeben|konform|garant|aprobad|conform|onaylan|uyumlu|保証|承認|適合|معتمد|مضمون|متوافق|zatwierdz|zgodn|gwarant/i);
     // The app's own word for an approved video never appears in the line.
     expect(all).not.toContain(APP_TEXT[l].library.state.approved);
-    for (const k of ["line", "accuracy", "adsIn", "adsGeneral", "picture", "how", "scriptAndCaption", "playFrom", "marked"] as const) {
+    for (const k of ["line", "accuracy", "ads", "adsGeneral", "picture", "how", "scriptAndCaption", "playFrom", "marked"] as const) {
       expect(c[k].trim().length, `${l} ${k}`).toBeGreaterThan(1);
       if (l !== "en") expect(c[k], `${l} ${k}`).not.toBe(CHECKED_TEXT.en[k]);
     }
     expect(c.line).toContain("{parts}");
-    expect(c.adsIn).toContain("{country}");
+    // No country in the words, and no placeholder for one.
+    expect(c.ads).not.toMatch(/[{}()（）]/);
+    expect(c.adsGeneral.length).toBeGreaterThan(c.ads.length);
     expect(c.playFrom).toContain("{time}");
   });
 });
@@ -380,6 +397,120 @@ describe("the library card's decline form offers 'Ask for a change instead', as 
     const [form] = elementsOf<ChangeProps>(tree, ChangeRequest);
     expect(form.props.startOpen).toBe(false);
     expect(form.props.initialNote).toBeUndefined();
+  });
+
+  it("the form that sent the change stays the same form, so its 'Change requested, N of 3 left' and the focus are not lost", () => {
+    const it1 = item({ photos });
+    const keys: (string | null)[] = [];
+    const keyOf = (tree: React.ReactNode) => {
+      const forms = elementsOf<ChangeProps>(tree, ChangeRequest);
+      expect(forms).toHaveLength(1);
+      return forms[0].key;
+    };
+    const { tree } = playThrough(() => ItemCard(cardProps(it1)), [
+      (tree) => buttonExactly(tree, t.decline)!.props.onClick!(),
+      (tree) => elementsOf<DeclineProps>(tree, DeclineForm)[0].props.changeInstead!.onChoose("wrong", note),
+      (tree) => {
+        keys.push(keyOf(tree));
+        elementsOf<ChangeProps>(tree, ChangeRequest)[0].props.onQueued("Change requested. Changes left this week: 2 of 3", 2);
+      },
+      (tree) => keys.push(keyOf(tree)),
+    ]);
+    // A new key would remount ChangeRequest and throw away the confirmation it shows (role="status").
+    expect(keys[0]).toBe(keys[1]);
+    expect(keyOf(tree)).toBe(keys[0]);
+  });
+
+  it("a hand-over made again starts a fresh form, open, with the new words", () => {
+    const it1 = item({ photos });
+    const keys: (string | null)[] = [];
+    const { tree } = playThrough(() => ItemCard(cardProps(it1)), [
+      (tree) => buttonExactly(tree, t.decline)!.props.onClick!(),
+      (tree) => elementsOf<DeclineProps>(tree, DeclineForm)[0].props.changeInstead!.onChoose("wrong", note),
+      (tree) => {
+        const [form] = elementsOf<ChangeProps>(tree, ChangeRequest);
+        keys.push(form.key);
+        form.props.onOpenChange!(false);
+      },
+      (tree) => buttonExactly(tree, t.decline)!.props.onClick!(),
+      (tree) => elementsOf<DeclineProps>(tree, DeclineForm)[0].props.changeInstead!.onChoose("look", "The colours look off."),
+    ]);
+    const [form] = elementsOf<ChangeProps>(tree, ChangeRequest);
+    expect(form.key).not.toBe(keys[0]);
+    expect(form.props.startOpen).toBe(true);
+    expect(form.props.initialNote).toBe("The colours look off.");
+  });
+
+  /** A card the way the library holds it: the "changes are over" flag lives above the card, shared by all. */
+  const heldCard = (it1: LibraryItem, extra: Partial<CardProps> = {}) => {
+    const [over, setOver] = React.useState(false);
+    return ItemCard(cardProps(it1, { changesOver: over, onChangesOver: () => setOver(true), ...extra }));
+  };
+
+  it("the week's last change sent from a card: its confirmation stays, and the library hears that changes are over", () => {
+    const onChangesOver = vi.fn();
+    const it1 = item({ photos });
+    const { tree } = playThrough(() => ItemCard(cardProps(it1, { onChangesOver })), [
+      (tree) => elementsOf<ChangeProps>(tree, ChangeRequest)[0].props.onQueued("Change requested. Changes left this week: 0 of 3", 0),
+    ]);
+    expect(onChangesOver).toHaveBeenCalledTimes(1);
+    // Not a change left: told so above, the form that sent it stays until the refresh brings the change's status.
+    const shared = playThrough(() => heldCard(it1), [(tree) => elementsOf<ChangeProps>(tree, ChangeRequest)[0].props.onQueued("Change requested. Changes left this week: 0 of 3", 0)]);
+    expect(elementsOf(shared.tree, ChangeRequest)).toHaveLength(1);
+    expect(elementsOf(tree, ChangeRequest)).toHaveLength(1);
+    // Changes left: nobody is told they are over.
+    const more = vi.fn();
+    playThrough(() => ItemCard(cardProps(item({ photos }), { onChangesOver: more })), [(tree) => elementsOf<ChangeProps>(tree, ChangeRequest)[0].props.onQueued("x", 2)]);
+    expect(more).not.toHaveBeenCalled();
+  });
+
+  it("once the refresh brings newer news of a change, the sent form is not kept for it any more", () => {
+    let current = item({ photos });
+    const { tree } = playThrough(() => heldCard(current), [
+      (tree) => elementsOf<ChangeProps>(tree, ChangeRequest)[0].props.onQueued("Change requested. Changes left this week: 0 of 3", 0),
+      () => {
+        // The change was made, the new version waits for a decision again; no changes are left this week.
+        current = { ...current, change: { status: "done", reason: null, at: "2026-11-24T09:00:00Z" } };
+      },
+    ]);
+    expect(elementsOf(tree, ChangeRequest)).toHaveLength(0);
+  });
+
+  it.each(["limit", "no_plan"])("refused for the week (%s) on one card: the library hears it", (code) => {
+    const onChangesOver = vi.fn();
+    const it1 = item({ photos });
+    playThrough(() => ItemCard(cardProps(it1, { onChangesOver })), [
+      (tree) => elementsOf<ChangeProps>(tree, ChangeRequest)[0].props.onFailed!({ code, message: rq.errors.limit, note: "" }),
+    ]);
+    expect(onChangesOver).toHaveBeenCalledTimes(1);
+    const other = vi.fn();
+    playThrough(() => ItemCard(cardProps(item({ photos }), { onChangesOver: other })), [
+      (tree) => elementsOf<ChangeProps>(tree, ChangeRequest)[0].props.onFailed!({ code: "busy", message: rq.errors.busy, note: "" }),
+    ]);
+    expect(other).not.toHaveBeenCalled();
+  });
+
+  it("a card told that changes are over offers no change, not on the card and not in its decline form", () => {
+    const it1 = item({ photos });
+    const { tree } = playThrough(() => ItemCard(cardProps(it1, { changesOver: true })), [(tree) => buttonExactly(tree, t.decline)!.props.onClick!()]);
+    expect(elementsOf<DeclineProps>(tree, DeclineForm)[0].props.changeInstead).toBeUndefined();
+    expect(elementsOf(treeOf(() => ItemCard(cardProps(it1, { changesOver: true }))), ChangeRequest)).toHaveLength(0);
+  });
+
+  it("the library: once one card hears that changes are over, every card stops offering one", () => {
+    const a = item({ photos });
+    const b = item({ photos });
+    const cardsOf = (tree: React.ReactNode) => elementsOf<CardProps>(tree, ItemCard);
+    const { tree } = playThrough(() => Library({ locale: "en", items: [a, b], canStartWeek: false, currentWeek: WEEK, country: "US" }), [
+      (tree) => {
+        const cards = cardsOf(tree);
+        expect(cards).toHaveLength(2);
+        expect(cards.every((c) => c.props.changesOver === false)).toBe(true);
+        cards[0].props.onChangesOver!();
+      },
+    ]);
+    const cards = cardsOf(tree);
+    expect(cards.map((c) => c.props.changesOver)).toEqual([true, true]);
   });
 
   it("a saved decline ends it too, and sends the note the way the decline form writes it", async () => {

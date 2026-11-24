@@ -181,6 +181,11 @@ export function Library({
   // The review steps through one week's videos in the order it opened with (the cards re-sort as
   // decisions are made; the player must not), by id, so a refresh keeps its place.
   const [review, setReview] = useState<{ ids: string[]; id: string } | null>(null);
+  // No change can be made this week (none left, or no plan), as one card heard from the server. The
+  // limit is the clinic's, not one video's: from then on no card offers a change (as in the review player).
+  const [changesOver, setChangesOver] = useState(false);
+  // A new week brings new changes (a library left open over a Monday hears it with the refresh).
+  useEffect(() => setChangesOver(false), [currentWeek]);
   const queue = review ? review.ids.map((id) => view.find((i) => i.id === id)).filter((i): i is LibraryItem => !!i) : [];
   const index = review ? queue.findIndex((i) => i.id === review.id) : -1;
   const openReview = (week: string, id?: string) => {
@@ -295,6 +300,8 @@ export function Library({
                 onChanged={() => router.refresh()}
                 onOpen={() => openReview(g.week, item.id)}
                 country={country}
+                changesOver={changesOver}
+                onChangesOver={() => setChangesOver(true)}
               />
             ))}
           </ul>
@@ -665,12 +672,18 @@ export function ItemCard({
   slot,
   locale,
   country = null,
+  changesOver = false,
+  onChangesOver,
 }: {
   item: LibraryItem;
   t: AppText["library"];
   posted: boolean;
   /** The clinic's country, for the "checked" line. */
   country?: string | null;
+  /** No change can be made this week, as another card heard: this one stops offering one too. */
+  changesOver?: boolean;
+  /** This card heard that no change can be made this week (or used the week's last one). */
+  onChangesOver?: () => void;
   /** Suggested posting day and time ("Tue 12:30"), this week's videos only. */
   slot?: string;
   locale: Locale;
@@ -686,7 +699,14 @@ export function ItemCard({
   // "Ask for a change instead" from the decline form: the review player's hand-over, the same here.
   const handover = useChangeHandover();
   // The server said no change can be made this week (none left, or no plan): declining is what is left.
-  const [noChange, setNoChange] = useState(false);
+  // Heard on this card, or on another one of the library (the limit is the clinic's).
+  const [noChangeHere, setNoChangeHere] = useState(false);
+  const noChange = changesOver || noChangeHere;
+  // A change was just accepted from this card: its form stays to show "Change requested, N of 3 left"
+  // (even when that was the week's last change) until the refresh brings the change's own status.
+  // Kept as the change the card showed when it was sent, so newer news of a change ends it.
+  const [sentOver, setSentOver] = useState<string | null | undefined>(undefined);
+  const sentHere = sentOver !== undefined && sentOver === (item.change?.at ?? null);
 
   async function choose(next: LibraryItem["approval"], note?: string) {
     setBusy(true);
@@ -848,7 +868,7 @@ export function ItemCard({
             </p>
           )}
           {/* While the decline form is open, a change is offered inside it ("Ask for a change instead"). */}
-          {canChange && !declining && (
+          {(canChange || sentHere) && !declining && (
             <ChangeRequest
               key={handover.form.key}
               locale={locale}
@@ -856,15 +876,19 @@ export function ItemCard({
               initialNote={handover.form.initialNote}
               startOpen={handover.form.startOpen}
               onOpenChange={handover.opened}
-              onQueued={() => {
+              onQueued={(_, left) => {
+                setSentOver(item.change?.at ?? null);
                 handover.clear();
+                // That was the week's last change: the other cards stop offering one.
+                if (left === 0) onChangesOver?.();
                 onChanged();
               }}
               onFailed={({ code, message, note }) => {
                 if (!changesOverCode(code)) return;
-                // No change this week: say so, stop offering one, and, coming from the decline form,
-                // open it again with the reason and the words (as edited in the change form).
-                setNoChange(true);
+                // No change this week: say so, stop offering one (here and on every card), and, coming
+                // from the decline form, open it again with the reason and the words (as edited there).
+                setNoChangeHere(true);
+                onChangesOver?.();
                 setError(message);
                 if (handover.back(note)) setDeclining(true);
               }}

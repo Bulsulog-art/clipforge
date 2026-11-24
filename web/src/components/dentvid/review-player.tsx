@@ -115,7 +115,7 @@ export function ReviewPlayer({
   locale: Locale;
   /** Suggested posting day and time per video id ("Tue 12:30"). */
   slots?: Map<string, string>;
-  /** The clinic's country (profile.country): the "checked" line names its advertising rules when we have them. */
+  /** The clinic's country (profile.country): the "checked" line says "general advertising rules" where the reviewer has none of its own. */
   country?: string | null;
   /** The videos stepped through (one week's), already showing any decision made here. */
   queue: LibraryItem[];
@@ -366,7 +366,7 @@ export function nextToDecide(queue: LibraryItem[], from: number, beingChanged: (
  * the form leaving the sheet) clears it, so no later change form opens by itself; a saved decision
  * ends the hand-over.
  */
-type Handover = { n: number; reason: DeclineReason; words: string; open: boolean };
+type Handover = { reason: DeclineReason; words: string; open: boolean };
 
 /**
  * The decline form's hand-over to "Ask for a change", shared by the review panel and the library
@@ -377,13 +377,20 @@ type Handover = { n: number; reason: DeclineReason; words: string; open: boolean
  */
 export function useChangeHandover() {
   const [draft, setDraft] = useState<Handover | null>(null);
+  // How many hand-overs there have been: the ChangeRequest's key. Only a new hand-over changes it, so
+  // the form that sent a change keeps its "Change requested, N of 3 left" and the keyboard focus after
+  // clear(); a hand-over made again starts a fresh form, open, with the new words.
+  const [n, setN] = useState(0);
   return {
     /** What the decline form starts from when it opens again. */
     initial: draft ? { reason: draft.reason, words: draft.words } : undefined,
     /** Props for the ChangeRequest that takes it: a new key per hand-over, its words, open once. */
-    form: { key: `change-${draft?.n ?? 0}`, initialNote: draft?.words, startOpen: !!draft?.open },
+    form: { key: `change-${n}`, initialNote: draft?.words, startOpen: !!draft?.open },
     /** "Ask for a change instead" in the decline form: keep the video, open the change form with the words. */
-    choose: (reason: DeclineReason, words: string) => setDraft((d) => ({ n: (d?.n ?? 0) + 1, reason, words, open: true })),
+    choose: (reason: DeclineReason, words: string) => {
+      setN((k) => k + 1);
+      setDraft({ reason, words, open: true });
+    },
     /** The change form opened or closed. After Cancel, a later change form starts closed, never open with the old words. */
     opened: (open: boolean) => {
       if (!open) setDraft((d) => (d?.open ? { ...d, open: false } : d));
@@ -397,7 +404,10 @@ export function useChangeHandover() {
       setDraft({ ...draft, open: false, words: note.trim() ? note : draft.words });
       return true;
     },
-    /** A saved decision or an accepted change: nothing of the hand-over opens or prefills later. */
+    /**
+     * A saved decision or an accepted change: nothing of the hand-over opens or prefills later. The key
+     * stays, so the form on screen is not remounted and keeps what it is showing.
+     */
     clear: () => setDraft(null),
   };
 }
