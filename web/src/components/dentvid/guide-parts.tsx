@@ -4,6 +4,7 @@ import { ArrowRight, ChevronRight } from "lucide-react";
 import { LANDING_PATH, dirOf, type Locale } from "@/content/dentvideo";
 import { parseInline, resolveTarget } from "@/content/guides/text";
 import { GUIDE_UI } from "@/content/guides/ui";
+import { BREADCRUMB_LABEL } from "@/content/guides/ui-breadcrumb";
 import type { SectionTable } from "@/content/guides/types";
 import { dvHref } from "@/lib/dentvid/host";
 import { DvIcon } from "./mark";
@@ -31,9 +32,10 @@ export function RichText({ text, locale }: { text: string; locale: Locale }) {
   );
 }
 
-export function Breadcrumbs({ items }: { items: { name: string; href?: string }[] }) {
+/** The trail above a page's title. Its name for screen readers is in the page's language, like the trail itself. */
+export function Breadcrumbs({ items, locale }: { items: { name: string; href?: string }[]; locale: Locale }) {
   return (
-    <nav aria-label="Breadcrumb">
+    <nav aria-label={BREADCRUMB_LABEL[locale]}>
       {/* One line: the current page (always last) is cut with an ellipsis rather than wrapping a lone chevron onto a second line. */}
       <ol className="flex items-center gap-1.5 text-sm text-dv-muted">
         {items.map((it, i) => (

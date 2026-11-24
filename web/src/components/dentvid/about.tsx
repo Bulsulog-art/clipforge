@@ -20,7 +20,7 @@ export function AboutPage({ locale }: { locale: Locale }) {
       <header className="relative isolate overflow-hidden border-b border-dv-line">
         <div aria-hidden="true" className="dv-grid absolute inset-0 -z-10" />
         <div className="mx-auto max-w-3xl px-4 pb-12 pt-8 sm:px-6 sm:pb-16 sm:pt-14">
-          <Breadcrumbs items={[{ name: "DentVideo", href: LANDING_PATH[locale] }, { name: ui.about }]} />
+          <Breadcrumbs items={[{ name: "DentVideo", href: LANDING_PATH[locale] }, { name: ui.about }]} locale={locale} />
           <h1 className="dv-display mt-6 text-[2.75rem] leading-[1.02] text-dv-ink sm:text-[3.75rem]">{e.h1}</h1>
           <p className="mt-6 text-lg leading-relaxed text-dv-body sm:text-xl">{e.definition}</p>
         </div>

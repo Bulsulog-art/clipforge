@@ -176,7 +176,7 @@ export function LegalPage({ kind, locale }: { kind: LegalKind; locale: Locale })
       <header className="relative isolate overflow-hidden border-b border-dv-line">
         <div aria-hidden="true" className="dv-grid absolute inset-0 -z-10" />
         <div className="mx-auto max-w-3xl px-4 pb-10 pt-8 sm:px-6 sm:pb-14 sm:pt-14">
-          <Breadcrumbs items={[{ name: "DentVideo", href: LANDING_PATH[locale] }, { name: doc.title }]} />
+          <Breadcrumbs items={[{ name: "DentVideo", href: LANDING_PATH[locale] }, { name: doc.title }]} locale={locale} />
           <h1 className="dv-display mt-6 text-[2.5rem] leading-[1.05] text-dv-ink [overflow-wrap:anywhere] sm:text-[3.5rem]">{doc.title}</h1>
           <p className="mt-4 text-sm text-dv-muted">
             {t.ui.updated}: <time dateTime={LEGAL_UPDATED}>{date}</time>

@@ -60,7 +60,7 @@ export default async function GuidePage({ params }: Props) {
           <div aria-hidden="true" className="dv-grid absolute inset-0 -z-10" />
           <div aria-hidden="true" className="absolute -end-40 -top-20 -z-10 h-96 w-96 rounded-full bg-[#cfe6e0] opacity-60 blur-3xl" />
           <div className="mx-auto max-w-3xl px-4 pb-12 pt-8 sm:px-6 sm:pb-16 sm:pt-14">
-            <Breadcrumbs items={[{ name: "DentVideo", href: LANDING_PATH[L] }, { name: ui.breadcrumbGuides, href: GUIDES_INDEX_PATH[L] }, { name: g.h1 }]} />
+            <Breadcrumbs items={[{ name: "DentVideo", href: LANDING_PATH[L] }, { name: ui.breadcrumbGuides, href: GUIDES_INDEX_PATH[L] }, { name: g.h1 }]} locale={L} />
             <h1 className="dv-display mt-6 text-balance text-[2.375rem] leading-[1.04] text-dv-ink sm:text-[3.25rem]">{g.h1}</h1>
             <p className="mt-6 text-lg leading-relaxed text-dv-body sm:text-xl">
               <RichText text={g.intro} locale={L} />

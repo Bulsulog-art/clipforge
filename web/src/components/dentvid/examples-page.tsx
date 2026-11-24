@@ -62,24 +62,29 @@ function Cta({ locale, where }: { locale: Locale; where: string }) {
   );
 }
 
+/** "28 seconds" in the language of the page it is shown on. */
 function Seconds({ locale, seconds }: { locale: Locale; seconds: number }) {
-  return <span className="tabular-nums">{EXAMPLES_UI[locale].seconds.replace("{s}", String(Math.round(seconds)))}</span>;
+  return (
+    <span className="tabular-nums" data-example-seconds>
+      {EXAMPLES_UI[locale].seconds.replace("{s}", String(Math.round(seconds)))}
+    </span>
+  );
 }
 
 /**
  * On phones the poster sits beside the title, one card per row (a full-width 9:16 poster per card made
  * the hub over two thousand pixels tall, and two-up cards broke words mid-word); from sm up it stacks,
  * three cards across, each wide enough for its title. `eager`: the hub's first cards.
+ *
+ * A card from another language keeps its title in that language (lang and dir on the title alone);
+ * the card itself and its length ("28 seconds") follow the page the visitor is reading. The title is
+ * aligned to the page's side too: by its own direction alone, an Arabic title that wraps on an
+ * English page went to the right while a short one stayed left, and both left the length behind.
  */
-function ExampleCard({ e, eager = false }: { e: ExampleVideo; eager?: boolean }) {
+function ExampleCard({ e, pageLocale, eager = false }: { e: ExampleVideo; pageLocale: Locale; eager?: boolean }) {
   const s = sampleOf(e);
   return (
-    <Link
-      href={dvHref(examplePath(e))}
-      className="dv-card dv-lift group flex h-full items-center gap-4 overflow-hidden p-4 sm:flex-col sm:items-stretch sm:gap-0"
-      lang={e.locale}
-      dir={dirOf(e.locale)}
-    >
+    <Link href={dvHref(examplePath(e))} className="dv-card dv-lift group flex h-full items-center gap-4 overflow-hidden p-4 sm:flex-col sm:items-stretch sm:gap-0">
       {/* The poster only: the card links to the video's page, where it plays. */}
       {/* The `eager` cards are the hub's first screen (the desktop LCP): fetched by the preload scanner, not lazily after layout. */}
       {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -87,11 +92,13 @@ function ExampleCard({ e, eager = false }: { e: ExampleVideo; eager?: boolean })
       <span className="flex min-w-0 flex-1 flex-col sm:mt-4">
         <span className="flex items-start justify-between gap-3">
           {/* Whole words; break-words only as a last resort, so a long word can never push the arrow out of the card. */}
-          <span className="min-w-0 break-words font-semibold leading-snug text-dv-ink">{s.name}</span>
+          <span className={`min-w-0 break-words font-semibold leading-snug text-dv-ink ${dirOf(pageLocale) === "rtl" ? "text-right" : "text-left"}`} lang={e.locale} dir={dirOf(e.locale)} data-example-title>
+            {s.name}
+          </span>
           <ArrowUpRight className="mt-0.5 h-5 w-5 shrink-0 text-dv-teal transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5 rtl:-scale-x-100 rtl:group-hover:-translate-x-0.5" aria-hidden="true" />
         </span>
         <span className="mt-1 text-sm text-dv-muted">
-          <Seconds locale={e.locale} seconds={s.seconds} />
+          <Seconds locale={pageLocale} seconds={s.seconds} />
         </span>
       </span>
     </Link>
@@ -110,7 +117,7 @@ export function ExamplesHub({ locale }: { locale: Locale }) {
         <div aria-hidden="true" className="dv-grid absolute inset-0 -z-10" />
         <div aria-hidden="true" className="absolute -end-40 -top-20 -z-10 h-96 w-96 rounded-full bg-[#cfe6e0] opacity-60 blur-3xl" />
         <div className="mx-auto max-w-6xl px-4 pb-10 pt-8 sm:px-6 sm:pb-14 sm:pt-14">
-          <Breadcrumbs items={[{ name: "DentVideo", href: LANDING_PATH[locale] }, { name: ui.nav }]} />
+          <Breadcrumbs items={[{ name: "DentVideo", href: LANDING_PATH[locale] }, { name: ui.nav }]} locale={locale} />
           <h1 className="dv-display mt-6 max-w-4xl text-balance text-[2.25rem] leading-[1.05] text-dv-ink sm:text-[3.25rem]">{ui.h1}</h1>
           <p className="mt-5 max-w-3xl text-lg leading-relaxed text-dv-body sm:text-xl">{ui.intro}</p>
           <div className="mt-7">
@@ -127,7 +134,7 @@ export function ExamplesHub({ locale }: { locale: Locale }) {
           <ul className="grid gap-5 sm:grid-cols-3" data-testid="examples-own">
             {mine.map((e) => (
               <li key={e.slug}>
-                <ExampleCard e={e} eager />
+                <ExampleCard e={e} pageLocale={locale} eager />
               </li>
             ))}
           </ul>
@@ -157,7 +164,7 @@ export function ExamplesHub({ locale }: { locale: Locale }) {
                   <ul className="mt-3 grid gap-4 sm:grid-cols-3">
                     {examplesFor(l).map((e) => (
                       <li key={e.slug}>
-                        <ExampleCard e={e} />
+                        <ExampleCard e={e} pageLocale={locale} />
                       </li>
                     ))}
                   </ul>
@@ -199,7 +206,7 @@ export function ExampleView({ e }: { e: ExampleVideo }) {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdHtml(exampleJsonLd(e)) }} />
       <HtmlLang locale={L} />
       <div className="mx-auto max-w-6xl px-4 pb-24 pt-8 sm:px-6 sm:pt-12">
-        <Breadcrumbs items={[{ name: "DentVideo", href: LANDING_PATH[L] }, { name: ui.nav, href: EXAMPLES_PATH[L] }, { name: s.name }]} />
+        <Breadcrumbs items={[{ name: "DentVideo", href: LANDING_PATH[L] }, { name: ui.nav, href: EXAMPLES_PATH[L] }, { name: s.name }]} locale={L} />
         <div className="mt-8 grid gap-10 lg:grid-cols-[minmax(0,20rem)_minmax(0,1fr)] lg:gap-16">
           <div>
             <PhoneFrame className="mx-auto max-w-[18rem]">
@@ -263,7 +270,7 @@ export function ExampleView({ e }: { e: ExampleVideo }) {
           <ul className="mt-4 grid max-w-3xl gap-4 sm:grid-cols-3">
             {siblings.map((o) => (
               <li key={o.slug}>
-                <ExampleCard e={o} />
+                <ExampleCard e={o} pageLocale={L} />
               </li>
             ))}
             <li className="flex">
