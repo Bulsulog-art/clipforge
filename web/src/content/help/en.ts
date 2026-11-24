@@ -34,6 +34,11 @@ export const en: HelpContent = {
     title: "Still stuck?",
     body: "Write to {email}. A person reads every message. If you write from the app (Settings → Help & contact), your clinic ID is filled in, so we find your account straight away.",
   },
+  checkSources: {
+    clinical: "Patient pages we compared the aftercare rules with",
+    advertising: "Official sources by country",
+    checked: "Each page was read and compared with its rule on {date}.",
+  },
   articles: {
     "first-videos": {
       q: "When do my first videos arrive?",
@@ -68,6 +73,10 @@ export const en: HelpContent = {
     "software-check": {
       q: "What does the software check do, and what doesn't it do?",
       a: "Before you see a script, software checks it twice: once for claims that health-advertising rules commonly restrict (promised results, “painless”, “permanent”, superlatives, prices, special offers, before-and-after promises, testimonials), and once against mainstream clinical guidance. What fails is rewritten or not made, and anything worth a second look is marked with the reason.\n\nIt is an automated check. It is not legal advice and not a review by a lawyer or your professional body. Rules differ by country and change over time, so the final say is yours.",
+    },
+    "how-we-check": {
+      q: "How does DentVideo check a video, and against which sources?",
+      a: "Before you see one of the videos we write for you, software checks its script and caption twice. Both checks are done by AI software, not by a dentist. Your approval is the final check: nothing is posted until you approve it, and you post it yourself.\n\nOne check is clinical accuracy. The software judges each statement by mainstream guidance, at the level of national health and dental bodies such as the NHS and the American Dental Association (ADA). It looks for wrong or outdated facts, aftercare advice that belongs to a different procedure, and a caption that contradicts the video. Its aftercare rules were compared with the patient pages of the NHS, the ADA, the Oral Health Foundation and the American Association of Orthodontists (AAO), listed below.\n\nThe other check is advertising. The software looks for claims that health-advertising rules commonly restrict, such as promised results, “painless”, superlatives, prices and offers, testimonials and before-and-after promises. For clinics in the countries listed below, it also applies that country's own rules. The list names the official sources for each country, the same ones our free ad checker cites. In other countries it applies the general rules only, and your country's rules may ask for more.\n\nA script that fails a check is rewritten and checked again, or the video is not made. Anything worth a second look is marked “Needs a look” with the reason. Clips cut from your own recordings get the same two checks on what you say, but your words are never changed: anything worth a second look is marked. The software can miss things or get them wrong. It is not a review by a dentist, a lawyer or your professional body, and it is not legal advice.",
     },
     responsibility: {
       q: "Who is responsible for what we post?",

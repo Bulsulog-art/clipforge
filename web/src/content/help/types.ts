@@ -28,5 +28,10 @@ export type HelpContent = {
   /** Under a screenshot: what it shows. */
   shots: Record<HelpShot, string>;
   stuck: { title: string; body: string };
+  /**
+   * Under the answer on how a video is checked: the two source lists (folded)
+   * and when the clinical pages were read. `{date}` is that day, written out.
+   */
+  checkSources: { clinical: string; advertising: string; checked: string };
   articles: Record<HelpId, HelpArticle>;
 };
