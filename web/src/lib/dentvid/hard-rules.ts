@@ -161,7 +161,9 @@ export const HARD_RULES: Rule[] = [
       // "Zero pain" as a promise; not a pain scale ("on a scale from zero to ten, zero pain means…")
       // and not "zero pain doesn't mean zero problems".
       w(`(?<!(?<![\\p{L}])(scale|between|out of)(?![\\p{L}])[^.!?\\n]{0,30})zero pain(?!\\s+(does not|doesn['’]?t|is not|isn['’]?t|means?)(?![\\p{L}]))|no pain,? no (fuss|stress|needles?|drills?)|(totally|completely|100%) pain[- ]?free`),
-      w(`${NEGATED_NEAR_EN}((get|achieve|create|deliver|design|unlock|reveal|give you|gives you) (a |the |your |that )?|your )perfect smiles?${NEGATED_AFTER_EN}|perfect smiles? (for (life|everyone|every patient)|every time|in (one|a single|\\d+) (days?|visits?|appointments?|weeks?))`),
+      // "Your perfect smile" alone is not a promise ("wear your retainer to protect your perfect smile");
+      // it is one when it starts, awaits or is one visit away.
+      w(`${NEGATED_NEAR_EN}(get|achieve|create|deliver|design|unlock|reveal|give you|gives you|book) (a |the |your |that )?perfect smiles?${NEGATED_AFTER_EN}|${NEGATED_NEAR_EN}your perfect smiles? ((starts|begins) (here|today|now|with us)|awaits|is (just |only )?(here|waiting|(one|a|\\d+) (visit|appointment|step|call|click)s? away))|perfect smiles? (for (life|everyone|every patient)|every time|in (one|a single|\\d+) (days?|visits?|appointments?|weeks?))`),
     ],
   },
   {
@@ -252,11 +254,12 @@ export const HARD_RULES: Rule[] = [
     patterns: [
       // Star ratings, reviews and satisfied patients, as US and UK clinic sites write them
       // ("rated 5 stars", "five-star Google reviews", "our happy patients", "patients love us").
-      // Tied to the clinic or to a rating: a brushing chart's "five stars by Friday", "read patient
-      // reviews when you choose a dentist" and "happy patients keep their check-ups" are not claims.
+      // Tied to the clinic or to a rating: a brushing chart's "five stars by Friday" or "five-star
+      // sticker", "read patient reviews when you choose a dentist" and "happy patients keep their
+      // check-ups" are not claims.
       w(
         "our patients? (say|said|love)|(our|real|genuine|verified|\\d[\\d.,]*\\+?) ((5|five)[- ]star )?(google|patient) reviews" +
-          "|(5|five)[- ]star (google |patient )?reviews|(5|five)[- ]star(?!s)|rated (\\d([.,]\\d)?|five)[- ]stars?" +
+          "|(5|five)[- ]star (google |patient )?reviews|(5|five)[- ]star(?!s)(?!\\s+(stickers?|charts?|habits?|routines?|brush\\p{L}*|rewards?|days?|nights?|weeks?)(?![\\p{L}]))|rated (\\d([.,]\\d)?|five)[- ]stars?" +
           "|(5|five) stars? (on|from|by|in|across) (our |happy |satisfied )*(google|yelp|facebook|trustpilot|doctify|reviews?|patients)" +
           "|(our|so many|thousands of|hundreds of|\\d[\\d.,]*\\+?) (happy|satisfied) patients|(happy|satisfied) patients (say|said|recommend|agree|love|trust|rate|choose)" +
           "|patients love (us|our|coming)|testimonials?",
@@ -357,7 +360,12 @@ export function findHardSpans(text: string, rules: readonly Rule[] = HARD_RULES)
  * it, with phrases narrow enough to mean only that.
  */
 // A condition ("if", "when") or an urgent sign near "call us today" makes it care advice, not a push.
-const IF_EN = "if|when|whenever|should|in case|as soon as|until";
+// "Until" and "as soon as possible" are the words of a made-up deadline ("offer valid until Friday,
+// call now"), so they never count as a condition.
+const IF_EN = "if|when|whenever|should|in case|as soon as(?! possible)";
+// After the call only "if" and "in case" make it advice: "call us today when you want brighter teeth"
+// is a push, while "call us now when a tooth is knocked out" stays clean through its urgent word.
+const IF_AFTER_EN = "if|in case";
 const URGENT_EN =
   "emergenc\\p{L}*|urgent\\p{L}*|toothache\\p{L}*|pain\\p{L}*|hurt\\p{L}*|ache\\p{L}*|aching|swell\\p{L}*|swollen|bleed\\p{L}*|blood\\p{L}*|knocked[- ]out|broken|broke|cracked|chipped|lost|abscess\\p{L}*|fever\\p{L}*|infect\\p{L}*|injur\\p{L}*|trauma\\p{L}*|accident\\p{L}*|severe";
 
@@ -381,7 +389,7 @@ export const FEAR_RULE: Rule = {
     // "Call now" / "call us today" push in the same way, but in urgent-care advice it is the right
     // instruction: "If a tooth is knocked out, call us today", "Dental emergency? Call us now",
     // "Give us a call today if your filling feels high". Those are left alone.
-    w(`(?=call )(?<!(?<![\\p{L}])(${IF_EN})(?![\\p{L}])[^.!?\\n]{0,80})(?<!(?<![\\p{L}])(${URGENT_EN})(?![\\p{L}])[^.!\\n]{0,80})call (us )?(now|today)(?![^.!?\\n]{0,60}(?<![\\p{L}])(${IF_EN}|${URGENT_EN})(?![\\p{L}]))`),
+    w(`(?=call )(?<!(?<![\\p{L}])(${IF_EN})(?![\\p{L}])[^.!?\\n]{0,80})(?<!(?<![\\p{L}])(${URGENT_EN})(?![\\p{L}])[^.!\\n]{0,80})call (us )?(now|today)(?![^.!?\\n]{0,60}(?<![\\p{L}])(${IF_AFTER_EN}|${URGENT_EN})(?![\\p{L}]))`),
     w("(çok )?geç olmadan|dişlerinizi kaybedebilirsiniz|dişlerinizi kaybetmeden|hemen randevu al\\p{L}*|kaçırmayın|daha fazla beklemeyin"),
     w("bevor es zu spät ist|warten sie nicht (länger|zu lange)|jetzt sofort (einen )?termin\\p{L}*|jetzt (einen )?termin (buchen|vereinbaren|sichern)|jetzt buchen|ihre zähne verlieren"),
     w("antes de que sea (demasiado )?tarde|no esperes? más|(podrías|puedes|podría|puede) perder (tus|sus) dientes"),

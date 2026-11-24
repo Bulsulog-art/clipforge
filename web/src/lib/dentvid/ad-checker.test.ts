@@ -107,6 +107,8 @@ describe("ad checker: engine", () => {
         "Dental emergency? Call us now.",
         "Severe toothache that keeps you up at night? Call us today.",
         "Give us a call today if your filling feels high.",
+        "Call us now when a tooth is knocked out.",
+        "Call us today as soon as you notice swelling.",
       ]) expect(checkText(t, m as Parameters<typeof checkText>[1]).filter((h) => h.rule === "fear"), `${m}: ${t}`).toEqual([]);
     }
   });
@@ -124,6 +126,12 @@ describe("ad checker: engine", () => {
       ["Completely pain-free fillings.", ["absolute:Completely pain-free"]],
       ["Get the perfect smile you deserve.", ["absolute:Get the perfect smile"]],
       ["Call now to book.", ["fear:Call now"]],
+      // A made-up deadline does not make "call now" care advice.
+      ["Offer valid until Friday, call now!", ["fear:call now"]],
+      ["Call now as soon as possible!", ["fear:Call now"]],
+      ["Call us today when you want brighter teeth!", ["fear:Call us today"]],
+      ["Your perfect smile awaits.", ["absolute:Your perfect smile awaits"]],
+      ["Five-star care.", ["testimonial:Five-star"]],
     ] as const) {
       const hits = checkText(t);
       expect(hits.map((h) => `${h.rule}:${h.match}`), t).toEqual(want);
@@ -155,6 +163,11 @@ describe("ad checker: engine", () => {
       "On a scale from zero to ten, zero pain means you feel nothing at all.",
       "Happy patients are more likely to keep their check-ups.",
       "Read patient reviews when you choose a new dentist.",
+      "Give your child a five-star sticker for every brush.",
+      "Make brushing a five-star habit.",
+      "Wear your retainer to protect your perfect smile.",
+      "Braces take time, but your perfect smile is worth the wait.",
+      "Whitening strips won't really magically give you your perfect smile.",
     ]) expect(checkText(t), t).toEqual([]);
   });
 

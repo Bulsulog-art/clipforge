@@ -196,6 +196,27 @@
   "markets": {}
  },
  {
+  "input": "Give your child a five-star sticker for every brush.",
+  "scan": [],
+  "spans": [],
+  "checker": [],
+  "markets": {}
+ },
+ {
+  "input": "Make brushing a five-star habit.",
+  "scan": [],
+  "spans": [],
+  "checker": [],
+  "markets": {}
+ },
+ {
+  "input": "Wear your retainer to protect your perfect smile.",
+  "scan": [],
+  "spans": [],
+  "checker": [],
+  "markets": {}
+ },
+ {
   "input": "Guaranteed painless whitening, 50% off this month only! The best dentist in town. Our patients say it's life-changing. See our before and after photos.",
   "scan": [
    {

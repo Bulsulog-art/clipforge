@@ -59,6 +59,10 @@ const CLEAN = [
   "Happy patients are more likely to keep their check-ups.",
   "Many patients love how quick a clear aligner check-up is.",
   "Read patient reviews when you choose a new dentist.",
+  // A sticker chart's stars and a plain "your perfect smile" are not claims (review, round 2).
+  "Give your child a five-star sticker for every brush.",
+  "Make brushing a five-star habit.",
+  "Wear your retainer to protect your perfect smile.",
 ];
 
 const INPUTS = [
@@ -182,6 +186,10 @@ describe("hard rules: US and UK promo phrases", () => {
     ["Five-star Google reviews.", "testimonial:Five-star Google reviews"],
     ["See our 5-star reviews.", "testimonial:5-star reviews"],
     ["A five-star practice in Leeds.", "testimonial:five-star"],
+    ["Five-star care.", "testimonial:Five-star"],
+    ["A 5-star dental experience.", "testimonial:5-star"],
+    ["Rated five-star by patients.", "testimonial:Rated five-star"],
+    ["We are proud of our five-star rating.", "testimonial:five-star"],
     ["5 stars on Google.", "testimonial:5 stars on Google"],
     ["Real patient reviews.", "testimonial:Real patient reviews"],
     ["Thank you to all our happy patients.", "testimonial:our happy patients"],
@@ -203,7 +211,10 @@ describe("hard rules: US and UK promo phrases", () => {
     ["Zero pain, zero stress.", "absolute:Zero pain"],
     ["Completely pain-free treatment.", "absolute:Completely pain-free"],
     ["Get the perfect smile you deserve.", "absolute:Get the perfect smile"],
-    ["Your perfect smile starts here.", "absolute:Your perfect smile"],
+    ["Your perfect smile starts here.", "absolute:Your perfect smile starts here"],
+    ["Your perfect smile awaits.", "absolute:Your perfect smile awaits"],
+    ["Your perfect smile is just one visit away.", "absolute:Your perfect smile is just one visit away"],
+    ["Book your perfect smile today.", "absolute:Book your perfect smile"],
     ["Get your perfect smile today.", "absolute:Get your perfect smile"],
     ["Perfect smiles in one visit.", "absolute:Perfect smiles in one visit"],
   ])("%s → %s, in the checker and in the scripts' gate", (text, want) => {
@@ -217,6 +228,14 @@ describe("hard rules: US and UK promo phrases", () => {
       ["Call us today for a check-up.", "Call us today"],
       ["Spaces are limited, call now!", "call now"],
       ["Want whiter teeth? Call now!", "Call now"],
+      // A made-up deadline is not a condition: "until" and "as soon as possible" (review, round 2).
+      ["Call now, spaces are limited until the end of the month.", "Call now"],
+      ["Offer valid until Friday, call now!", "call now"],
+      ["Whitening offer until Friday only, call us today.", "call us today"],
+      ["Call now as soon as possible!", "Call now"],
+      ["As soon as possible, call us now!", "call us now"],
+      // After the call only "if" or an urgent sign makes it advice, not "when you want…".
+      ["Call us today when you want brighter teeth!", "Call us today"],
     ]) {
       expect(checker(t)).toEqual([`fear:${m}`]);
       expect(scanHardRules(t)).toEqual([]);
@@ -233,6 +252,10 @@ describe("hard rules: US and UK promo phrases", () => {
     "Lost a filling? Call us today.",
     "Call us today for emergency care.",
     "Give us a call today if your filling feels high.",
+    "Call us now when a tooth is knocked out.",
+    "When a tooth is knocked out, call us now.",
+    "Call us today as soon as you notice swelling.",
+    "Call us today should you notice any swelling.",
   ])("urgent-care advice to call is not pressure: %s", (text) => {
     expect(checker(text)).toEqual([]);
   });
@@ -259,6 +282,13 @@ describe("hard rules: US and UK promo phrases", () => {
     "Veneers won't give you a perfect smile overnight.",
     "There is no such thing as a perfect smile.",
     "Leave us a Google review.",
+    "Use a five star chart to track brushing.",
+    "Earn a 5-star sticker each night.",
+    "A five-star brushing routine for kids.",
+    "Braces take time, but your perfect smile is worth the wait.",
+    "Whitening strips won't really magically give you your perfect smile.",
+    "Your perfect smile, our priority.",
+    "Your perfect smile starts with brushing twice a day.",
   ])("leaves education alone: %s", (text) => {
     expect(findHardSpans(text, CHECKER_RULES)).toEqual([]);
     expect(scanHardRules(text)).toEqual([]);
