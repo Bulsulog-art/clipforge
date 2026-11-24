@@ -62,12 +62,16 @@ vi.mock("@/lib/dentvid/attribution", () => ({ captureFromLocation: () => {}, rea
 vi.mock("@/lib/dentvid/events-client", () => ({ trackDv: () => {} }));
 vi.mock("@/lib/dentvid/internal-flag", () => ({ isInternalBrowser: () => false }));
 vi.mock("@/lib/dentvid/ad-click", () => ({ readAdClick: () => null }));
-// Signing in runs in the browser through Supabase: here every password is wrong.
-vi.mock("@/lib/dentvid/supabase", () => ({ dvBrowser: () => ({ auth: { signInWithPassword: async () => ({ error: { message: "Invalid login credentials" } }), signOut: async () => ({}) } }), BUCKET: "dentvid" }));
+// Signing in runs in the browser through Supabase: here every password is wrong, unless a test makes the call itself fail.
+const sb = vi.hoisted(() => ({ signIn: null as null | (() => Promise<unknown>) }));
+vi.mock("@/lib/dentvid/supabase", () => ({
+  dvBrowser: () => ({ auth: { signInWithPassword: async () => (sb.signIn ? sb.signIn() : { error: { message: "Invalid login credentials" } }), signOut: async () => ({}) } }),
+  BUCKET: "dentvid",
+}));
 
 import * as React from "react";
 import { appText } from "@/content/dentvideo-app";
-import { authText } from "@/content/dentvideo-auth";
+import { authText, verifyText } from "@/content/dentvideo-auth";
 import { accountText } from "@/content/dentvideo-account";
 import { DV_SELF_SERVE_TIERS } from "@/lib/dentvid/billing";
 (globalThis as { React?: typeof React }).React = React;
@@ -100,8 +104,10 @@ function all(node: React.ReactNode, out: El[] = []): El[] {
 }
 const find = (tree: React.ReactNode, pred: (el: El) => boolean) => all(tree).find(pred) ?? null;
 const helpLine = (tree: React.ReactNode) => find(tree, (e) => typeof e.props["data-help-line"] === "string");
-/** next/dynamic's wrapper around the lazily loaded line (the sign-up form): it carries the props. */
+/** The line as the sign-up form draws it from its own chunk (the HelpLine element): it carries the props. */
 const lazyLine = (tree: React.ReactNode) => find(tree, (e) => typeof e.type !== "string" && typeof e.props.code === "string" && "message" in e.props);
+/** The plain address the sign-up form shows while the line's chunk is not there. */
+const plainLine = (tree: React.ReactNode) => find(tree, (e) => typeof e.props["data-help-plain"] === "string");
 const alertText = (tree: React.ReactNode) => {
   const el = find(tree, (e) => e.props.role === "alert");
   return el ? String(el.props.children) : null;
@@ -111,6 +117,7 @@ beforeEach(() => {
   h.cells = [];
   h.layout = [];
   h.passive = [];
+  sb.signIn = null;
   vi.stubGlobal("window", { location: { search: "", host: "localhost", protocol: "http:", href: "" }, addEventListener: () => {}, removeEventListener: () => {}, sessionStorage: { getItem: () => null } });
   vi.stubGlobal("document", new EventTarget());
   vi.stubGlobal("sessionStorage", { getItem: () => null });
@@ -124,10 +131,15 @@ afterEach(() => {
 
 describe("sign-up: the account step", () => {
   type Props = { locale: "en" | "de" | "tr"; remember: boolean; initialMode?: "signup" | "signin" | "forgot" };
-  async function send(props: Props, answer: () => Promise<unknown>) {
+  async function send(props: Props, answer: () => Promise<unknown>, opts: { lineChunk?: "loads" | "fails"; mounted?: () => void } = {}) {
     const { StartForm } = (await import("./start-form")) as unknown as { StartForm: (p: Props) => React.ReactNode };
     vi.stubGlobal("fetch", vi.fn(answer));
     let tree = render(StartForm, props);
+    // The page fetched the line's chunk once it was up; let that finish (or fail) before anything goes wrong.
+    if ((opts.lineChunk ?? "loads") === "loads") await import("./help-line");
+    await new Promise((r) => setTimeout(r, 0));
+    tree = render(StartForm, props);
+    opts.mounted?.();
     // Past the bot brake's 2.7 s since the form opened.
     vi.spyOn(Date, "now").mockReturnValue(Date.now() + 10_000);
     const input = (field: string) => find(tree, (e) => e.type === "input" && e.props["data-field"] === field)!;
@@ -147,12 +159,49 @@ describe("sign-up: the account step", () => {
     expect(line?.props).toMatchObject({ locale: "de", code: "signup-500", message: appText("de").errors.createFailed });
   });
 
-  it("a connection that drops gets the line too", async () => {
-    const tree = await send({ locale: "en", remember: false }, async () => {
-      throw new TypeError("Failed to fetch");
-    });
-    expect(alertText(tree)).toBe("Failed to fetch");
-    expect(lazyLine(tree)?.props).toMatchObject({ code: "signup-network" });
+  it("a connection that drops: the form's own message in the clinic's language (never the browser's English), and the line", async () => {
+    for (const locale of ["en", "de", "tr"] as const) {
+      h.cells = [];
+      const tree = await send({ locale, remember: false }, async () => {
+        throw new TypeError("Failed to fetch");
+      });
+      expect(alertText(tree), locale).toBe(appText(locale).errors.createFailed);
+      expect(lazyLine(tree)?.props, locale).toMatchObject({ locale, code: "signup-network", message: appText(locale).errors.createFailed });
+    }
+  });
+
+  it("signing in when the connection drops: the localized 'that didn't work', and the line", async () => {
+    sb.signIn = async () => {
+      throw new TypeError("Load failed");
+    };
+    const tree = await send({ locale: "de", remember: false, initialMode: "signin" }, async () => ({ ok: true, status: 200, json: async () => ({}) }));
+    expect(alertText(tree)).toBe(verifyText("de").failed);
+    expect(lazyLine(tree)?.props).toMatchObject({ code: "signin-network", message: verifyText("de").failed });
+  });
+
+  it("an address or password the server would not take is a slip: no line, as when the form catches it itself", async () => {
+    const bad = await send({ locale: "en", remember: false }, async () => ({ ok: false, status: 400, json: async () => ({ error: appText("en").errors.badSignup }) }));
+    expect(alertText(bad)).toBe(appText("en").errors.badSignup);
+    expect(lazyLine(bad)).toBeNull();
+    expect(plainLine(bad)).toBeNull();
+    h.cells = [];
+    const long = await send({ locale: "tr", remember: false }, async () => ({ ok: false, status: 400, json: async () => ({ error: authText("tr").passwordTooLong, code: "password_too_long" }) }));
+    expect(alertText(long)).toBe(authText("tr").passwordTooLong);
+    expect(lazyLine(long)).toBeNull();
+  });
+
+  it("refusals the person cannot fix keep the line: the bot check, Turnstile, too many tries", async () => {
+    const cases: [number, Record<string, unknown>, string][] = [
+      [400, { error: appText("en").errors.createFailed }, "signup-400"],
+      [400, { error: appText("en").errors.createFailed, code: "turnstile" }, "signup-400"],
+      [429, { error: appText("en").errors.tooMany }, "signup-429"],
+    ];
+    for (const [status, body, code] of cases) {
+      h.cells = [];
+      const tree = await send({ locale: "en", remember: false }, async () => ({ ok: false, status, json: async () => body }));
+      expect(alertText(tree), JSON.stringify(body)).toBe(body.error);
+      expect(lazyLine(tree)?.props, JSON.stringify(body)).toMatchObject({ code });
+    }
   });
 
   it("a slip the person fixes (a wrong password, an address that already has an account) gets no line", async () => {
@@ -165,12 +214,56 @@ describe("sign-up: the account step", () => {
     expect(lazyLine(exists)).toBeNull();
   });
 
-  it("the line's module is not part of the sign-up page: it is loaded only once an error shows", async () => {
+  it("the line's module is not part of the sign-up page: one dynamic import, made when the page is up", async () => {
     const fs = await import("node:fs");
     const src = fs.readFileSync(new URL("./start-form.tsx", import.meta.url), "utf8");
     expect(src).not.toMatch(/^import .*["']\.\/help-line["']/m);
     expect(src).not.toMatch(/^import .*dentvideo-help-line/m);
-    expect(src).toMatch(/dynamic\(\(\) => import\("\.\/help-line"\)/);
+    // One import() that loads code (`typeof import(...)` is a type and is erased).
+    expect(src.match(/(?<!typeof )import\("\.\/help-line"\)/g)).toHaveLength(1);
+    // Not next/dynamic: a lazy component would fetch its chunk only when the error renders.
+    expect(src).not.toMatch(/dynamic\(/);
+  });
+
+  describe("when the line's chunk cannot be loaded (offline, or a deploy came in between)", () => {
+    let attempts = 0;
+    beforeEach(() => {
+      attempts = 0;
+      vi.resetModules();
+      vi.doMock("./help-line", () => {
+        attempts++;
+        throw new Error("Loading chunk 412 failed.");
+      });
+    });
+    afterEach(() => {
+      vi.doUnmock("./help-line");
+      vi.resetModules();
+    });
+
+    it("the error still shows, with the plain address under it, and nothing is fetched when it appears", async () => {
+      let atMount = -1;
+      const tree = await send({ locale: "ar" as never, remember: false }, async () => {
+        throw new TypeError("Failed to fetch");
+      }, { lineChunk: "fails", mounted: () => (atMount = attempts) });
+      // Asked for as soon as the page was up, before anything went wrong.
+      expect(atMount).toBe(1);
+      expect(alertText(tree)).toBe(appText("ar").errors.createFailed);
+      expect(lazyLine(tree)).toBeNull();
+      const plain = plainLine(tree)!;
+      expect(plain.props["data-help-plain"]).toBe("signup-network");
+      const link = all(plain).find((e) => e.type === "a")!;
+      expect(link.props.href).toBe("mailto:hello@dentvideo.com?subject=DentVideo%20signup-network");
+      expect(link.props.children).toBe("hello@dentvideo.com");
+      // Fetched once, when the page came up: never again at the moment of the error (a failed chunk would reload the page).
+      expect(attempts).toBe(1);
+    });
+
+    it("a server error the same way", async () => {
+      const tree = await send({ locale: "en", remember: false }, async () => ({ ok: false, status: 503, json: async () => ({}) }), { lineChunk: "fails" });
+      expect(alertText(tree)).toBe(appText("en").errors.createFailed);
+      expect(plainLine(tree)?.props["data-help-plain"]).toBe("signup-503");
+      expect(attempts).toBe(1);
+    });
   });
 });
 

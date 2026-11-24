@@ -33,10 +33,10 @@ vi.mock("@/lib/dentvid/dodo-account", async (orig) => ({
 
 import { deleteAccount } from "./handlers/account-delete";
 import { _setOpsForTests } from "./ops-server";
-import { MemoryOpsStore, type OwnerAlert } from "./ops-alert";
+import { MemoryOpsStore, _resetLocalOnce, type Mail, type OwnerAlert } from "./ops-alert";
 import { accountDeletionMarker, confirmMailWith, handleDentvideoEvent, type DvWebhookDeps } from "./billing-webhook";
 import { sendBillingConfirmation } from "./billing-confirm-email";
-import { DELETION_MARK_TTL_S, accountDeleting, deletionMarkKey, markAccountDeleting } from "./deletion-marker";
+import { DELETION_MARK_TTL_S, accountDeleting, clearAccountDeleting, deletionBlockedAlert, deletionMarkKey, markAccountDeleting } from "./deletion-marker";
 import type { DvSubRecord } from "./billing";
 import type { SubscriptionStore } from "./subscriptions";
 import type { ClinicForMail, LifecycleStore, Sender } from "./lifecycle";
@@ -154,10 +154,14 @@ function actor() {
 const request = () => new Request("https://dentvideo.com/api/dentvideo/account/delete", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ confirm: "Sample Dental Practice" }) });
 
 let ops: MemoryOpsStore;
+/** Owner alerts that went out through ops-server (raiseOwnerAlert). */
+let ownerMails: Mail[];
 beforeEach(() => {
   row = { id: CLINIC, owner_id: OWNER, plan: "active", plan_tier: "practice", dodo_subscription_id: "sub_1", plan_renews_at: END, profile: { name: "Sample Dental Practice", language: "en", country: "US" } };
   ops = new MemoryOpsStore();
-  _setOpsForTests(ops);
+  ownerMails = [];
+  _resetLocalOnce();
+  _setOpsForTests(ops, async (m) => (ownerMails.push(m), true));
   vi.stubEnv("REDIS_URL", "");
   deleteImpl.mockReset();
   cancelAtDodo.mockReset();
@@ -216,14 +220,59 @@ describe("account deletion racing Dodo's cancellation webhook", () => {
     expect(seen[0]).not.toBeNull();
   });
 
-  it("when Redis is configured but the mark cannot be written, Dodo is never called and nothing is deleted", async () => {
+  it("when Redis is configured but the mark cannot be written, Dodo is never called, nothing is deleted, and the owner is told", async () => {
     ops.down = true;
     realOrderDeletion();
+    const err = vi.spyOn(console, "error").mockImplementation(() => {});
     const res = await deleteAccount(actor(), request());
     expect(res.status).toBe(502);
     expect(await res.json()).toEqual({ error: ACCOUNT_TEXT.en.errors.deleteBillingFailed });
     expect(cancelAtDodo).not.toHaveBeenCalled();
     expect(row).not.toBeNull();
+    // A Redis outage must not hold up a request to be deleted without anyone knowing.
+    await vi.waitFor(() => expect(ownerMails).toHaveLength(1));
+    expect(ownerMails[0].subject).toContain("A clinic could not delete its account: Redis did not answer");
+    expect(ownerMails[0].text).toContain("Nothing was cancelled at Dodo and nothing was deleted.");
+    expect(ownerMails[0].text).toContain("write to dr@clinic.example");
+    expect(err.mock.calls.some((c) => /deletion mark could not be written/.test(String(c[0])))).toBe(true);
+    err.mockRestore();
+  });
+
+  it("a deletion that goes through raises no such alert", async () => {
+    realOrderDeletion();
+    expect((await deleteAccount(actor(), request())).status).toBe(200);
+    await new Promise((r) => setTimeout(r, 5));
+    expect(ownerMails).toEqual([]);
+  });
+
+  it("when Dodo refuses the cancel, nothing is deleted and the mark is taken away again", async () => {
+    cancelAtDodo.mockImplementation(async () => {
+      expect(ops.kv.get(deletionMarkKey(OWNER))).toBeTruthy();
+      throw new Error("dodo 503");
+    });
+    realOrderDeletion();
+    const res = await deleteAccount(actor(), request());
+    expect(res.status).toBe(502);
+    expect(await res.json()).toEqual({ error: ACCOUNT_TEXT.en.errors.deleteBillingFailed });
+    expect(row).not.toBeNull();
+    expect(ops.kv.has(deletionMarkKey(OWNER))).toBe(false);
+  });
+
+  it("after a deletion that stopped at Dodo, the owner's next billing changes are confirmed as usual", async () => {
+    cancelAtDodo.mockRejectedValue(new Error("dodo timeout"));
+    realOrderDeletion();
+    expect((await deleteAccount(actor(), request())).status).toBe(502);
+
+    // The owner changes their mind and switches plans, then later cancels: both reach the clinic in writing.
+    const mail = mailbox();
+    const raised: OwnerAlert[] = [];
+    const deps = webhookDeps({ sendConfirmMail: confirmMailWith({ env: { RESEND_API_KEY: "re_test" }, send: mail.send, store: () => mail.store, ops: async () => ops }) }, raised);
+    const STARTER = "pdt_0NrVahwZsINvy3TNz2H35";
+    const changed = await handleDentvideoEvent(webhookDb(), { type: "subscription.plan_changed", timestamp: "2026-11-20T01:00:00Z", data: { subscription_id: "sub_1", product_id: STARTER, status: "active", next_billing_date: END, metadata: { app: "dentvideo", clinic_id: CLINIC, owner_id: OWNER } } }, deps);
+    expect(changed.status).toBe(200);
+    const cancelled = await handleDentvideoEvent(webhookDb(), { ...cancelEvent, timestamp: "2026-11-20T02:00:00Z" }, deps);
+    expect(cancelled.body).toMatchObject({ confirmEmail: "sent" });
+    expect(mail.sent.map((m) => m.subject)).toEqual([expect.stringMatching(/Starter/), expect.stringMatching(/cancel/i)]);
   });
 
   it("without Redis at all the deletion goes ahead, and the webhook holds the email back as not checked", async () => {
@@ -275,6 +324,27 @@ describe("deletion mark", () => {
     expect(await accountDeletionMarker("someone-else", NOW, { ops: async () => store })).toBe(false);
   });
 
+  it("is taken away again on request, and clearing never throws (no store, or a store that is down)", async () => {
+    const store = new MemoryOpsStore();
+    await markAccountDeleting(store, OWNER, NOW);
+    await clearAccountDeleting(store, OWNER);
+    expect(await accountDeleting(store, OWNER)).toBe(false);
+    await expect(clearAccountDeleting(null, OWNER)).resolves.toBeUndefined();
+    store.down = true;
+    await expect(clearAccountDeleting(store, OWNER)).resolves.toBeUndefined();
+  });
+
+  it("the owner's alert for a blocked deletion names the clinic and promises nothing it cannot keep", () => {
+    const a = deletionBlockedAlert({ ownerId: OWNER, clinicId: CLINIC, name: "Sample Dental Practice", email: "dr@clinic.example" });
+    expect(a).toMatchObject({ key: `account_delete_blocked:${CLINIC}`, severity: "warning", clinic: { id: CLINIC, name: "Sample Dental Practice", email: "dr@clinic.example" } });
+    expect(a.todo.join(" ")).toContain("write to dr@clinic.example");
+    const bare = deletionBlockedAlert({ ownerId: OWNER });
+    expect(bare.key).toBe(`account_delete_blocked:${OWNER}`);
+    expect(bare.clinic).toBeUndefined();
+    expect(bare.todo.join(" ")).toContain("write to the clinic");
+    expect(JSON.stringify([a, bare])).not.toMatch(/[\u2013\u2014]/);
+  });
+
   it("a connection still opening on the first try is retried", async () => {
     const store = new MemoryOpsStore();
     let first = true;
@@ -316,14 +386,28 @@ describe("the confirmation sender and the mark", () => {
     }
   });
 
-  it("a plan change during a deletion is not confirmed either", async () => {
+  it("a plan change is confirmed even while a mark is there: deletion never changes a plan, and the mark is not even read", async () => {
     const send = vi.fn(async () => true);
+    const asked = vi.fn(async (owner: string) => owner === OWNER);
     const r = await sendBillingConfirmation(
-      { store: store(), send, config: { base: "https://dentvideo.com", enabled: true }, accountDeleting: async (owner) => owner === OWNER },
+      { store: store(), send, config: { base: "https://dentvideo.com", enabled: true }, accountDeleting: asked },
       CLINIC,
       { kind: "plan_changed", subscriptionId: "sub_1", tier: "starter", eventAt: "2026-11-20T10:00:00Z" },
     );
-    expect(r).toBe("account deletion");
-    expect(send).not.toHaveBeenCalled();
+    expect(r).toBe("sent");
+    expect(send).toHaveBeenCalledTimes(1);
+    expect(asked).not.toHaveBeenCalled();
+  });
+
+  it("through the real mark: a plan change with the mark in Redis still goes out, a cancellation does not", async () => {
+    const marks = new MemoryOpsStore();
+    await markAccountDeleting(marks, OWNER, NOW);
+    const deps = (send: Sender) => ({ store: store(), send, config: { base: "https://dentvideo.com", enabled: true }, accountDeleting: (o: string) => accountDeleting(marks, o) });
+    const changeSend = vi.fn(async () => true);
+    expect(await sendBillingConfirmation(deps(changeSend), CLINIC, { kind: "plan_changed", subscriptionId: "sub_1", tier: "practice", eventAt: "2026-11-20T10:00:00Z" })).toBe("sent");
+    expect(changeSend).toHaveBeenCalledTimes(1);
+    const cancelSend = vi.fn(async () => true);
+    expect(await sendBillingConfirmation(deps(cancelSend), CLINIC, notice)).toBe("account deletion");
+    expect(cancelSend).not.toHaveBeenCalled();
   });
 });

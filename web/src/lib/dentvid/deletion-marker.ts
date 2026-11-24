@@ -1,4 +1,4 @@
-import type { OpsStore } from "./ops-alert";
+import type { OpsStore, OwnerAlert } from "./ops-alert";
 
 /**
  * "This account is being deleted": a Redis key the account-deletion route writes right before
@@ -18,7 +18,11 @@ import type { OpsStore } from "./ops-alert";
  * check, and holds the email back ("not checked").
  *
  * It lives as long as the request count it stands next to (an hour or two), so the owner's
- * alert ("asked to delete the account in the last hour or two") stays true.
+ * alert ("asked to delete the account in the last hour or two") stays true. When Dodo then refuses
+ * the cancel, nothing is deleted and the route takes the key away again (clearAccountDeleting): the
+ * account is not being deleted after all, and a cancellation the owner makes later must be confirmed.
+ * When the key cannot be written, the owner hears about it (deletionBlockedAlert), so a Redis outage
+ * never holds up a clinic's request to be deleted without anyone knowing.
  */
 
 export const DELETION_MARK_TTL_S = 2 * 3600;
@@ -56,4 +60,32 @@ export async function accountDeleting(ops: OpsStore | null, ownerId: string): Pr
   } catch {
     return null;
   }
+}
+
+/** Takes the mark away again: the deletion stopped before anything was cancelled or deleted. Never throws. */
+export async function clearAccountDeleting(ops: OpsStore | null, ownerId: string): Promise<void> {
+  if (!ops) return;
+  await ops.del(deletionMarkKey(ownerId)).catch(() => {});
+}
+
+/**
+ * The owner's alert when a paying clinic's deletion stopped because the mark could not be written (Redis is
+ * configured but did not answer): nothing was cancelled or deleted, and the clinic was asked to try again.
+ */
+export function deletionBlockedAlert(a: { ownerId: string; clinicId?: string | null; name?: string | null; email?: string | null }): OwnerAlert {
+  return {
+    key: `account_delete_blocked:${a.clinicId ?? a.ownerId}`,
+    severity: "warning",
+    titleTr: "Hesap silme durdu: Redis yanıt vermedi",
+    titleEn: "A clinic could not delete its account: Redis did not answer",
+    ...(a.clinicId ? { clinic: { id: a.clinicId, name: a.name ?? null, email: a.email ?? null } } : {}),
+    what: [
+      "A paying clinic asked to delete its account. Before its Dodo subscription is cancelled, the account is marked in Redis as being deleted, so that Dodo's cancellation webhook does not email the clinic about a library that is being removed. Redis is configured but did not take the mark.",
+    ],
+    done: ["Nothing was cancelled at Dodo and nothing was deleted. The clinic was asked to try again in a moment."],
+    todo: [
+      "Check Redis (REDIS_URL) on the web app. Once it answers, the clinic can delete its account itself.",
+      `If the account is still there tomorrow, write to ${a.email ?? "the clinic"}: it asked to be deleted, and that request should not wait.`,
+    ],
+  };
 }

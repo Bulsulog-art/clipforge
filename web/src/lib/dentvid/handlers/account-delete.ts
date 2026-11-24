@@ -10,8 +10,8 @@ import { dvAdmin } from "@/lib/dentvid/supabase";
 import { deleteDentvideoAccount } from "@/lib/dentvid/account";
 import { accountErrors, ownClinic } from "@/lib/dentvid/account-route";
 import { dodoApiKey, dodoCancelSubscription, dodoGetSubscription } from "@/lib/dentvid/dodo-account";
-import { markAccountDeleting } from "@/lib/dentvid/deletion-marker";
-import { webOpsStore } from "@/lib/dentvid/ops-server";
+import { clearAccountDeleting, deletionBlockedAlert, markAccountDeleting } from "@/lib/dentvid/deletion-marker";
+import { raiseOwnerAlert, webOpsStore } from "@/lib/dentvid/ops-server";
 
 // POST /api/dentvideo/account/delete { confirm } — delete the signed-in
 // clinic's account: subscription (cancelled via Dodo when DODO_API_KEY is
@@ -24,8 +24,10 @@ import { webOpsStore } from "@/lib/dentvid/ops-server";
 // (lib/dentvid/deletion-marker.ts): Dodo's cancellation webhook can arrive
 // while the clinic row still exists, and must not send the clinic a "your
 // library stays 90 days" confirmation. When Redis is configured but the mark
-// cannot be written, Dodo is not called: nothing is cancelled or deleted, and
-// the clinic is asked to try again in a moment (deleteBillingFailed).
+// cannot be written, Dodo is not called: nothing is cancelled or deleted, the
+// clinic is asked to try again in a moment (deleteBillingFailed), and the owner
+// is told. When Dodo refuses the cancel, nothing is deleted either, and the mark
+// is taken away again.
 
 const Body = z.object({ confirm: z.string().min(1).max(200) });
 
@@ -49,9 +51,22 @@ export async function deleteAccount({ db, user }: DvActor, req: Request): Promis
       ? {
           getSubscription: (id) => dodoGetSubscription({ apiKey }, id),
           cancelSubscription: async (id) => {
-            const mark = await markAccountDeleting(await webOpsStore().catch(() => null), user.id, new Date());
-            if (mark === "failed") throw new Error("account deletion: could not mark the account before cancelling Dodo");
-            await dodoCancelSubscription({ apiKey }, id);
+            const ops = await webOpsStore().catch(() => null);
+            const mark = await markAccountDeleting(ops, user.id, new Date());
+            if (mark === "failed") {
+              console.error("[dentvideo account] delete stopped before Dodo: Redis is configured but the deletion mark could not be written");
+              const clinicId = typeof own?.id === "string" ? own.id : null;
+              const name = (own?.profile as { name?: string } | undefined)?.name ?? null;
+              void raiseOwnerAlert(deletionBlockedAlert({ ownerId: user.id, clinicId, name, email: user.email ?? null })).catch(() => {});
+              throw new Error("account deletion: could not mark the account before cancelling Dodo");
+            }
+            try {
+              await dodoCancelSubscription({ apiKey }, id);
+            } catch (e) {
+              // Nothing is deleted now (billing_failed): the account is not being deleted after all.
+              if (mark === "marked") await clearAccountDeleting(ops, user.id);
+              throw e;
+            }
           },
         }
       : null,

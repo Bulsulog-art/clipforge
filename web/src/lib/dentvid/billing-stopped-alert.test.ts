@@ -111,6 +111,9 @@ describe("a cancellation that ends the plan at once: the owner's alert", () => {
     const d = deps({ subs: ledger("active"), deletionRequested: async (owner) => owner === OWNER });
     await handleDentvideoEvent(fakeDb(paying()), event("subscription.cancelled", null), d);
     const a = d.raised[0];
+    // Its videos are being removed: never "the clinic keeps its videos".
+    expect(a.done[0]).toBe("The clinic's owner is deleting the account: its videos and library are being removed.");
+    expect(text(a)).not.toMatch(/keeps its videos/);
     expect(a.done[1]).toMatch(/asked to delete the account in the last hour or two/);
     expect(a.todo[0]).toMatch(/^If the clinic still exists tomorrow, its deletion did not finish/);
     expect(text(a)).not.toMatch(/by hand/);
@@ -122,6 +125,8 @@ describe("a cancellation that ends the plan at once: the owner's alert", () => {
     const a = d.raised[0];
     expect(a.todo[0]).toMatch(/^If the clinic asked to cancel, confirm it/);
     expect(a.todo[1]).toMatch(/could not be checked whether the owner asked to delete the account/);
+    // Not known to be deleted: the clinic keeps its videos, as for any stopped plan.
+    expect(a.done[0]).toBe("The clinic keeps its videos; new weeks have stopped.");
   });
 
   it("without the ledger (0007) the same: the plan ends at once, and so does the alert's account", async () => {

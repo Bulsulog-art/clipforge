@@ -35,8 +35,9 @@ import { LIBRARY_DAYS_AFTER_END, libraryUntil } from "./billing-confirm-checks";
  * gone out does not, the webhook tells the owner, who confirms by hand
  * (billing-confirm-checks.ts). The webhook also holds a cancellation back
  * during an account deletion or when an App Store subscription takes over,
- * and this sender checks the deletion route's mark once more itself
- * (deletion-marker.ts), so no confirmation reaches an account being deleted.
+ * and this sender checks a cancellation against the deletion route's mark
+ * once more itself (deletion-marker.ts), so no cancellation confirmation
+ * reaches an account being deleted.
  *
  * Never throws for an expected case; the webhook still wraps every call so a
  * failure here never fails or retries the webhook.
@@ -171,9 +172,9 @@ export type ConfirmDeps = {
   fallbackClaim?: (key: string) => Promise<boolean>;
   /**
    * Is the owner's account being deleted (deletion-marker.ts: the mark the deletion route writes before it
-   * cancels Dodo)? true: nothing is sent, the confirmation would promise a library that is being deleted.
-   * null (unknown) does not stop it here: the webhook's own check (cancelHold) holds a cancellation back then.
-   * Default: never.
+   * cancels Dodo)? Asked for a cancellation only. true: nothing is sent, the confirmation would promise a library
+   * that is being deleted. null (unknown) does not stop it here: the webhook's own check (cancelHold) holds a
+   * cancellation back then. Default: never.
    */
   accountDeleting?: (ownerId: string) => Promise<boolean | null>;
   now?: Date;
@@ -209,8 +210,10 @@ export async function sendBillingConfirmation(deps: ConfirmDeps, clinicId: strin
 
     const end = notice.kind === "cancelled" ? new Date(notice.endsAt) : null;
     if (end && !Number.isFinite(end.getTime())) return "bad date";
-    // Read again right before the claim: deletion cancels Dodo before it removes the clinic.
-    if ((await (deps.accountDeleting ?? (async () => false))(clinic.owner_id).catch(() => null)) === true) return "account deletion";
+    // A cancellation is read against the mark again right before the claim: deletion cancels Dodo before it removes
+    // the clinic. A plan change is not: deletion never changes a plan, and a mark left by a deletion that stopped at
+    // Dodo must not swallow the confirmation of a change the owner made afterwards.
+    if (notice.kind === "cancelled" && (await (deps.accountDeleting ?? (async () => false))(clinic.owner_id).catch(() => null)) === true) return "account deletion";
 
     const kind = confirmKind(notice, deps.now);
     const claimed = await claim(deps, clinic.id, kind);

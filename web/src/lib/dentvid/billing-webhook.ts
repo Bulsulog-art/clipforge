@@ -206,7 +206,7 @@ export type StoppedCancel =
  * cancellation that runs on to a paid-through date (step 6, billing-confirm-email.ts); a plan that stops at once
  * gets none, and customerAtRisk's own line ("Dodo sends its own payment notices") is about payment trouble. So:
  *  - the end of a cancellation reported earlier: the clinic was confirmed (or the owner told why not) back then;
- *  - an account being deleted: no email, rightly;
+ *  - an account being deleted: no email, rightly, and its videos are going (not kept);
  *  - otherwise: none went out, and the owner can confirm by hand if the clinic asked to cancel.
  */
 export function stoppedAlert(a: OwnerAlert, cancel: StoppedCancel, email: string | null): OwnerAlert {
@@ -218,7 +218,7 @@ export function stoppedAlert(a: OwnerAlert, cancel: StoppedCancel, email: string
   if (cancel.deleting) {
     return {
       ...a,
-      done: [stopped, "No cancellation email went to the clinic: its owner asked to delete the account in the last hour or two."],
+      done: ["The clinic's owner is deleting the account: its videos and library are being removed.", "No cancellation email went to the clinic: its owner asked to delete the account in the last hour or two."],
       todo: ["If the clinic still exists tomorrow, its deletion did not finish: check its admin page.", ...a.todo],
     };
   }
