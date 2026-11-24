@@ -482,11 +482,25 @@ const REASON_TEXT: Record<RefusalReason, string> = {
   global_daily_usd: "Today's global spend ceiling (DENTVID_DAILY_USD_CAP) is reached.",
   global_monthly_usd: "This month's global spend ceiling (DENTVID_MONTHLY_USD_CAP) is reached.",
   clinic_daily_usd: "One clinic reached its daily spend ceiling (DENTVID_CLINIC_DAILY_USD_CAP).",
-  clinic_weekly_weeks: "One clinic asked for more week runs than allowed this week (DENTVID_MAX_WEEKS_PER_CLINIC_WEEK).",
+  clinic_weekly_weeks:
+    "One clinic used every run allowed for one delivery week (DENTVID_MAX_WEEKS_PER_CLINIC_WEEK): the week's own attempts, its one extra run and any “try again” or requeue by hand all count. This count belongs to the Monday the week delivers, so a new day or a new calendar week does not reset it.",
   clinic_daily_restyles: "One clinic reached its daily restyle limit (DENTVID_MAX_RESTYLES_PER_CLINIC_DAY).",
   clinic_weekly_recordings: "One clinic reached its weekly recording limit (DENTVID_MAX_RECORDINGS_PER_CLINIC_WEEK).",
   clinic_weekly_changes: "One clinic reached its weekly change-request limit (DENTVID_MAX_CHANGES_PER_CLINIC_WEEK).",
 };
+
+/**
+ * A week parked on its delivery week's run cap (countersFor). Unlike the other
+ * caps this one does not open again by itself: the counter belongs to that
+ * Monday and goes down only when a run gives its budget back, which is rare.
+ * Before, the email said it would be retried "once there is room again", as for
+ * a daily cap, and nothing ever happened.
+ */
+const PARKED_NO_ROOM = [
+  "The job is parked, not lost, but it will not resume by itself: this delivery week gets no more runs unless the limit is raised.",
+  "First look at why the week needed so many runs (the earlier failure emails and the worker logs).",
+  "To make it anyway, raise DENTVID_MAX_WEEKS_PER_CLINIC_WEEK on the worker (a redeploy applies it): the parked job is then resumed within 15 minutes (DENTVID_PARK_RESUME_MIN). A requeue in /dentvideo/admin before that is parked again. Parked jobs older than 7 days are dropped.",
+].join("\n");
 
 /**
  * Tell the owner about a refusal — at most one email per reason per UTC day
@@ -508,7 +522,9 @@ export async function alertRefusal(
     args.detail,
     "",
     args.parked
-      ? "The job is parked, not lost: it is retried automatically every 15 minutes (DENTVID_PARK_RESUME_MIN) once there is room again (or the pause is lifted). Parked jobs older than 7 days are dropped."
+      ? args.reason === "clinic_weekly_weeks"
+        ? PARKED_NO_ROOM
+        : "The job is parked, not lost: it is retried automatically every 15 minutes (DENTVID_PARK_RESUME_MIN) once there is room again (or the pause is lifted). Parked jobs older than 7 days are dropped."
       : "The request was refused; the clinic can try again later.",
     "No further email for this reason today. See docs/SECURITY.md → Spend guards for the knobs.",
   ].join("\n");

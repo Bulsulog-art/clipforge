@@ -1,4 +1,4 @@
-import { Worker, MetricsTime, Queue, UnrecoverableError } from "bullmq";
+import { Worker, MetricsTime, Queue } from "bullmq";
 import IORedis from "ioredis";
 import * as Sentry from "@sentry/node";
 import { logger } from "./logger.js";
@@ -25,7 +25,7 @@ import { RETENTION_SCHEDULE, retentionAlertDue, runRetention, supabaseRetentionD
 import { dentvidConcurrency, generateConcurrency } from "./remotion/capacity.js";
 import { workerRoles } from "./roles.js";
 import { dodoLookup, purgeAdData, RECONCILE_SCHEDULE, reconcileBilling, revenuecatLookup, supabaseReconcileDb } from "./dentvid/reconcile.js";
-import { EXTRA_RUN_STALLED, extraRunRestarted, handleFailedRestyle, handleFailedWeek, MAX_STALLED_COUNT, weekClinic, weekRunCtx } from "./dentvid/stalled-week.js";
+import { handleFailedRestyle, handleFailedWeek, MAX_STALLED_COUNT, refuseRestartedExtraRun, weekClinic, weekRunCtx } from "./dentvid/stalled-week.js";
 import { recordWeekDuration } from "./dentvid/capacity.js";
 import { runPublish } from "./publish.js";
 import { runDerivative } from "./derivative.js";
@@ -137,7 +137,8 @@ const dentvidWorker = new Worker(
       if (job.name === "week") {
         // A week's one extra run (dentvid/stalled-week.ts) whose process died under it is not started
         // again: failed here, before it reserves anything, and the "failed" handler tells the owner.
-        if (extraRunRestarted(job)) throw new UnrecoverableError(EXTRA_RUN_STALLED);
+        // Its mark comes off first, so a deliberate retry later (delivery watchdog, "Retry job") runs.
+        await refuseRestartedExtraRun(job);
         // weekRunCtx: the "failed" handler below sends the one owner email for a final failure.
         const run = () => runDentvidWeek(job.data, weekRunCtx(job));
         return isBatchPriority(job.opts.priority) ? await withNicedChildren(BATCH_NICE, run) : await run();

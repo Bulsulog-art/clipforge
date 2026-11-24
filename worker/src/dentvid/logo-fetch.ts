@@ -15,13 +15,20 @@ import type { ClinicRef, OwnerAlert } from "./ops-alert.js";
  *                (and a recording) fails as transient, so BullMQ retries it
  *                in a few minutes; a restyle or a change keeps the old video.
  *                Nothing is ever made without a logo the clinic has.
- *   missing      storage says the file is not there (deleted by hand, a
- *                failed migration): no retry brings it back. A new week or a
- *                recording is made without it (the clinic's name is drawn in
- *                the corner, as for a clinic that never uploaded one), so the
- *                clinic still gets its videos, and the owner is asked to have
- *                the logo uploaded again. A restyle or a change, which would
- *                replace a video that has the logo, does not run.
+ *   missing      storage says the object itself is not there ("Object not
+ *                found": deleted by hand, a failed migration). Only that
+ *                answer: a bucket that is not found, a gateway with no route
+ *                or any other 404 is storage misrouted or misconfigured, so
+ *                "unreachable" above. A week before its last attempt stops
+ *                as transient all the same (LogoMissingForNowError), because
+ *                storage that lost track of its files for a while (a volume
+ *                not mounted after a restart) answers just like a deleted
+ *                file. A week on its last attempt, or a recording, is made
+ *                without it (the clinic's name is drawn in the corner, as for
+ *                a clinic that never uploaded one), so the clinic still gets
+ *                its videos, and the owner is asked to have the logo uploaded
+ *                again. A restyle or a change, which would replace a video
+ *                that has the logo, does not run.
  * Either way a run that stops gives its spend reservation back: nothing was spent.
  */
 
@@ -51,14 +58,33 @@ export class LogoMissingError extends Error {
   }
 }
 
+/**
+ * A week stopped because its logo file is reported missing, before its last
+ * attempt: retried by the queue in case storage is only out of step. On the
+ * last attempt the week is made without the logo.
+ */
+export class LogoMissingForNowError extends TransientWeekError {
+  constructor(public key: string) {
+    super(`the clinic's logo file is reported missing from storage (${key}); the week is tried again in case storage is only out of step, and made without the logo on its last attempt`);
+  }
+}
+
 type StorageError = { message?: unknown; status?: unknown; statusCode?: unknown; error?: unknown } | null | undefined;
 
-/** Storage answered that the object does not exist (Supabase storage: 404, or 400 with statusCode "404" / "Object not found"). */
+/**
+ * Storage answered that the object itself does not exist. Supabase storage
+ * says "Object not found" (code NoSuchKey, statusCode "404", over HTTP 400 or
+ * 404). storage-js gives every error the HTTP status, and the body's
+ * statusCode (or its code, or the status again), so a 404 alone proves
+ * nothing: "Bucket not found", Kong's "no Route matched with those values"
+ * and a proxy's bare 404 all carry one. Those are storage misrouted or
+ * misconfigured, and count as unreachable (retried, nothing made without the logo).
+ */
 export function isNotFound(e: StorageError): boolean {
   if (!e) return false;
-  if (e.status === 404 || e.statusCode === 404 || e.statusCode === "404") return true;
-  const text = `${typeof e.message === "string" ? e.message : ""} ${typeof e.error === "string" ? e.error : ""}`;
-  return /\bnot[ _]?found\b|no such (key|object)/i.test(text);
+  const msg = typeof e.message === "string" ? e.message.trim() : "";
+  if (/^object not found\.?$/i.test(msg)) return true;
+  return e.statusCode === "NoSuchKey" || e.error === "NoSuchKey";
 }
 
 export type LogoDownload = { ok: true; blob: Blob; tries: number } | { ok: false; missing: boolean; error: string; tries: number };
@@ -131,8 +157,12 @@ export function logoUnavailableAlert(a: { clinic: ClinicRef; key: string; error:
   };
 }
 
-/** The clinic's logo file is gone from storage: once a day per clinic (key logo_missing:<clinic>). */
-export function logoMissingAlert(a: { clinic: ClinicRef; key: string; error: string; job: LogoJob }): OwnerAlert {
+/**
+ * The clinic's logo file is gone from storage: once a day per clinic (key logo_missing:<clinic>).
+ * `retrying`: a week stopped before its last attempt (LogoMissingForNowError). Its later attempts the
+ * same day send nothing more, so this one says what happens if the file is still not there.
+ */
+export function logoMissingAlert(a: { clinic: ClinicRef; key: string; error: string; job: LogoJob; retrying?: boolean }): OwnerAlert {
   return {
     key: `logo_missing:${a.clinic.id}`,
     severity: "warning",
@@ -147,9 +177,14 @@ export function logoMissingAlert(a: { clinic: ClinicRef; key: string; error: str
     done: [
       a.job === "restyle"
         ? "The photo update was not made, so the clinic keeps the video it has, with its logo. Its budget was given back."
-        : `The ${a.job} was made without the logo: the clinic's name is shown in the corner instead, as for a clinic that never uploaded one.`,
+        : a.retrying
+          ? "The week was stopped before any paid call and its budget was given back. It is tried again by itself in a few minutes, in case storage had only lost track of the file for a while (after a restart, for example). If the file is still not there on its last attempt, the week is made without the logo: the clinic's name is shown in the corner instead, as for a clinic that never uploaded one."
+          : `The ${a.job} was made without the logo: the clinic's name is shown in the corner instead, as for a clinic that never uploaded one.`,
       "No email went to the clinic.",
     ],
-    todo: ["Ask the clinic to upload its logo again in Settings, or look in the dentvid bucket for what happened to the file."],
+    todo: [
+      "Ask the clinic to upload its logo again in Settings, or look in the dentvid bucket for what happened to the file.",
+      "If several clinics' logos are reported missing at the same time, storage itself is the likelier cause: check Liman's storage service first.",
+    ],
   };
 }

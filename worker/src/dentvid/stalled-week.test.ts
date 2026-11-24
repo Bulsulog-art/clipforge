@@ -168,7 +168,7 @@ describe("a week killed twice by worker restarts", () => {
     expect(added[0].opts.backoff).toEqual(WEEK_RETRY.backoff);
     // Same week, same promise: a full week asked for, of which jobs.ts makes only the missing videos.
     // Marked as the extra run: it gets no stall tolerance of its own (extraRunRestarted).
-    expect(added[0].data).toEqual({ clinicId: CLINIC, count: 5, week: WEEK, batch: true, extra: true });
+    expect(added[0].data).toEqual({ clinicId: CLINIC, count: 5, week: WEEK, batch: true, extra: true, extraFor: "stalled" });
 
     expect(raised).toHaveLength(1);
     // Its own key: runDentvidWeek's week_failed:<clinic>:<week> must not swallow a later failure of the same day.
@@ -399,7 +399,7 @@ describe("a week killed twice by worker restarts", () => {
     expect(delays).toEqual([[CLINIC, "2026-11-23", "delayed"]]);
     // Early on that Monday (before 07:00 in Istanbul) it would still get its extra run, stamped with the week.
     await handleFailedWeek(weekJob({ data: { clinicId: CLINIC, count: 5 } }), stalled(), deps(new Date("2026-11-23T02:00:00Z")));
-    expect(added[0].data).toEqual({ clinicId: CLINIC, count: 5, week: "2026-11-23", extra: true });
+    expect(added[0].data).toEqual({ clinicId: CLINIC, count: 5, week: "2026-11-23", extra: true, extraFor: "stalled" });
     expect(added[0].opts.jobId).toBe(weekJobId(CLINIC, "2026-11-23"));
   });
 

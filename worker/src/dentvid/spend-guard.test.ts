@@ -102,6 +102,39 @@ describe("alertRefusal", () => {
     expect(send).toHaveBeenCalledTimes(2);
   });
 
+  it("a week parked on its delivery week's run cap is not promised a retry that never comes: the owner is told how to make it", async () => {
+    const g = new SpendGuard(new MemoryGuardStore(), () => cfg());
+    const send = vi.fn(async (_s: string, _t: string) => true);
+    await alertRefusal(g, { op: "week", clinicId: CLINIC, reason: "clinic_weekly_weeks", detail: "6/6", parked: true }, send);
+    const text = send.mock.calls[0][1];
+    expect(text).toMatch(/every run allowed for one delivery week/);
+    expect(text).toMatch(/will not resume by itself/);
+    expect(text).toMatch(/raise DENTVID_MAX_WEEKS_PER_CLINIC_WEEK/);
+    expect(text).not.toMatch(/once there is room again/);
+    expect(text).not.toMatch(/this week \(/);
+    // A daily cap does open again: that email still says the job is retried by itself.
+    await alertRefusal(g, { op: "week", clinicId: CLINIC, reason: "clinic_daily_usd", detail: "x", parked: true }, send);
+    expect(send.mock.calls[1][1]).toMatch(/retried automatically every 15 minutes .* once there is room again/);
+  });
+
+  it("parked on the run cap: the parked week really does wait until the limit is raised, then resumes", async () => {
+    const W = "2026-11-30";
+    const now = new Date("2026-11-28T18:05:00Z");
+    const store = new MemoryGuardStore();
+    let max = 6;
+    const g = new SpendGuard(store, () => cfg({ dailyUsd: 1e6, monthlyUsd: 1e6, clinicDailyUsd: 1e6, maxWeeksPerClinicWeek: max }));
+    for (let i = 0; i < 6; i++) expect((await g.reserve("week", CLINIC, { now, week: W })).ok).toBe(true);
+    const park = new MemoryParkStore();
+    await park.put({ jobId: `week:${CLINIC}:${W}`, name: "week", data: { clinicId: CLINIC, count: 5, week: W }, reason: "clinic_weekly_weeks", parkedAt: now.toISOString() });
+    const queue = { getJob: vi.fn(async () => undefined), add: vi.fn(async () => ({})) };
+    // A day later, and on the next calendar week: still no room for that delivery week.
+    for (const later of [new Date("2026-11-29T18:05:00Z"), new Date("2026-12-01T09:00:00Z")]) {
+      expect(await resumeParked(park, queue, g, later)).toMatchObject({ resumed: 0, waiting: 1 });
+    }
+    max = 7;
+    expect(await resumeParked(park, queue, g, new Date("2026-12-01T09:15:00Z"))).toMatchObject({ resumed: 1 });
+  });
+
   it("still de-duplicates when Redis is down (in-process gate)", async () => {
     const store = new MemoryGuardStore();
     store.down = true;

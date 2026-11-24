@@ -11,7 +11,13 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
  * owner get one email. Everything external is a fake.
  */
 
-vi.mock("openai", () => ({ default: class {} }));
+// The model client a week run hands produceWeek (jobs.ts): each create() stands for one paid model call.
+const fakes = vi.hoisted(() => ({ paidCalls: 0, thumbs: false }));
+vi.mock("openai", () => ({
+  default: class {
+    chat = { completions: { create: async () => (fakes.paidCalls++, { choices: [] }) } };
+  },
+}));
 const produceWeek = vi.fn();
 vi.mock("../dental/week.js", () => ({ produceWeek }));
 vi.mock("../dental/recording.js", () => ({ clipsFromRecording: vi.fn() }));
@@ -25,16 +31,27 @@ vi.mock("../dental/questions.js", () => ({ patientSearches: vi.fn(async () => []
 const notifyReady = vi.fn(async () => true);
 const sendReadyAtCivilHour = vi.fn(async () => ({ sent: true, at: new Date(), held: false }));
 vi.mock("./notify.js", () => ({ notifyReady, sendReadyAtCivilHour }));
-// No real ffmpeg: thumbnails just fail (they are optional).
-vi.mock("fluent-ffmpeg", () => {
-  const chain: Record<string, unknown> = {};
-  for (const m of ["seekInput", "frames", "size"]) chain[m] = () => chain;
-  chain.on = (ev: string, cb: (e?: Error) => void) => {
-    if (ev === "error") setTimeout(() => cb(new Error("no ffmpeg")), 0);
-    return chain;
+// No real ffmpeg: thumbnails fail (they are optional), unless a test turns them on (fakes.thumbs),
+// then each one is written as a file and uploaded next to its video.
+vi.mock("fluent-ffmpeg", async () => {
+  const { writeFileSync } = await import("node:fs");
+  const chain = () => {
+    const c: Record<string, unknown> = {};
+    const on: Record<string, (e?: Error) => void> = {};
+    for (const m of ["seekInput", "frames", "size"]) c[m] = () => c;
+    c.on = (ev: string, cb: (e?: Error) => void) => ((on[ev] = cb), c);
+    c.save = (out: string) => {
+      setTimeout(() => {
+        if (fakes.thumbs) {
+          writeFileSync(out, "jpg");
+          on.end?.();
+        } else on.error?.(new Error("no ffmpeg"));
+      }, 0);
+      return c;
+    };
+    return c;
   };
-  chain.save = () => chain;
-  const f = Object.assign(() => chain, { ffprobe: (_f: string, cb: (e: Error) => void) => cb(new Error("no ffprobe")) });
+  const f = Object.assign(() => chain(), { ffprobe: (_f: string, cb: (e: Error) => void) => cb(new Error("no ffprobe")) });
   return { default: f };
 });
 
@@ -96,7 +113,8 @@ vi.mock("@supabase/supabase-js", () => ({ createClient: () => fakeDb() }));
 process.env.DENTVID_SUPABASE_URL = "http://liman.test";
 process.env.DENTVID_SERVICE_ROLE_KEY = "x";
 
-const { configureSpend, runDentvidWeek, _setStoreRetryMs, SHORT_WEEK_ALERT_KEY, _setPreflight, NARRATION_TRIES } = await import("./jobs.js");
+const { configureSpend, runDentvidWeek, _setStoreRetryMs, SHORT_WEEK_ALERT_KEY, _setPreflight, NARRATION_TRIES, ttsCallFailed } = await import("./jobs.js");
+const { VOICE_DOWN_TOPICS, VOICE_DOWN_MESSAGE } = await import("./voice-down.js");
 const { MemoryGuardStore, SpendGuard, guardConfig } = await import("./spend-guard.js");
 const { configureOps } = await import("./ops.js");
 const { MemoryOpsStore, weekStateKey, _resetLocalOnce } = await import("./ops-alert.js");
@@ -125,6 +143,8 @@ beforeEach(() => {
   // No network in tests: the providers are fine unless a test says otherwise.
   _setPreflight(async () => ({ ok: true }));
   vi.clearAllMocks();
+  fakes.paidCalls = 0;
+  fakes.thumbs = false;
   inserted.length = 0;
   uploadFailures = 0;
   usableAlready = 0;
@@ -419,6 +439,8 @@ describe("a voice that could not be made never reaches the dentist as a silent v
   let ttsCalls: number;
   /** TTS calls (1-based) that fail, as when ElevenLabs and the OpenAI fallback both refuse; 0 = every call. */
   let ttsFails: Set<number>;
+  /** What a failing TTS call throws: by default the provider refusing (steps/tts.ts words it "openai tts failed (500)"). */
+  let ttsError: string;
   /** Renders whose QA measures silence although they had a voice (a mux bug): rows.ts's last line of defence. */
   let silentRenders: Set<string>;
 
@@ -426,10 +448,13 @@ describe("a voice that could not be made never reaches the dentist as a silent v
     voiced = new Map();
     ttsCalls = 0;
     ttsFails = new Set();
+    ttsError = "tts failed: ElevenLabs 503, OpenAI 500";
     silentRenders = new Set();
+    // Every stored video gets its thumbnail, so the tests count those keys too.
+    fakes.thumbs = true;
     prepareNarration.mockImplementation(async (plan: unknown, dir: string) => {
       ttsCalls++;
-      if (ttsFails.has(ttsCalls) || ttsFails.has(0)) throw new Error("tts failed: ElevenLabs 503, OpenAI 500");
+      if (ttsFails.has(ttsCalls) || ttsFails.has(0)) throw new Error(ttsError);
       const voiceoverPath = path.join(dir, "voice.mp3");
       fs.writeFileSync(voiceoverPath, "");
       return { plan, voiceoverPath };
@@ -443,12 +468,18 @@ describe("a voice that could not be made never reaches the dentist as a silent v
 
   /**
    * produceWeek as the real one (week.ts): topics in order until the count asked for is ready,
-   * each rendered through the job's render() and measured; a video whose render throws is tried
-   * once more, then recorded as a technical rejection (no file) and the next topic takes its place.
+   * each one's paid model calls first (one here, through the run's client), then rendered through
+   * the job's render() and measured; a video whose calls or render throw is tried once more, then
+   * recorded as a technical rejection (no file) and the next topic takes its place.
    */
+  type Deps = {
+    client: { chat: { completions: { create: (a: unknown) => Promise<unknown> } } };
+    render: (p: unknown, t: unknown) => Promise<string>;
+    onVideoError?: (e: Error, t: unknown) => unknown;
+  };
   const renderedWeek =
     (titles: string[]) =>
-    async (deps: { render: (p: unknown, t: unknown) => Promise<string>; onVideoError?: (e: Error, t: unknown) => unknown }, _profile: unknown, opts: { count: number }) => {
+    async (deps: Deps, _profile: unknown, opts: { count: number }) => {
       const out: Pkg[] = [];
       for (const title of titles) {
         if (out.filter((p) => p.status === "ready").length >= opts.count) break;
@@ -456,6 +487,7 @@ describe("a voice that could not be made never reaches the dentist as a silent v
         let lastError: Error | undefined;
         for (let attempt = 1; attempt <= VIDEO_ATTEMPTS; attempt++) {
           try {
+            await deps.client.chat.completions.create({ model: "script", messages: [] });
             const videoPath = await deps.render({ scenes: [], voiceover: { text: "Eins. Zwei.", voice: "nova" } }, topic);
             const has = voiced.get(videoPath) === true && !silentRenders.has(title);
             const stats = has ? STATS_OK : { ...STATS_OK, hasAudio: false, meanVolumeDb: null, longestSilenceSec: 0 };
@@ -473,6 +505,8 @@ describe("a voice that could not be made never reaches the dentist as a silent v
       return out;
     };
   const videoUploads = () => uploadedKeys.filter((k) => k.endsWith(".mp4"));
+  /** Every uploaded key (videos and thumbnails) that a stored row points to. */
+  const onRows = () => new Set(inserted.flatMap((row) => [row.video_path, row.thumb_path]).filter(Boolean));
 
   it("TTS failing for one video: it is never rendered or uploaded, the owner can read why, and the week is topped up to five", async () => {
     // Video c: both narration tries of its first attempt fail, and both of its re-attempt.
@@ -502,6 +536,9 @@ describe("a voice that could not be made never reaches the dentist as a silent v
     // Five uploads, all five on a stored row, nothing to remove.
     expect(videoUploads()).toHaveLength(5);
     expect(new Set(inserted.map((row) => row.video_path).filter(Boolean))).toEqual(new Set(videoUploads()));
+    // Thumbnails too: ten keys, every one on a stored row.
+    expect(uploadedKeys).toHaveLength(10);
+    expect(onRows()).toEqual(new Set(uploadedKeys));
     expect(removedKeys).toEqual([]);
     // Every video the dentist can review has a voice.
     const usable = inserted.filter((row) => row.status === "ready" || row.status === "flagged");
@@ -548,19 +585,84 @@ describe("a voice that could not be made never reaches the dentist as a silent v
     configureSpend({ guard: new SpendGuard(guardStore, () => guardConfig({})), alert: vi.fn(async () => true) });
     ttsFails = new Set([0]);
     produceWeek.mockImplementation(renderedWeek(["a", "b", "c", "d", "e", "s1", "s2"]));
-    await expect(runDentvidWeek({ clinicId: CLINIC, count: 5, week }, { jobId: "w", attemptsMade: 0, attempts: 4 })).rejects.toBeInstanceOf(TransientWeekError);
+    const err = await runDentvidWeek({ clinicId: CLINIC, count: 5, week }, { jobId: "w", attemptsMade: 0, attempts: 4 }).catch((e) => e);
+    expect(err).toBeInstanceOf(TransientWeekError);
     expect(renderPlan).not.toHaveBeenCalled();
     expect(uploadedKeys).toEqual([]);
     expect(removedKeys).toEqual([]);
     expect(inserted).toEqual([]);
-    // Bounded: every topic of the one round got its two attempts of two narration tries; no top-up round.
-    expect(ttsCalls).toBe(7 * VIDEO_ATTEMPTS * NARRATION_TRIES);
+    // The voice-down breaker (voice-down.ts): topic a got its two attempts and b its first, each with
+    // its narration tried twice in place; then the voice counts as down and nothing more is paid for.
+    expect(VOICE_DOWN_TOPICS).toBe(2);
+    expect(ttsCalls).toBe(3 * NARRATION_TRIES);
+    expect(fakes.paidCalls).toBe(3);
+    // Before the breaker every topic was scripted twice (7 x 2 = 14 rounds of paid calls), and on main
+    // the five silent renders plus a five-topic top-up made 10.
+    expect(fakes.paidCalls).toBeLessThan(7 * VIDEO_ATTEMPTS);
     expect(produceWeek).toHaveBeenCalledTimes(1);
+    // The owner reads the voice's own error, and how many topics were skipped.
+    expect(err.message).toBe(
+      "zero usable videos (the narration failed for 2 topics, last: narration failed: tts failed: ElevenLabs 503, OpenAI 500; 5 more topics skipped with no paid call once the voice was found down)",
+    );
     // Only the week's own reservation was taken: no top-up money for scripts that could not be voiced.
     const usd = [...guardStore.values.entries()].find(([k]) => k.startsWith(`dv:spend:usd:clinic:${CLINIC}:`))?.[1];
     expect(usd).toBe(Math.round(guardConfig({}).costUsd.week * 100));
     expect(sendReadyAtCivilHour).not.toHaveBeenCalled();
     expect(await ops.get(weekStateKey(CLINIC, week))).toBe("retrying");
+    // The skipped topics are not counted as render failures (no error-spike alert).
+    expect(mails).toEqual([]);
+    produceWeek.mockReset();
+  });
+
+  it("without the breaker's model client the same outage would pay for every topic twice (the test sees the difference)", async () => {
+    ttsFails = new Set([0]);
+    // The same fake week, calling a client of its own instead of the run's: what week.ts did before.
+    const ungated = { chat: { completions: { create: async () => (fakes.paidCalls++, { choices: [] }) } } };
+    produceWeek.mockImplementation((deps: Deps, p: unknown, o: { count: number }) => renderedWeek(["a", "b", "c", "d", "e", "s1", "s2"])({ ...deps, client: ungated }, p, o));
+    await expect(runDentvidWeek({ clinicId: CLINIC, count: 5, week }, { jobId: "w", attemptsMade: 0, attempts: 4 })).rejects.toBeInstanceOf(TransientWeekError);
+    // render() still refuses to voice once the voice is down, but every script was paid for.
+    expect(fakes.paidCalls).toBe(7 * VIDEO_ATTEMPTS);
+    expect(ttsCalls).toBe(3 * NARRATION_TRIES);
+    produceWeek.mockReset();
+  });
+
+  it("one topic whose own narration fails is not a voice outage: the rest of the week is made, a spare takes its place", async () => {
+    // The first topic's text fails on both attempts (two tries each); every other narration works.
+    ttsFails = new Set([1, 2, 3, 4]);
+    produceWeek.mockImplementationOnce(renderedWeek(["a", "b", "c", "d", "e", "s1"]));
+    const r = await runDentvidWeek({ clinicId: CLINIC, count: 5, week }, { jobId: "w", attemptsMade: 0, attempts: 4 });
+    expect(r).toMatchObject({ ready: 5, rejected: 1, toppedUp: 0 });
+    expect(inserted.filter((row) => row.status === "ready").map((row) => row.title)).toEqual(["b", "c", "d", "e", "s1"]);
+    expect(fakes.paidCalls).toBe(2 + 5);
+    expect(inserted.some((row) => String(row.error ?? "").includes(VOICE_DOWN_MESSAGE))).toBe(false);
+  });
+
+  it("a narration that fails after the voice was made (ffprobe, the loudness pass, a full disk) is not paid for again in place", async () => {
+    expect(ttsCallFailed(new Error("openai tts failed (503): upstream"))).toBe(true);
+    expect(ttsCallFailed(new Error("elevenlabs tts timed out after 60000 ms"))).toBe(true);
+    expect(ttsCallFailed(new TypeError("fetch failed"))).toBe(true);
+    expect(ttsCallFailed(new Error("Cannot find ffprobe"))).toBe(false);
+    expect(ttsCallFailed(new Error("ENOSPC: no space left on device, write"))).toBe(false);
+    expect(ttsCallFailed(new Error("OPENAI_API_KEY is not set"))).toBe(false);
+    // Video c's first narration dies in ffprobe: one synthesis, no second one in place; week.ts re-attempts the topic.
+    ttsFails = new Set([3]);
+    ttsError = "ffprobe exited with code 1: Invalid data found when processing input";
+    produceWeek.mockImplementationOnce(renderedWeek(["a", "b", "c", "d", "e"]));
+    const r = await runDentvidWeek({ clinicId: CLINIC, count: 5, week }, { jobId: "w", attemptsMade: 0, attempts: 4 });
+    expect(r).toMatchObject({ ready: 5, rejected: 0 });
+    expect(ttsCalls).toBe(6);
+    // c's script was made twice (week.ts's re-attempt), its voice twice: never four times.
+    expect(fakes.paidCalls).toBe(6);
+  });
+
+  it("ffmpeg broken for the whole run: each voice is paid for once per attempt, and the breaker stops the run after two topics", async () => {
+    ttsFails = new Set([0]);
+    ttsError = "Cannot find ffprobe";
+    produceWeek.mockImplementation(renderedWeek(["a", "b", "c", "d", "e", "s1", "s2"]));
+    await expect(runDentvidWeek({ clinicId: CLINIC, count: 5, week }, { jobId: "w", attemptsMade: 0, attempts: 4 })).rejects.toThrow(/zero usable videos.*narration failed: Cannot find ffprobe/);
+    // a twice, b once: three syntheses, against 7 topics x 2 attempts x 2 tries = 28 without either fix.
+    expect(ttsCalls).toBe(3);
+    expect(fakes.paidCalls).toBe(3);
     produceWeek.mockReset();
   });
 
@@ -586,7 +688,11 @@ describe("a voice that could not be made never reaches the dentist as a silent v
     // Every upload is either on a row or named in the silent row's error; none removed.
     const named = String(silent.error).match(/file kept for the owner: ([^)]+)\)/)![1];
     expect(new Set(videoUploads())).toEqual(new Set([...inserted.map((row) => row.video_path).filter(Boolean), named]));
-    expect(removedKeys).toEqual([]);
+    // Its thumbnail is on no row and named nowhere: removed straight away. Every other key is on a row.
+    const silentThumb = named.replace(/\.mp4$/, ".jpg");
+    expect(uploadedKeys).toContain(silentThumb);
+    expect(removedKeys).toEqual([silentThumb]);
+    expect(new Set(uploadedKeys)).toEqual(new Set([...onRows(), named, silentThumb]));
   });
 
   it("every render silent despite a voice: the week stores nothing, so every file it uploaded is removed again", async () => {
@@ -594,8 +700,10 @@ describe("a voice that could not be made never reaches the dentist as a silent v
     produceWeek.mockImplementationOnce(renderedWeek(["a", "b", "c", "d", "e"])).mockImplementationOnce(renderedWeek(["f", "g", "h", "i", "j"]));
     await expect(runDentvidWeek({ clinicId: CLINIC, count: 5, week }, { jobId: "w", attemptsMade: 0, attempts: 4 })).rejects.toBeInstanceOf(TransientWeekError);
     expect(inserted).toEqual([]);
-    // Ten uploaded (five and the top-up's five), ten removed: no file without a row.
+    // Ten uploaded (five and the top-up's five), ten removed: no file without a row. Their
+    // thumbnails too (each one as soon as its render was turned away).
     expect(videoUploads()).toHaveLength(10);
+    expect(uploadedKeys).toHaveLength(20);
     expect(new Set(removedKeys)).toEqual(new Set(uploadedKeys));
     expect(removedKeys.every((k) => k.startsWith(`${OWNER}/`))).toBe(true);
   });
@@ -609,6 +717,7 @@ describe("a voice that could not be made never reaches the dentist as a silent v
     const r = await runDentvidWeek({ clinicId: CLINIC, count: 3, week }, { jobId: "w", attempts: 4 });
     expect(r).toMatchObject({ ready: 0 });
     expect(videoUploads()).toHaveLength(4);
+    expect(uploadedKeys).toHaveLength(8);
     expect(new Set(removedKeys)).toEqual(new Set(uploadedKeys));
   });
 });

@@ -36,8 +36,9 @@ import type { ParkStore } from "./park.js";
 import { probeDuration } from "../lib/media-input.js";
 import { subtitleCues, type Subtitles } from "../dental/subtitles.js";
 import { loadPendingRequests, requestOutcomes, saveOutcomes } from "./topic-requests.js";
-import { downloadLogo, LogoMissingError, logoMissingAlert, LogoUnavailableError, logoUnavailableAlert, type LogoJob } from "./logo-fetch.js";
+import { downloadLogo, LogoMissingError, LogoMissingForNowError, logoMissingAlert, LogoUnavailableError, logoUnavailableAlert, type LogoJob } from "./logo-fetch.js";
 import { topicSchema, type RequestRefusal, type Topic } from "../dental/strategist.js";
+import { gatedClient, isVoiceDownSkip, VoiceDownError, voiceDown as runVoiceDown, type VoiceTally } from "./voice-down.js";
 
 /**
  * DentVideo jobs. The product's data lives on Liman (self-hosted Supabase):
@@ -176,6 +177,11 @@ export type LoadClinicOpts = {
   alertAs?: LogoJob;
   /** The run replaces a video that has the logo (restyle, change): a logo file gone from storage stops it. */
   rerender?: boolean;
+  /**
+   * A week before its last attempt: a logo file reported missing stops it as transient
+   * (LogoMissingForNowError), in case storage is only out of step. Unset: it goes ahead without it.
+   */
+  retryMissing?: boolean;
 };
 
 /**
@@ -189,9 +195,11 @@ export type LoadClinicOpts = {
  * will not give us stops the run with LogoUnavailableError (a transient error:
  * a week is retried by the queue) rather than making videos without it. A logo
  * file that storage says is gone stops a restyle or a change (LogoMissingError:
- * the old video, with its logo, stays); a new week or recording goes ahead
- * without it. The owner hears of either (logo-fetch.ts alerts). Nothing here
- * calls a paid API, so a caller that already reserved budget gives it back.
+ * the old video, with its logo, stays) and a week before its last attempt
+ * (LogoMissingForNowError, transient); a week on its last attempt, or a
+ * recording, goes ahead without it. The owner hears of each (logo-fetch.ts
+ * alerts). Nothing here calls a paid API, so a caller that already reserved
+ * budget gives it back.
  */
 export async function loadClinic(db: SupabaseClient, clinicId: string, workDir: string, opts: LoadClinicOpts = {}) {
   const { data, error } = await db
@@ -211,13 +219,15 @@ export async function loadClinic(db: SupabaseClient, clinicId: string, workDir: 
     const got = await downloadLogo(db.storage.from(BUCKET), key, (n, err) => logger.warn({ clinicId, try: n, err }, "dentvid: logo download failed, trying again"));
     if (!got.ok) {
       logger.error({ clinicId, key, missing: got.missing, tries: got.tries, err: got.error }, got.missing ? "dentvid: logo file missing from storage" : "dentvid: logo could not be downloaded");
+      const retrying = got.missing && !opts.rerender && opts.retryMissing === true;
       if (opts.alertAs) {
-        const alert = got.missing ? logoMissingAlert : logoUnavailableAlert;
-        await ownerAlert(alert({ clinic: await clinicRef(db, clinicId), key, error: got.error, job: opts.alertAs })).catch(() => "failed");
+        const a = { clinic: await clinicRef(db, clinicId), key, error: got.error, job: opts.alertAs };
+        await ownerAlert(got.missing ? logoMissingAlert({ ...a, retrying }) : logoUnavailableAlert(a)).catch(() => "failed");
       }
       if (!got.missing) throw new LogoUnavailableError(key, got.error);
       if (opts.rerender) throw new LogoMissingError(key);
-      // A new week or recording: made without the logo, as for a clinic that never uploaded one.
+      if (retrying) throw new LogoMissingForNowError(key);
+      // A week on its last attempt, or a recording: made without the logo, as for a clinic that never uploaded one.
     } else if (got.blob.size > MAX_LOGO_BYTES) {
       logger.warn({ clinicId, bytes: got.blob.size }, "dentvid: logo too large, ignored");
     } else {
@@ -234,7 +244,7 @@ export async function loadClinic(db: SupabaseClient, clinicId: string, workDir: 
 }
 
 /** A logo error from loadClinic: the run stopped before any paid call, so its reservation is given back. */
-const isLogoStop = (e: unknown) => e instanceof LogoUnavailableError || e instanceof LogoMissingError;
+const isLogoStop = (e: unknown) => e instanceof LogoUnavailableError || e instanceof LogoMissingError || e instanceof LogoMissingForNowError;
 
 /**
  * The logo, read once per job: its colours fill a brand colour the clinic
@@ -529,6 +539,20 @@ export const NARRATION_TRIES = 2;
 let narrationRetryMs = 5_000;
 
 /**
+ * A failure of the voice provider's own call (an HTTP error, a timeout, the
+ * network: steps/tts.ts and dental/elevenlabs.ts), which a second try a few
+ * seconds later may get past. Anything else (the loudness pass or ffprobe
+ * after the synthesis, a full disk, a missing key) is not tried again in
+ * place: the voice may already have been paid for, and a second try would pay
+ * for it again, unmetered (meterNarration runs only on success). week.ts still
+ * re-attempts the topic once.
+ */
+const TTS_CALL_FAILED = /\btts (failed|timed out|returned no audio)\b|fetch failed|socket hang up|ECONNRESET|ECONNREFUSED|ETIMEDOUT|EAI_AGAIN|ENOTFOUND|UND_ERR|\bterminated\b/i;
+export function ttsCallFailed(e: unknown): boolean {
+  return TTS_CALL_FAILED.test(`${(e as { message?: unknown } | null | undefined)?.message ?? ""}`);
+}
+
+/**
  * A week video's narration could not be made. The video is NOT rendered: week.ts
  * re-attempts the topic once (VIDEO_ATTEMPTS), then records it as a technical
  * rejection with no file, and a spare topic takes its place. Before, the render
@@ -538,10 +562,17 @@ let narrationRetryMs = 5_000;
  */
 export class NarrationFailedError extends Error {}
 
-/** What one week run's narrations did, for the top-up decision. */
-type NarrationTally = { ok: number; failed: number };
+/**
+ * What one week run's narrations did: for the top-up decision (`failed`, a
+ * script with no narration text included) and for the voice-down breaker
+ * (voice-down.ts: `failedTopics`, failures of the voice only).
+ */
+type NarrationTally = VoiceTally & { failed: number };
 
-/** The narration for one week video, tried NARRATION_TRIES times; throws NarrationFailedError instead of returning a silent one. */
+/**
+ * The narration for one week video; throws NarrationFailedError instead of returning a silent one.
+ * A failed call to the voice provider is tried NARRATION_TRIES times in place (ttsCallFailed).
+ */
 async function narrateWeekVideo(plan: ScenePlan, dir: string, profile: ClinicProfile, topic: Topic, clinicId: string, tally: NarrationTally): Promise<Narration> {
   let last: Error | undefined;
   for (let n = 1; n <= NARRATION_TRIES; n++) {
@@ -563,11 +594,14 @@ async function narrateWeekVideo(plan: ScenePlan, dir: string, profile: ClinicPro
     } catch (e) {
       if (e instanceof NarrationFailedError) throw e;
       last = e as Error;
-      logger.warn({ err: last.message, topic: topic.title, clinicId, try: n }, "dentvid: voiceover failed");
-      if (n < NARRATION_TRIES) await new Promise((r) => setTimeout(r, narrationRetryMs));
+      const again = n < NARRATION_TRIES && ttsCallFailed(e);
+      logger.warn({ err: last.message, topic: topic.title, clinicId, try: n, again }, "dentvid: voiceover failed");
+      if (!again) break;
+      await new Promise((r) => setTimeout(r, narrationRetryMs));
     }
   }
   tally.failed++;
+  tally.failedTopics.add(topic.title);
   throw new NarrationFailedError(`narration failed: ${last?.message ?? "unknown error"}`);
 }
 
@@ -609,7 +643,9 @@ async function makeWeek(job: WeekJob, ctx: WeekCtx, week: string): Promise<WeekR
   await reserveOrPark("week", { ...job }, ctx.jobId, week);
   const workDir = await fs.mkdtemp(path.join(os.tmpdir(), "dentvid-week-"));
   try {
-    const { ownerId, profile, logoPath, logoStyle } = await loadClinic(db, job.clinicId, workDir, { alertAs: "week" }).catch(async (e) => {
+    // A logo file reported missing stops the week as transient until its last attempt (LoadClinicOpts.retryMissing).
+    const lastTry = isLastAttempt(ctx.attemptsMade ?? 0, ctx.attempts ?? 1);
+    const { ownerId, profile, logoPath, logoStyle } = await loadClinic(db, job.clinicId, workDir, { alertAs: "week", retryMissing: !lastTry }).catch(async (e) => {
       // The logo could not be had: nothing was spent, the budget goes back, the queue retries the week.
       if (isLogoStop(e)) await spend.guard.release("week", job.clinicId, { week }).catch(() => false);
       throw e;
@@ -645,7 +681,18 @@ async function makeWeek(job: WeekJob, ctx: WeekCtx, week: string): Promise<WeekR
     const requests = await loadPendingRequests(db, job.clinicId);
     let refused: RequestRefusal[] = [];
     // Every narration of this run: none made and some failed means the voice is down for now.
-    const narration: NarrationTally = { ok: 0, failed: 0 };
+    const narration: NarrationTally = { ok: 0, failed: 0, failedTopics: new Set() };
+    // The voice-down breaker (voice-down.ts): once the narration failed for two topics and worked
+    // for none, the run's model client refuses every further call, so no more scripts are paid for.
+    let breakerLogged = false;
+    const voiceIsDown = () => {
+      const down = runVoiceDown(narration);
+      if (down && !breakerLogged) {
+        breakerLogged = true;
+        logger.warn({ clinicId: job.clinicId, topics: [...narration.failedTopics] }, "dentvid: the voice is down for this run; the topics still to go are skipped without paid calls");
+      }
+      return down;
+    };
     // Every storage key this run uploaded (videos, thumbnails, and the files of silent renders,
     // which rows.ts names only in the owner's error): removed again when no row will point to them.
     const uploaded: string[] = [];
@@ -653,11 +700,14 @@ async function makeWeek(job: WeekJob, ctx: WeekCtx, week: string): Promise<WeekR
     const produce = (count: number, avoidTitles: string[], history: PastTopic[], withRequests = false) =>
       produceWeek(
         {
-          client: new OpenAI(),
+          client: gatedClient(new OpenAI(), voiceIsDown),
           log: (msg, extra) => logger.info({ clinicId: job.clinicId, ...extra }, `dentvid: ${msg}`),
           searches: (p) => patientSearches(p.services, p.language, p.country),
-          onVideoError: (e) => noteRenderFailure(e).catch(() => {}),
+          // A topic the breaker skipped is not a render failure (the error-spike alert counts those).
+          onVideoError: (e) => (isVoiceDownSkip(e) ? undefined : noteRenderFailure(e).catch(() => {})),
           render: async (plan, topic) => {
+            // A script that got here without a model call (all of them caught) is not voiced either.
+            if (voiceIsDown()) throw new VoiceDownError();
             const dir = await fs.mkdtemp(path.join(workDir, "v-"));
             // No voice, no render: a silent video is never made (NarrationFailedError).
             const voice = await narrateWeekVideo(plan, dir, profile, topic, job.clinicId, narration);
@@ -692,8 +742,14 @@ async function makeWeek(job: WeekJob, ctx: WeekCtx, week: string): Promise<WeekR
           const stored = await storeWithRetry(db, ownerId, pkg.videoPath);
           // The ready-to-paste Instagram / Shorts texts (post-kit.ts: deterministic, no model call).
           if (stored) {
-            uploaded.push(stored.videoPath, ...(stored.thumbPath ? [stored.thumbPath] : []));
             const row: ItemRow = withPostKit(rowFromPackage(pkg, ids, stored), profile);
+            uploaded.push(stored.videoPath);
+            if (stored.thumbPath) {
+              // A render rows.ts turned away (silent despite a voice) keeps its video for the owner,
+              // named in the row's error; its thumbnail is on no row and named nowhere, so it goes now.
+              if (row.video_path) uploaded.push(stored.thumbPath);
+              else await discardUploads(db, ownerId, [stored.thumbPath], job.clinicId, "the thumbnail of a render that was turned away");
+            }
             const subs = subtitlesByFile.get(pkg.videoPath);
             if (subs) row.subtitles = subs;
             // A suggested topic's video gets its id now, so the suggestion can point to it.
@@ -749,9 +805,15 @@ async function makeWeek(job: WeekJob, ctx: WeekCtx, week: string): Promise<WeekR
       const technical = rows.filter((r) => r.status === "rejected" && r.error);
       if (usable() === 0 && technical.length > 0) {
         // Nothing to show and it was not the reviewers: store nothing, run again later.
-        const detail = `${technical.length} technical failures; last: ${technical.at(-1)!.error}`;
+        // Topics the voice-down breaker skipped say nothing about why: the owner reads the real errors.
+        const real = technical.filter((r) => !isVoiceDownSkip(r.error));
+        const notTried = technical.filter((r) => isVoiceDownSkip(r.error) && !narration.failedTopics.has(r.title ?? "")).length;
+        const detail =
+          real.length < technical.length
+            ? `the narration failed for ${narration.failedTopics.size} topics, last: ${(real.at(-1) ?? technical.at(-1))!.error}; ${notTried} more topics skipped with no paid call once the voice was found down`
+            : `${technical.length} technical failures; last: ${technical.at(-1)!.error}`;
         // Every video was refused by the provider (out of credit mid-week): retrying in minutes would not help.
-        if (technical.every((r) => providerRefused({ message: r.error }))) throw new Error(`zero usable videos — the AI provider refused (${detail})`);
+        if (real.length && real.every((r) => providerRefused({ message: r.error }))) throw new Error(`zero usable videos — the AI provider refused (${detail})`);
         throw new TransientWeekError(`zero usable videos (${detail})`);
       }
     } catch (e) {
