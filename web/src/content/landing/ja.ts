@@ -28,7 +28,7 @@ export const ja: LandingContent = {
     namePlaceholder: "医院名",
     logo: "ロゴを追加",
     color: "医院のカラー",
-    cta: "次へ：1週間分を見る",
+    cta: "次へ：プレビューを保存",
     note: "次のステップは、費用のかからないアカウント作成と、1週間分の完全なプレビューです。料金が発生するのはプランを選んだときだけです。",
   },
   monday: {

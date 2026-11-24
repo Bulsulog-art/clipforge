@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Eye, EyeOff } from "lucide-react";
 import { dvHref } from "@/lib/dentvid/host";
@@ -15,11 +15,18 @@ import { ConsentLine } from "./consent-line";
 import { FieldError, ValidatingForm } from "./validating-form";
 import { trackDv } from "@/lib/dentvid/events-client";
 import { captureFromLocation, readAttribution } from "@/lib/dentvid/attribution";
-import { readAdClick } from "@/lib/dentvid/ad-click";
 import { isInternalBrowser } from "@/lib/dentvid/internal-flag";
-import { rememberDemo } from "@/lib/dentvid/demo-cookie";
 import { passwordTooLong } from "@/lib/dentvid/password";
 import { resetRequestOutcome, signedOutMode, stepAfterSignIn } from "@/lib/dentvid/start-mode";
+import { TEASER_KEY } from "@/lib/dentvid/onboarding";
+import { SIGNUP_SAVED } from "@/content/dentvideo-signup-saved";
+type Extras = typeof import("./signup-extras");
+// Needed only when the form is sent; loaded after the page is up (the send reuses that load, or retries a failed one).
+let adClickLoad: Promise<typeof import("@/lib/dentvid/ad-click") | null> | null = null;
+const adClickRules = () => (adClickLoad ??= import("@/lib/dentvid/ad-click").catch(() => ((adClickLoad = null), null)));
+const wait = (ms: number) => new Promise((r) => setTimeout(r, ms));
+// At most this long for those rules (a stalled chunk); then the sign-up goes without the click.
+const AD_CLICK_WAIT_MS = 1500;
 
 /**
  * `legal`: show the consent line linking to the Terms and Privacy Policy (on
@@ -33,6 +40,12 @@ export function StartForm({ locale, remember, legal = true, initialMode = "signu
   const [mode, setMode] = useState<"signup" | "signin" | "forgot">(initialMode);
   const [notice, setNotice] = useState<string | null>(null);
   const [email, setEmail] = useState("");
+  // The email as it was when the field was left ("" while typing: no hint mid-word).
+  const [checked, setChecked] = useState("");
+  // The teaser left a name or logo in this tab. The recap and typo hint load after mount, for sign-up only.
+  const [seeded, setSeeded] = useState(false);
+  const [extras, setExtras] = useState<Extras | null>(null);
+  const [teaser, setTeaser] = useState<ReturnType<Extras["teaserFromSession"]>>(null);
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -59,10 +72,47 @@ export function StartForm({ locale, remember, legal = true, initialMode = "signu
     setMode(signedOutMode(q));
     // From a demo link ("Start with these settings"): the clinic step fills itself from it after sign-up.
     const demo = q.get("demo");
-    if (demo) rememberDemo(demo);
+    if (demo) import("@/lib/dentvid/demo-cookie").then((m) => m.rememberDemo(demo), () => {});
     // A link straight to /start?utm_…: keep its source for the tab, as a landing would.
     captureFromLocation();
   }, []);
+
+  // Before the first paint, so nothing moves when the recap arrives.
+  useLayoutEffect(() => {
+    try {
+      const s = JSON.parse(sessionStorage.getItem(TEASER_KEY) ?? "0");
+      setSeeded(!!s && !!(`${s.name ?? ""}`.trim() || s.logo));
+    } catch {}
+    void adClickRules();
+  }, []);
+
+  // The typo hint never appears between a press and its release: its line would move the pressed button and lose the click.
+  const press = useRef<ReturnType<Extras["pressWatch"]> | null>(null);
+  useEffect(() => {
+    if (!extras) return;
+    const w = extras.pressWatch(document);
+    press.current = w;
+    return () => {
+      w.stop();
+      press.current = null;
+    };
+  }, [extras]);
+  // Bumped by each change to the field, so a held-back hint never shows an address that is gone.
+  const edits = useRef(0);
+
+  useEffect(() => {
+    if (mode !== "signup" || extras) return;
+    // It checks the seed in full; a bad seed or no chunk: the plain sign-up.
+    import("./signup-extras").then(
+      (m) => {
+        const s = m.teaserFromSession();
+        setExtras(m);
+        setTeaser(s);
+        if (!s) setSeeded(false);
+      },
+      () => setSeeded(false),
+    );
+  }, [mode, extras]);
 
   /** Funnel: the first keystroke in the sign-up form (once per tab). */
   const started = useRef(false);
@@ -71,8 +121,6 @@ export function StartForm({ locale, remember, legal = true, initialMode = "signu
     started.current = true;
     trackDv("signup_started", { locale, once: "signup-start" });
   };
-
-  const wait = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
   async function signIn(addr: string): Promise<boolean> {
     // The Supabase client is loaded when it is needed, not with the page.
@@ -115,13 +163,14 @@ export function StartForm({ locale, remember, legal = true, initialMode = "signu
       }
       if (mode === "signup") {
         if (passwordTooLong(password)) throw new Error(a.passwordTooLong);
+        // Internal traffic (owner, QA, e2e): the account is marked internal and no ad click is sent (lib/dentvid/internal-flag).
+        const internal = isInternalBrowser();
+        const rules = internal ? null : Promise.race([adClickRules(), wait(AD_CLICK_WAIT_MS).then(() => null)]);
         // Password managers fill the form instantly; wait out the bot brake
         // instead of refusing a real person.
         const elapsed = Date.now() - openedAt.current;
         if (elapsed < 2700) await wait(2700 - elapsed);
-        // Internal traffic (owner, QA, e2e): the account is marked internal and no ad click is sent (lib/dentvid/internal-flag).
-        const internal = isInternalBrowser();
-        const adClick = internal ? null : readAdClick();
+        const adClick = (await rules)?.readAdClick() ?? null;
         const res = await fetch("/api/dentvideo/signup", {
           method: "POST",
           headers: { "content-type": "application/json" },
@@ -160,6 +209,20 @@ export function StartForm({ locale, remember, legal = true, initialMode = "signu
   }
 
   const field = "dv-field";
+  const saved = mode === "signup" && seeded ? (SIGNUP_SAVED[locale] ?? SIGNUP_SAVED.en) : null;
+  const typed = (v: string) => {
+    edits.current++;
+    setEmail(v);
+    setChecked("");
+  };
+  const left = (v: string) => {
+    const n = edits.current;
+    const show = () => {
+      if (edits.current === n) setChecked(v);
+    };
+    if (press.current) press.current.after(show);
+    else show();
+  };
 
   return (
     <main lang={locale} dir={dirOf(locale)} className="relative isolate overflow-hidden">
@@ -172,12 +235,15 @@ export function StartForm({ locale, remember, legal = true, initialMode = "signu
       )}
       <div className={`mx-auto flex max-w-md flex-col px-4 pb-24 sm:px-6 ${mode === "signup" ? "pt-10" : "pt-10 sm:pt-16"}`}>
         <DvIcon className="mx-auto h-14 w-14 drop-shadow-[0_12px_20px_rgba(15,92,92,0.35)]" />
-        <h1 className="dv-display dv-h-page mt-6 text-center text-dv-ink">{mode === "signup" ? t.titleSignup : mode === "forgot" ? a.forgotTitle : t.titleSignin}</h1>
-        <p className="mt-3 text-pretty text-center leading-relaxed text-dv-body">{mode === "signup" ? t.leadSignup : mode === "forgot" ? a.forgotLead : t.leadSignin}</p>
+        <h1 className="dv-display dv-h-page mt-6 text-center text-dv-ink">{saved ? saved.titleSaved : mode === "signup" ? t.titleSignup : mode === "forgot" ? a.forgotTitle : t.titleSignin}</h1>
+        <p className="mt-3 text-pretty text-center leading-relaxed text-dv-body">{saved ? saved.leadSaved : mode === "signup" ? t.leadSignup : mode === "forgot" ? a.forgotLead : t.leadSignin}</p>
+        {/* Same min-height as signup-extras TeaserRecap. */}
+        {saved && <div data-recap-box className="mt-7 min-h-[6.75rem]">{extras && teaser && <extras.TeaserRecap locale={locale} seed={teaser} />}</div>}
 
         {/* method/action only matter when this page's JS never ran (chunks gone after a deploy): reload, never a GET with the fields in the URL. */}
         {/* The form checks its fields itself and says what is wrong in the page's language (not the browser's bubble). */}
         <ValidatingForm locale={locale} onSubmit={submit} method="post" action="/api/dentvideo/reload" className="dv-card mt-9 space-y-5 p-6 sm:p-8">
+          <div>
           <label className="block">
             <span className="text-sm font-semibold text-dv-ink">{t.email}</span>
             <input
@@ -189,12 +255,15 @@ export function StartForm({ locale, remember, legal = true, initialMode = "signu
               value={email}
               onChange={(e) => {
                 startTyping();
-                setEmail(e.target.value);
+                typed(e.target.value);
               }}
+              onBlur={(e) => left(e.target.value)}
               className={field}
             />
             <FieldError name="email" />
           </label>
+          {mode === "signup" && extras && <extras.EmailHint locale={locale} email={checked} onFix={typed} />}
+          </div>
           {mode !== "forgot" && (
           <div>
             {/* On a phone a mistyped new password only shows up at the next sign-in: let them look at it. */}
