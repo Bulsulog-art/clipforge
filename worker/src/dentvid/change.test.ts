@@ -205,6 +205,8 @@ describe("a change request re-makes only that one video", () => {
     expect(req("r6s")).toMatchObject({ status: "failed", reason: "technical" });
     expect(mails).toHaveLength(1);
     expect(mails[0].subject).toMatch(/change request could not be made/i);
+    expect(mails[0].text).toMatch(/came out silent \(no audio track\); its files were removed/);
+    expect(mails[0].text).not.toMatch(/file kept for the owner/);
   });
 
   it("is idempotent: a request that already ran is left alone", async () => {

@@ -990,7 +990,8 @@ export async function runDentvidChange(job: ChangeJob): Promise<ChangeResult> {
       // A change that rendered with no sound must never replace the video the dentist has.
       // Drop the new files, keep the old video and let the catch below tell the owner.
       await db.storage.from(BUCKET).remove([files.videoPath, files.thumbPath].filter((k): k is string => !!k)).catch(() => {});
-      throw new Error(`the changed video came out silent (${row.error ?? "no audio"}); the old video was kept`);
+      const why = (row.error ?? "no audio").replace(/^silent render: /, "").replace(/ \(file kept for the owner: [^)]*\)$/, "");
+      throw new Error(`the changed video came out silent (${why}); its files were removed and the old video was kept`);
     }
     const upd = await updateItem(db, item.id, {
       title: row.title,
