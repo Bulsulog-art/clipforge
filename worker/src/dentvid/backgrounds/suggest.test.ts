@@ -223,3 +223,62 @@ describe("new languages find every photo category", () => {
     expect(category(suggestBackgrounds({ service: "Nakładki ortodontyczne" })[0])).toBe("aligners");
   });
 });
+
+/**
+ * A week of videos passes options (dental/week.ts produceWeek): the photos
+ * the clinic's recent videos used (least recently used first) and a seed for
+ * the clinic and the week. Without options nothing changes (above).
+ */
+describe("defaultBackgrounds / startingBackgrounds with a week's options", () => {
+  const TOPIC_ONLY = ["aligners-02", "aligners-03", "implants-04", "kids-02", "whitening-01"];
+  const implant = { topic: "İmplant tedavisinin aşamaları", service: "İmplant", language: "tr" };
+  const brushing = { topic: "How to brush and floss properly", language: "en" };
+
+  it("prefers photos the clinic has not used lately, on-topic first", () => {
+    expect(startingBackgrounds(brushing, 60)).toEqual(["hygiene-01", "hygiene-04", "hygiene-05", "hygiene-08"]);
+    const avoid = new Set(["hygiene-01", "hygiene-04"]);
+    expect(startingBackgrounds(brushing, 60, undefined, { avoid, seed: "x" })).toEqual(["hygiene-05", "hygiene-08", "hygiene-13", "hygiene-17"]);
+  });
+
+  it("is soft: avoided photos come back last, the least recently used first, and the count never drops", () => {
+    const avoid = new Set([...DENTAL_PHOTOS].reverse());
+    for (const seconds of [30, 60]) {
+      const ids = startingBackgrounds(brushing, seconds, undefined, { avoid, seed: "x" });
+      expect(ids).toHaveLength(seconds >= 45 ? 4 : 3);
+      for (const id of ids) expect(DENTAL_PHOTOS.has(id)).toBe(true);
+    }
+    // Everything avoided: the oldest of the topic's own photos opens, then the oldest of the rest.
+    const order = ["hygiene-17", "clinic-13", "hygiene-13", "cleaning-02", ...DENTAL_PHOTOS];
+    expect(startingBackgrounds(brushing, 30, undefined, { avoid: new Set(order), seed: "x" })).toEqual(["hygiene-17", "clinic-13", "hygiene-13"]);
+  });
+
+  it("an implant video keeps an implant photo even when both were used lately", () => {
+    const avoid = new Set(["implants-03", "clinic-01", "implants-04"]);
+    expect(startingBackgrounds(implant, 30, undefined, { avoid, seed: "Sample Dental|2026-11-23" })).toEqual(["implants-03", "hygiene-05", "kids-18"]);
+    expect(startingBackgrounds(implant, 30, undefined, { avoid: new Set(["implants-03"]), seed: "s" })[0]).toBe("implants-04");
+  });
+
+  it("rotates the general photos by the seed: stable for one seed, different across weeks, never another topic's treatment photo", () => {
+    const pick = (seed: string) => startingBackgrounds({ topic: "xyzzy" }, 30, undefined, { seed });
+    expect(pick("Sample Dental|2026-11-23")).toEqual(["hygiene-05", "clinic-01", "kids-18"]);
+    expect(pick("Sample Dental|2026-11-30")).toEqual(["clinic-07", "hygiene-05", "clinic-01"]);
+    expect(pick("Sample Dental|2026-11-23")).toEqual(pick("Sample Dental|2026-11-23"));
+    const seen = new Set<string>();
+    for (let i = 0; i < 200; i++) pick(`seed ${i}`).forEach((id) => seen.add(id));
+    expect(seen.size).toBe(DENTAL_PHOTOS.size - TOPIC_ONLY.length);
+    for (const id of TOPIC_ONLY) expect(seen.has(id), id).toBe(false);
+  });
+
+  it("an empty options object and an unknown avoided id change nothing that matters", () => {
+    const ids = startingBackgrounds(implant, 30, undefined, { avoid: new Set(["nope-99", "<script>"]) });
+    expect(ids).toHaveLength(3);
+    expect(ids[0]).toMatch(/^implants-/);
+    expect(startingBackgrounds(implant, 30, undefined, {})).toEqual(ids);
+  });
+
+  it("a custom library without the dental photos still gives what it can, never an unknown id", () => {
+    const lib = [{ id: "clinic-13", category: "clinic", tags: [], luminance: 0.5 }];
+    expect(defaultBackgrounds([], 30, lib, { avoid: new Set(["clinic-13"]), seed: "s" })).toEqual(["clinic-13"]);
+    expect(defaultBackgrounds(["implants-03"], 30, lib, { seed: "s" })).toEqual(["clinic-13"]);
+  });
+});
