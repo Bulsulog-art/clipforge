@@ -4,8 +4,8 @@ import { describe, expect, it } from "vitest";
 import type OpenAI from "openai";
 import { DENTAL_PHOTOS, backgroundId, backgroundSrc, startingBackgrounds, type SuggestInput } from "../dentvid/backgrounds/suggest.js";
 import type { ScenePlan } from "../remotion/scene-plan.js";
-import { closingMove, closingMoves, ctaGuide } from "./style.js";
-import { HOUSE_THEME, mondayOf, produceVideo, produceWeek, recentBackgrounds, rememberPhotos, scriptBrief, type WeekVisuals } from "./week.js";
+import { closingMove, closingMoves, ctaGuide, repeatedScreen } from "./style.js";
+import { HOUSE_THEME, keptLook, keptPhotos, produceVideo, produceWeek, recentBackgrounds, rememberPhotos, scriptBrief, targetWeek, type WeekVisuals } from "./week.js";
 import type { PastTopic, WeekVoice } from "./memory.js";
 import type { ClinicProfile } from "./profile.js";
 import type { Topic } from "./strategist.js";
@@ -60,9 +60,8 @@ function runMonth(varied: boolean): MonthResult {
   const weeks: string[][][] = [];
   const all = new Set<string>();
   MONTH.forEach((ids, w) => {
-    const today = new Date(`${MONDAYS[w]}T06:00:00Z`);
-    const used = recentBackgrounds(history, today);
-    const visual: WeekVisuals = { avoid: used, seed: `Sample Dental|${mondayOf(today)}` };
+    const used = recentBackgrounds(history, MONDAYS[w]);
+    const visual: WeekVisuals = { avoid: used, seed: `Sample Dental|${MONDAYS[w]}` };
     const week: string[][] = [];
     for (const id of ids) {
       const photos = varied ? startingBackgrounds(inputOf(id), 30, undefined, visual) : startingBackgrounds(inputOf(id), 30);
@@ -177,7 +176,7 @@ describe("the avoid set is soft", () => {
 
 describe("photo memory from the clinic's history", () => {
   const src = (id: string) => backgroundSrc(id);
-  const today = new Date("2026-11-23T06:00:00Z");
+  const week = "2026-11-23";
 
   it("reads the last two weeks' plan photos, oldest first, and ignores anything else", () => {
     const history = [
@@ -189,9 +188,11 @@ describe("photo memory from the clinic's history", () => {
       { title: "not a list", weekOf: "2026-11-16", backgrounds: src("hygiene-05") },
       { title: "no photos", weekOf: "2026-11-16" },
     ] as unknown as PastTopic[];
-    expect([...recentBackgrounds(history, today)]).toEqual(["implants-03", "kids-18", "hygiene-01", "clinic-13"]);
-    expect(recentBackgrounds(undefined, today).size).toBe(0);
-    expect(recentBackgrounds([{ title: "plain history, as today" }], today).size).toBe(0);
+    expect([...recentBackgrounds(history, week)]).toEqual(["implants-03", "kids-18", "hygiene-01", "clinic-13"]);
+    expect(recentBackgrounds(undefined, week).size).toBe(0);
+    expect(recentBackgrounds([{ title: "plain history, as today" }], week).size).toBe(0);
+    // A week string that is not a date avoids nothing rather than everything.
+    expect(recentBackgrounds(history, "not a week").size).toBe(0);
   });
 
   it("a photo used again moves to the end, so the least recently used stays first", () => {
@@ -200,10 +201,17 @@ describe("photo memory from the clinic's history", () => {
     expect([...used]).toEqual(["b-01", "c-01", "hygiene-01", "a-01"]);
   });
 
-  it("weeks start on Monday (UTC)", () => {
-    expect(mondayOf(new Date("2026-11-23T06:00:00Z"))).toBe("2026-11-23");
-    expect(mondayOf(new Date("2026-11-29T23:00:00Z"))).toBe("2026-11-23");
-    expect(mondayOf(new Date("2026-12-01T00:00:00Z"))).toBe("2026-11-30");
+  it("the week being made is the one the videos are for, not the day the job runs", () => {
+    // During the week: that Monday.
+    expect(targetWeek(new Date("2026-11-23T06:00:00Z"))).toBe("2026-11-23");
+    expect(targetWeek(new Date("2026-11-28T17:59:00Z"))).toBe("2026-11-23");
+    // The batch starts Saturday 18:00 UTC for the Monday after (dentvid/schedule.ts).
+    expect(targetWeek(new Date("2026-11-21T18:00:00Z"))).toBe("2026-11-23");
+    expect(targetWeek(new Date("2026-11-22T23:59:00Z"))).toBe("2026-11-23");
+    expect(targetWeek(new Date("2026-11-23T00:01:00Z"))).toBe("2026-11-23");
+    // The job's own week wins when it is a real date.
+    expect(targetWeek(new Date("2026-11-21T18:00:00Z"), "2026-11-30")).toBe("2026-11-30");
+    expect(targetWeek(new Date("2026-11-21T18:00:00Z"), "next week")).toBe("2026-11-23");
   });
 });
 
@@ -352,16 +360,12 @@ const DE: ClinicProfile = { name: "Zahnpraxis am Viktualienmarkt", city: "Münch
 const JP: ClinicProfile = { name: "さくら歯科", city: "東京", country: "JP", language: "ja", services: ["ホワイトニング"], tone: "calm", address: "formal" };
 const TOPIC: Topic = { title: "t", pillar: "myth", question: "q?", hook: "h", service: "s" };
 
-/** The closing move each of five videos of one week is told, as produceVideo briefs them. */
+const moveIn = (brief: string) => brief.match(/Close this video with this move: (.*)/)?.[1];
+
+/** The closing move each of five delivered videos of one week is told, as produceWeek briefs them. */
 function weekOfMoves(profile: ClinicProfile, seed: string): string[] {
   const week: WeekVoice = { openers: [], closings: [] };
-  const out: string[] = [];
-  for (let i = 0; i < 5; i++) {
-    const brief = scriptBrief(profile, TOPIC, [], week, undefined, { seed });
-    out.push(brief.match(/Close this video with this move: (.*)/)![1]);
-    week.closings.push(`closing ${i}`);
-  }
-  return out;
+  return [0, 1, 2, 3, 4].map((index) => moveIn(scriptBrief(profile, TOPIC, [], week, undefined, { seed, index }))!);
 }
 
 const ASK_OR_ENGAGE = /ask us|ask the practice|pass it on|sending the video|saving the video|keep it for later|likes|comments|follows/i;
@@ -375,9 +379,18 @@ describe("closing moves", () => {
       }
   });
 
+  it("a single video without an index (eval, cli) still moves on with the week's closings", () => {
+    const week: WeekVoice = { openers: [], closings: [] };
+    const first = moveIn(scriptBrief(US, TOPIC, [], week, undefined, { seed: "s" }));
+    week.closings.push("Soft bristles are kinder to the gumline.");
+    const second = moveIn(scriptBrief(US, TOPIC, [], week, undefined, { seed: "s" }));
+    expect(first).toBe(closingMove("US", "en", "s", 0));
+    expect(second).toBe(closingMove("US", "en", "s", 1));
+  });
+
   it("a top-up run continues the week's moves after the videos already made", async () => {
     const today = new Date("2026-11-23T06:00:00Z");
-    const seed = `${US.name}|${mondayOf(today)}`;
+    const seed = `${US.name}|2026-11-23`;
     const history = [
       { title: "Made this week", weekOf: "2026-11-23" },
       { title: "Also this week", weekOf: "2026-11-23" },
@@ -430,5 +443,261 @@ describe("closing moves", () => {
     expect(ctaGuide("US", "informal")).toMatch(/ask the practice/);
     expect(ctaGuide("TR")).not.toMatch(/ask the practice|passing the video on/);
     expect(ctaGuide("TR")).toMatch(/never ask viewers to like, comment on or share/);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Review round 1: moves follow the delivered videos, the week is the one being
+// made, Türkiye's moves agree with its market rule, changes keep their look.
+
+const TOPICS: Topic[] = [
+  ...BRUSHING,
+  { title: "Electric or manual toothbrush", pillar: "myth", question: "Is an electric toothbrush better?", hook: "Electric toothbrush or the old manual one?", service: "Check-ups" },
+  { title: "Brushing before or after breakfast", pillar: "education", question: "Should I brush before breakfast?", hook: "Toothbrush before breakfast, or after?", service: "Check-ups" },
+  { title: "How long to brush", pillar: "education", question: "How long should I brush?", hook: "Thirty seconds of brushing feels like enough…", service: "Check-ups" },
+  { title: "Storing your toothbrush", pillar: "education", question: "Where should my toothbrush dry?", hook: "Where does your toothbrush dry overnight?", service: "Check-ups" },
+  { title: "Brushing with braces", pillar: "education", question: "How do I brush with braces?", hook: "Braces turn brushing into a puzzle…", service: "Check-ups" },
+];
+
+/** Closing lines different enough that no one echoes another (scriptProblems sends an echo back). */
+const CTA_POOL = [
+  "A soft brush and light hands protect the gumline for years.",
+  "Frayed bristles mean the brush has done its job.",
+  "Two minutes, twice a day, small circles.",
+  "Your own dentist can say which brush suits your gums.",
+  "Bleeding while brushing is worth mentioning at a check-up.",
+  "Electric or manual, the angle matters more than the motor.",
+  "Rinse the brush and let it air dry upright.",
+  "Children copy what they see you do at the sink.",
+  "Flossing first lets fluoride reach between teeth.",
+  "Spit, do not rinse, after brushing at night.",
+  "Swap the head after a cold or flu.",
+  "Night guards need a gentle clean every morning.",
+  "Brackets hide plaque where bristles rarely reach.",
+  "Pressure sensors beep when hands push too firmly.",
+];
+
+/**
+ * A fake client for whole weeks: the planner answers each brief with a plan
+ * for the brief's own topic and a closing line no other plan uses, and
+ * records which move the brief told it. `failCaption` makes the caption
+ * writer fail for one topic (a video turned down after its script passed).
+ */
+function weekClient(failCaption?: RegExp) {
+  const briefs: { topic: string; move?: string; cta: string }[] = [];
+  const client = {
+    chat: {
+      completions: {
+        create: async (req: { messages: { role: string; content: string }[] }) => {
+          const system = req.messages[0].content;
+          const user = req.messages[1].content;
+          let body: unknown;
+          if (system.startsWith("You write scene plans")) {
+            const title = user.match(/Topic: (.*?)\. It answers/)![1];
+            const topic = TOPICS.find((t) => t.title === title)!;
+            const cta = CTA_POOL[briefs.length];
+            if (!cta) throw new Error("the fake planner ran out of closing lines");
+            briefs.push({ topic: title, move: moveIn(user), cta });
+            const plan = brushingPlan(0);
+            body = { ...plan, title, scenes: plan.scenes.map((s) => (s.kind === "hook" ? { ...s, text: topic.hook } : s.kind === "cta" ? { ...s, text: cta } : s)) };
+          } else if (system.startsWith("You review")) body = { verdict: "pass", issues: [] };
+          else if (system.startsWith("You are a careful general dentist")) body = { verdict: "pass", issues: [] };
+          else if (system.startsWith("You write the Instagram")) {
+            if (failCaption?.test(user)) throw new Error("caption writer timed out");
+            body = { caption: "Soft bristles and small circles clean well without wearing the gums.", hashtags: ["dentist", "brushing", "toothbrush"] };
+          }
+          return { choices: [{ message: { content: JSON.stringify(body) } }] };
+        },
+      },
+    },
+  } as unknown as OpenAI;
+  return { client, briefs };
+}
+
+/** A render that fails on the given calls (1-based), like a render timeout. */
+function flakyRender(failOn: number[]) {
+  let calls = 0;
+  return {
+    render: async () => {
+      calls++;
+      if (failOn.includes(calls)) throw new Error("render timed out");
+      return "/nonexistent/video.mp4";
+    },
+    calls: () => calls,
+  };
+}
+
+/** The move each delivered video was briefed with, found through its closing line. */
+function deliveredMoves(week: Awaited<ReturnType<typeof produceWeek>>, briefs: { move?: string; cta: string }[]): string[] {
+  return week.flatMap((v) => {
+    if (v.status !== "ready") return [];
+    const cta = v.plan.scenes.find((s) => s.kind === "cta") as { text: string };
+    return [briefs.find((b) => b.cta === cta.text)!.move!];
+  });
+}
+
+const TR_EN: ClinicProfile = { ...US, name: "Körfez Dental", city: "İzmir", country: "TR" };
+const MONDAY = new Date("2026-11-23T06:00:00Z");
+
+describe("closing moves follow the videos actually delivered", () => {
+  it("Türkiye (five moves): a render that fails once does not make the fifth video repeat the first one's move", async () => {
+    const { client, briefs } = weekClient();
+    const r = flakyRender([3]);
+    const week = await produceWeek({ client, render: r.render }, TR_EN, { count: 5, topics: TOPICS, today: MONDAY });
+    expect(week.filter((v) => v.status === "ready")).toHaveLength(5);
+    // The failure path really ran: a sixth render, for a script that had passed.
+    expect(r.calls()).toBe(6);
+    expect(briefs.length).toBeGreaterThan(5);
+    const moves = deliveredMoves(week, briefs);
+    expect(new Set(moves).size).toBe(5);
+    expect(new Set(moves)).toEqual(new Set(closingMoves("TR", "en")));
+  });
+
+  it("a topic turned down after its script passed hands its move to the next video (US: copy failures and a render failure)", async () => {
+    const { client, briefs } = weekClient(/Electric or manual toothbrush/);
+    const r = flakyRender([2]);
+    const week = await produceWeek({ client, render: r.render }, US, { count: 5, topics: TOPICS, today: MONDAY });
+    expect(week.filter((v) => v.status === "ready")).toHaveLength(5);
+    const given = week.find((v) => v.status === "rejected");
+    expect(given?.topic.title).toBe("Electric or manual toothbrush");
+    const moves = deliveredMoves(week, briefs);
+    expect(new Set(moves).size).toBe(5);
+    // The move told to the topic that was given up went to the video after it.
+    const lost = briefs.find((b) => b.topic === "Electric or manual toothbrush")!.move;
+    const next = briefs.find((b) => b.topic === "Brushing before or after breakfast")!.move;
+    expect(next).toBe(lost);
+    const seed = `${US.name}|2026-11-23`;
+    expect(moves).toEqual([0, 1, 2, 3, 4].map((i) => closingMove("US", "en", seed, i)));
+  });
+
+  it("Türkiye: a short week and its top-up together still carry five different moves", async () => {
+    const main = weekClient(/Brushing the gumline/);
+    const first = await produceWeek({ client: main.client, render: flakyRender([]).render }, TR_EN, { count: 5, topics: TOPICS.slice(0, 4), today: MONDAY });
+    const made = first.filter((v) => v.status === "ready");
+    expect(made).toHaveLength(3);
+    // jobs.ts: the top-up's history holds this week's usable videos.
+    const history = made.map((v) => ({ title: v.topic.title, weekOf: "2026-11-23" })) as PastTopic[];
+    const top = weekClient();
+    const more = await produceWeek({ client: top.client, render: flakyRender([]).render }, TR_EN, { count: 2, topics: TOPICS.slice(4, 6), history, today: new Date("2026-11-23T09:00:00Z") });
+    const moves = [...deliveredMoves(first, main.briefs), ...deliveredMoves(more, top.briefs)];
+    expect(moves).toHaveLength(5);
+    expect(new Set(moves).size).toBe(5);
+  });
+});
+
+describe("the week is the one being made, not the day the job runs", () => {
+  const lastWeekPhotos = ["hygiene-08", "hygiene-01", "hygiene-04"];
+  const threeWeeksAgo = ["hygiene-05", "hygiene-13", "hygiene-17"];
+  // Last week's five delivered videos, and one from three weeks before the coming Monday.
+  const history = [
+    ...[1, 2, 3, 4, 5].map((i) => ({ title: `Last week ${i}`, weekOf: "2026-11-16", backgrounds: lastWeekPhotos.map(backgroundSrc) })),
+    { title: "Three weeks ago", weekOf: "2026-11-02", backgrounds: threeWeeksAgo.map(backgroundSrc) },
+  ] as unknown as PastTopic[];
+
+  it("the Saturday batch keys the coming Monday: its seed, its two-week photo memory, and no videos made yet", async () => {
+    const { client, briefs } = weekClient();
+    const saturday = new Date("2026-11-21T18:30:00Z");
+    const week = await produceWeek({ client, render: flakyRender([]).render }, US, { count: 2, topics: TOPICS, history, today: saturday });
+    // Seed of the coming Monday, starting at the first move (last week's five rows are not "this week").
+    expect(briefs.map((b) => b.move)).toEqual([0, 1].map((i) => closingMove("US", "en", `${US.name}|2026-11-23`, i)));
+    const photos = week.map((v) => (v.status === "ready" ? photoIds(v.plan) : []));
+    // Last week's photos are avoided; three weeks back is outside the two-week memory, so free again.
+    for (const p of lastWeekPhotos) expect(photos[0]).not.toContain(p);
+    expect(photos[0]).toContain("hygiene-05");
+  });
+
+  it("a job whose main run and top-up straddle Monday 00:00 UTC keeps one seed and continues its moves", async () => {
+    // A clinic whose seeds for the two Mondays start on different moves, so a wrong week shows.
+    const clinic = { ...US, name: "Maple Street Dental" };
+    expect(closingMove("US", "en", `${clinic.name}|2026-11-16`, 0)).not.toBe(closingMove("US", "en", `${clinic.name}|2026-11-23`, 0));
+    const main = weekClient();
+    const first = await produceWeek({ client: main.client, render: flakyRender([]).render }, clinic, { count: 2, topics: TOPICS.slice(0, 2), today: new Date("2026-11-22T23:50:00Z") });
+    const history = first.map((v) => ({ title: v.topic.title, weekOf: "2026-11-23" })) as PastTopic[];
+    const top = weekClient();
+    await produceWeek({ client: top.client, render: flakyRender([]).render }, clinic, { count: 2, topics: TOPICS.slice(2, 4), history, today: new Date("2026-11-23T00:10:00Z") });
+    const seed = `${clinic.name}|2026-11-23`;
+    expect([...main.briefs, ...top.briefs].map((b) => b.move)).toEqual([0, 1, 2, 3].map((i) => closingMove("US", "en", seed, i)));
+  });
+
+  it("the job's own week, when given, wins over the clock", async () => {
+    const { client, briefs } = weekClient();
+    await produceWeek({ client, render: flakyRender([]).render }, US, { count: 1, topics: TOPICS, today: MONDAY, weekOf: "2026-11-30" });
+    expect(briefs[0].move).toBe(closingMove("US", "en", `${US.name}|2026-11-30`, 0));
+  });
+});
+
+describe("Türkiye's moves agree with its market rule", () => {
+  it("every Turkish move ends on the viewer's own dentist, never this clinic", () => {
+    for (const moves of [closingMoves("TR", "tr"), closingMoves("TR", "en"), closingMoves(undefined, "tr")]) {
+      expect(moves).toHaveLength(5);
+      for (const m of moves) {
+        expect(m).toMatch(/their own dentist \(hekiminiz\)/);
+        expect(m).toMatch(/never (to )?this clinic|not this clinic/);
+      }
+    }
+    expect(ctaGuide("TR")).toMatch(/always ends by pointing the viewer to their own dentist \(hekiminiz\), never to this clinic/);
+  });
+
+  it("each Turkish brief carries the market rule and a move that ends where it says", () => {
+    const week: WeekVoice = { openers: [], closings: [] };
+    for (const index of [0, 1, 2, 3, 4]) {
+      const brief = scriptBrief(TR, TOPIC, [], week, undefined, { seed: `${TR.name}|2026-11-23`, index });
+      expect(brief).toMatch(/close by pointing the viewer to their own dentist/);
+      expect(moveIn(brief)).toMatch(/own dentist \(hekiminiz\)/);
+    }
+  });
+});
+
+describe("the takeaway move", () => {
+  it("asks for a plain statement, never a recap opener, in every market", () => {
+    for (const [country, language] of [["US", "en"], ["TR", "tr"], ["DE", "de"], ["JP", "ja"], ["FR", "fr"]] as const) {
+      const m = closingMoves(country, language).find((x) => x.startsWith("the one thing to remember"))!;
+      expect(m, country).toMatch(/as a plain statement, never opened with "in short", "Kısaca", "Özetle", "Kurz gesagt", "En bref" or another recap word/);
+      expect(m, country).toMatch(/add no recap scene/);
+      expect(m, country).not.toMatch(/the scenes above may not/);
+    }
+  });
+
+  it("because a short closing opened with a recap word is sent back as a recap", () => {
+    expect(repeatedScreen(["In short: brush gently."]).join()).toMatch(/recap/);
+    expect(repeatedScreen(["Kısaca: nazik fırçalayın."]).join()).toMatch(/recap/);
+    expect(repeatedScreen(["Gentle circles protect the gumline."])).toEqual([]);
+  });
+});
+
+describe("a change request keeps the video's own look and photos", () => {
+  const base = { scenes: brushingPlan(0).scenes, voiceover: brushingPlan(0).voiceover };
+  const picked = ["kids-01", "clinic-07"].map(backgroundSrc);
+
+  it("keeps the stored theme and photos when the caller passes them", async () => {
+    const { client, planner } = fakeClient([brushingPlan(0, "midnight")]);
+    const pkg = await produceVideo({ client }, US, BRUSHING[0], new Set(), undefined, { note: "Shorter please", base: { ...base, theme: "sunrise", backgrounds: picked } });
+    expect(pkg.status).toBe("ready");
+    if (pkg.status !== "ready") return;
+    expect(pkg.plan.theme).toBe("sunrise");
+    expect(pkg.plan.backgrounds).toEqual(picked);
+    expect(planner[0]).toContain(`theme must be "sunrise"`);
+  });
+
+  it("anything else in the stored plan is ignored: the house look and the topic's photos", async () => {
+    const { client } = fakeClient([brushingPlan(0, "midnight")]);
+    const pkg = await produceVideo({ client }, US, BRUSHING[0], new Set(), undefined, {
+      note: "Shorter please",
+      base: { ...base, theme: "neon", backgrounds: ["https://evil.example/x.jpg", 7, "../../etc/passwd"] },
+    });
+    expect(pkg.status === "ready" && pkg.plan.theme).toBe(HOUSE_THEME);
+    expect(pkg.status === "ready" && photoIds(pkg.plan)).toEqual(
+      startingBackgrounds({ plan: (pkg as { plan: ScenePlan }).plan, topic: `${BRUSHING[0].title} . ${BRUSHING[0].question} . ${BRUSHING[0].hook}`, service: BRUSHING[0].service, language: "en" }, 15),
+    );
+  });
+
+  it("reads the stored values defensively", () => {
+    expect(keptLook(undefined)).toBeUndefined();
+    expect(keptLook({ note: "x", base: { ...base, theme: "editorial" } })).toBe("editorial");
+    expect(keptLook({ note: "x", base: { ...base, theme: 3 } })).toBeUndefined();
+    expect(keptPhotos({ note: "x", base: { ...base, backgrounds: [...picked, picked[0], "x", null, "/dentvideo/backgrounds/nope-99.jpg"] } })).toEqual(picked);
+    expect(keptPhotos({ note: "x", base: { ...base, backgrounds: "kids-01" } })).toEqual([]);
+    const many = ["hygiene-01", "hygiene-04", "hygiene-05", "hygiene-08", "hygiene-13"].map(backgroundSrc);
+    expect(keptPhotos({ note: "x", base: { ...base, backgrounds: many } })).toHaveLength(4);
   });
 });

@@ -182,9 +182,10 @@ export { BLOCKING_CTA, ctaProblems, trSteering, type CtaFinding } from "./closin
 /**
  * How the closing line should sound in this market, told to the writers.
  * Türkiye is strictest: the clinic may inform, not steer, so the close
- * leaves the viewer with something to know or sends them to their own
- * dentist. The video's own move comes from closingMoves (one per video of
- * the week); this guide names the family of moves so a rewrite stays in it.
+ * always ends on the viewer's own dentist (locale.ts marketRules, the
+ * narrator and the compliance reviewer all say so). The video's own move
+ * comes from closingMoves (one per video of the week); this guide names the
+ * family of moves so a rewrite stays in it.
  */
 export function ctaGuide(country: string | undefined, address: "formal" | "informal" = "formal"): string {
   const c = (country ?? "").toUpperCase();
@@ -194,7 +195,7 @@ export function ctaGuide(country: string | undefined, address: "formal" | "infor
   // move and names the subject-specific part; the post-check rejects a copy.
   const shared = `Write it fresh for THIS video: name its subject (the implant, the aligners, the bleeding gums…) so it could not close any other video. Never copy an example sentence, never the same wording as the clinic's other videos this week, never the clinic's name (the handle is shown on screen), no exclamation mark, no urgency.`;
   if (c === "TR")
-    return `The closing line only informs: it leaves the viewer with something to know, or points them to their own dentist (hekiminiz). Moves that work: the one thing to remember, a small step at home, the moment this matters, a sign worth mentioning to their own dentist, a question worth asking them. ${shared} Never "randevu alın/planlayın", "muayene planlayın", "bize ulaşın/yazın/sorun", "iletişime geçin", "kliniğimiz", and never ask viewers to like, comment on or share the post — Türkiye's rules (RG 33075) forbid steering viewers to book or to a clinic.`;
+    return `The closing line only informs, and it always ends by pointing the viewer to their own dentist (hekiminiz), never to this clinic. Moves that work, each ending there: the one thing to remember, a small step at home, the moment this matters, a sign worth mentioning to their own dentist, a question worth asking them. ${shared} Never "randevu alın/planlayın", "muayene planlayın", "bize ulaşın/yazın/sorun", "iletişime geçin", "kliniğimiz", and never ask viewers to like, comment on or share the post — Türkiye's rules (RG 33075) forbid steering viewers to book or to a clinic.`;
   const sign = address === "informal" ? "a sign worth mentioning at your next check-up" : "a sign worth mentioning at the next check-up";
   return `The closing line is one calm, specific sentence tied to THIS video's subject, in the clinic's language. Moves that work: the one thing to remember, a small step at home, ${sign}, passing the video on to someone it would help, keeping it for the moment it applies, or a plain invitation to ask the practice about this subject. It may invite the viewer to ask the practice or book a check-up, but never a generic "for more information, contact us". ${shared}`;
 }
@@ -209,21 +210,30 @@ export function ctaGuide(country: string | undefined, address: "formal" | "infor
  *
  * Türkiye (RG 33075) gets information-only moves: nothing that sends the
  * viewer to this clinic, and no request to like, comment on or share the
- * post (md. 7/1-ğ). A Turkish-language clinic with no country set gets the
- * same, to be safe.
+ * post (md. 7/1-ğ). Its market rule (locale.ts marketRules) tells the writer,
+ * the narrator and the compliance reviewer that a Turkish video closes by
+ * pointing the viewer to their own dentist, so every Turkish move still ends
+ * there: the move changes what comes before it, never where it ends. A
+ * Turkish-language clinic with no country set gets the same, to be safe.
+ *
+ * The takeaway move names the recap openers on purpose: a short closing
+ * that starts with one ("In short: brush gently.") is sent back by
+ * repeatedScreen as a recap, which costs a paid revision round.
  */
 export function closingMoves(country: string | undefined, language: string | undefined): string[] {
   const c = (country ?? "").trim().toUpperCase();
-  const takeaway = `the one thing to remember: end on this video's takeaway, boiled down to a few plain words the viewer can carry away (the closing line may echo it; the scenes above may not).`;
-  const home = `one small step at home: a concrete, everyday thing to do that fits THIS subject, said as plain advice, never as a promise of a result.`;
+  const remember = `the one thing to remember: the closing line states this video's takeaway in a few plain words, as a plain statement, never opened with "in short", "Kısaca", "Özetle", "Kurz gesagt", "En bref" or another recap word. The closing may restate what the body said, but add no recap scene before it`;
+  const step = `one small step at home: a concrete, everyday thing to do that fits THIS subject, said as plain advice and never as a promise of a result`;
   if (c === "TR" || (!c && lang2(language) === "tr"))
     return [
-      takeaway,
+      `${remember}, and it ends by pointing the viewer to their own dentist (hekiminiz) for what applies to them, never to this clinic.`,
       `a question worth asking their own dentist (hekiminiz) about THIS subject, one the viewer could ask word for word (their own dentist, not this clinic).`,
-      home,
-      `a sign worth mentioning to their own dentist (hekiminiz): one specific thing about THIS subject the viewer might notice themselves.`,
-      `the moment this matters: name when THIS applies to the viewer (after a whitening session, the first days with an implant…), as information, not as a call to act.`,
+      `${step}, ending with their own dentist (hekiminiz) as the one who can say what fits them, never this clinic.`,
+      `a sign worth mentioning to their own dentist (hekiminiz), never this clinic: one specific thing about THIS subject the viewer might notice themselves.`,
+      `the moment this matters: name when THIS applies to the viewer (after a whitening session, the first days with an implant…), as information and not as a call to act, ending with their own dentist (hekiminiz) as the one to raise it with, never this clinic.`,
     ];
+  const takeaway = `${remember}.`;
+  const home = `${step}.`;
   return [
     takeaway,
     `ask us: a calm, plain invitation to ask the practice about THIS video's subject; no price, offer, amenity, opening hours or booking promise, and never a generic "contact us for more information".`,
