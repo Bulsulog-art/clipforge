@@ -21,7 +21,7 @@ export const TREATMENTS_TR: Guide[] = [
     sample: "implant-asamalari",
     title: "İmplant hasta bilgilendirme videoları: hastaların soruları, video konuları ve kaçınılacak ifadeler",
     seoTitle: "İmplant hasta bilgilendirme videoları",
-    seoDescription: "Diş klinikleri için kısa implant videoları: aşamalar, iyileşme süreci, bakım ve tanıtım yönetmeliğine takılabilecek kesin sonuç vaatleri.",
+    seoDescription: "Diş klinikleri için kısa implant videoları: aşamalar, iyileşme süreci ve bakım. Tanıtım yönetmeliğine takılabilecek kesin sonuç vaatleri olmadan.",
     description: "Hastaların implant tedavisi hakkında sorduğu sorular, bunları yanıtlayan altı kısa video, beş adımlı senaryo yapısı ve sağlık tanıtım kurallarına takılabilecek ifadeler.",
     h1: "İmplant hasta bilgilendirme videoları: ne çekmeli, neyi söylememeli?",
     intro:

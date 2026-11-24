@@ -72,7 +72,7 @@ export const TREATMENTS_DE: Guide[] = [
           columns: ["Heikle Formulierung", "Warum problematisch", "Vorsichtiger formuliert"],
           rows: [
             ["„Feste Zähne für immer“", "Verspricht einen dauerhaften Erfolg; Implantate brauchen Pflege und können verloren gehen", "„Auf lange Haltbarkeit ausgelegt, mit guter Pflege und regelmäßigen Kontrollen“"],
-            ["„Schmerzfreie Implantation“", "Absolute Aussage, die keine Praxis für jeden Patienten einhalten kann", "„Unter örtlicher Betäubung; wir erklären, was Sie danach spüren können“"],
+            ["„Schmerzfreie Implantation“", "Absolute Aussage, die keine Praxis für jeden Patienten einhalten kann", "„Unter örtlicher Betäubung. Wir erklären, was Sie danach spüren können“"],
             ["„Neue Zähne an einem Tag“ als Schlagzeile", "Irreführend, wenn es nur für manche Fälle gilt und die Einheilzeit verschweigt", "„In manchen Fällen ist ein Provisorium am selben Tag möglich; fragen Sie, ob das bei Ihnen infrage kommt“"],
             ["Vorher-Nachher-Fotos von Patienten", "Rechtlich riskant und nur mit schriftlicher Einwilligung denkbar", "Modell oder Grafik der Behandlungsphasen"],
             ["Patientenstimmen und Dankesschreiben", "Nach § 11 HWG riskant, wenn sie irreführend oder missbräuchlich wirken", "Den Ablauf in eigenen Worten erklären"],
@@ -550,7 +550,7 @@ export const TREATMENTS_DE: Guide[] = [
             ["„Parodontitis verursacht Herzinfarkte“", "Überzeichnet Studien, die Zusammenhänge zeigen, keine einfache Ursache", "„Studien zeigen Zusammenhänge mit der Allgemeingesundheit; fragen Sie uns, was das für Sie bedeutet“"],
             ["„Sonst fallen Ihnen die Zähne aus“", "Arbeitet mit Angst und trifft nicht auf jeden zu", "„Unbehandelt können sich Zähne lockern; früh erkannt, lässt sich das oft gut behandeln“"],
             ["„Parodontitis endgültig heilen“", "Parodontitis braucht meist dauerhafte Nachsorge", "„Behandlung und regelmäßige Nachsorge können sie gut unter Kontrolle halten“"],
-            ["„Schmerzfreie Parodontitis-Behandlung“", "Absolute Aussage über das Empfinden", "„Meist unter örtlicher Betäubung; wir erklären, was Sie erwartet“"],
+            ["„Schmerzfreie Parodontitis-Behandlung“", "Absolute Aussage über das Empfinden", "„Meist unter örtlicher Betäubung. Wir erklären, was Sie erwartet“"],
           ],
         },
         after: [
@@ -669,7 +669,7 @@ export const TREATMENTS_DE: Guide[] = [
           caption: "Formulierungen zur Wurzelbehandlung: heikel und vorsichtiger",
           columns: ["Heikle Formulierung", "Warum problematisch", "Vorsichtiger formuliert"],
           rows: [
-            ["„Schmerzfreie Wurzelbehandlung“", "Absolutes Versprechen, das keine Praxis einhalten kann", "„Unter örtlicher Betäubung; viele Patienten empfinden es ähnlich wie eine Füllung“"],
+            ["„Schmerzfreie Wurzelbehandlung“", "Absolutes Versprechen, das keine Praxis einhalten kann", "„Unter örtlicher Betäubung. Viele Patienten empfinden es ähnlich wie eine Füllung“"],
             ["„Rettet Ihren Zahn für immer“", "Verspricht ein dauerhaftes Ergebnis", "„Ziel ist es, Ihren eigenen Zahn zu erhalten; mit guter Versorgung kann er lange halten“"],
             ["„Wurzelbehandlung oder Zahn weg!“", "Druck durch Angst", "„Die Alternative ist meist das Ziehen des Zahns; wir erklären beide Wege“"],
             ["Drastische Aufnahmen eines eröffneten Zahns", "Abstoßend; verstärkt die Angst, statt sie zu nehmen", "Grafik der Zahnschichten"],

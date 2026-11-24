@@ -49,7 +49,7 @@ export const SOLUTIONS_EN: SolutionPage[] = [
         heading: "How every video is checked",
         paragraphs: ["Each script and caption goes through three software checks before it reaches your inbox. What fails is rewritten or not made."],
         list: [
-          "Advertising rules: commonly restricted claims are caught in ten languages: guarantees, “painless”, “permanent”, superlatives, prices, discounts, before-and-after promises and testimonials.",
+          "Advertising rules: in ten languages, the checks catch commonly restricted claims such as guarantees, “painless”, “permanent”, superlatives, prices, discounts, before-and-after promises and testimonials.",
           "Clinical accuracy: software set up to think like a general dentist checks each statement against mainstream guidance, and that advice belongs to the right procedure.",
           "Sound and picture: narration present and audible, no silent gaps or black frames, the right size for the platform.",
         ],

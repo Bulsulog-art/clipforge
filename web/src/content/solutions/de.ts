@@ -46,7 +46,7 @@ export const SOLUTIONS_DE: SolutionPage[] = [
         heading: "So wird jedes Video geprüft",
         paragraphs: ["Jedes Skript und jeder Beitragstext durchläuft drei softwaregestützte Prüfungen, bevor er Sie erreicht. Was durchfällt, wird umgeschrieben oder nicht erstellt."],
         list: [
-          "Werberecht: häufig unzulässige Aussagen werden abgefangen: Garantien, „schmerzfrei“, „dauerhaft“, Superlative, Preise, Rabatte, Vorher-Nachher-Versprechen, Patientenstimmen.",
+          "Werberecht: häufig unzulässige Aussagen werden abgefangen, etwa Garantien, „schmerzfrei“, „dauerhaft“, Superlative, Preise, Rabatte, Vorher-Nachher-Versprechen und Patientenstimmen.",
           "Fachliche Richtigkeit: eine Software in der Rolle eines Allgemeinzahnarztes gleicht jede Aussage mit gängigen Leitlinien ab.",
           "Ton und Bild: Sprache vorhanden und verständlich, keine stillen Lücken oder schwarzen Bilder, richtiges Format.",
         ],

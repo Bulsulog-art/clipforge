@@ -74,7 +74,7 @@ const EN: Guide = {
       heading: "Which formats should a clinic post each week?",
       paragraphs: [
         "Short vertical video is the format platforms push most to people who do not follow you yet, which makes it the main way new patients find a clinic. Stories keep existing followers in touch day to day. Carousels and photos work for practical information people want to save. A balanced week might be two or three short videos, one carousel or photo post, and a handful of Stories.",
-        "Patient-education videos are the safest high-value format: they answer a real question, they are useful even to people who never book, and they avoid the riskiest kinds of content: before-and-after photos, testimonials and offers. Our guide to [Instagram videos for dentists](guide:instagram-videos-for-dentists) covers filming your own.",
+        "Patient-education videos are the safest high-value format: they answer a real question, they are useful even to people who never book, and they avoid the riskiest kinds of content, such as before-and-after photos, testimonials and offers. Our guide to [Instagram videos for dentists](guide:instagram-videos-for-dentists) covers filming your own.",
       ],
     },
     {
@@ -166,7 +166,7 @@ const DE: Guide = {
       heading: "Welche Formate gehören in eine Woche?",
       paragraphs: [
         "Kurze Hochformat-Videos spielen die Plattformen am stärksten an Menschen aus, die Ihnen noch nicht folgen. Das ist der wichtigste Weg, über den neue Patienten eine Praxis entdecken. Stories halten bestehende Follower im Alltag auf dem Laufenden. Karussells und Fotos eignen sich für praktische Informationen zum Speichern. Eine ausgewogene Woche: zwei bis drei kurze Videos, ein Karussell oder Foto und einige Stories.",
-        "Aufklärungsvideos sind dabei das sicherste Format mit hohem Nutzen: Sie beantworten eine echte Frage, helfen auch Menschen, die nie einen Termin buchen, und vermeiden die riskantesten Inhalte: Vorher-Nachher-Bilder, Patientenstimmen und Aktionen. Wie Sie eigene Videos drehen, steht im Ratgeber zu [Instagram-Videos für Zahnarztpraxen](guide:instagram-videos-fuer-zahnarztpraxen).",
+        "Aufklärungsvideos sind dabei das sicherste Format mit hohem Nutzen: Sie beantworten eine echte Frage, helfen auch Menschen, die nie einen Termin buchen, und vermeiden die riskantesten Inhalte wie Vorher-Nachher-Bilder, Patientenstimmen und Aktionen. Wie Sie eigene Videos drehen, steht im Ratgeber zu [Instagram-Videos für Zahnarztpraxen](guide:instagram-videos-fuer-zahnarztpraxen).",
       ],
     },
     {
@@ -348,7 +348,7 @@ const ES: Guide = {
       heading: "¿Qué formatos conviene publicar cada semana?",
       paragraphs: [
         "El vídeo vertical corto es el formato que las plataformas muestran más a quien todavía no te sigue, y por eso es la vía principal por la que nuevos pacientes descubren una clínica. Las historias mantienen el contacto diario con quien ya te sigue. Los carruseles y las fotos sirven para información práctica que la gente quiere guardar. Una semana equilibrada: dos o tres vídeos cortos, un carrusel o foto y varias historias.",
-        "Los vídeos educativos para pacientes son el formato de mayor valor y menor riesgo: responden una duda real, son útiles incluso para quien nunca pide cita y evitan el contenido más delicado: fotos de antes y después, testimonios y promociones. Para grabar los tuyos, consulta la guía de [vídeos para clínicas dentales](guide:videos-para-clinicas-dentales).",
+        "Los vídeos educativos para pacientes son el formato de mayor valor y menor riesgo: responden una duda real, son útiles incluso para quien nunca pide cita y evitan el contenido más delicado, como fotos de antes y después, testimonios y promociones. Para grabar los tuyos, consulta la guía de [vídeos para clínicas dentales](guide:videos-para-clinicas-dentales).",
       ],
     },
     {

@@ -304,7 +304,7 @@ export const GUIDES_DE: Guide[] = [
         heading: "Beitragstext und Hashtags",
         paragraphs: [
           "Der Text unter dem Video wiederholt kurz, was das Video sagt, und fügt kein Versprechen hinzu. Bewährt hat sich: Frage in die erste Zeile, Antwort in zwei, drei Sätzen, zum Schluss „Ihre Zahnärztin berät Sie individuell“. Praxisname und Ort genügen für die Auffindbarkeit.",
-          "Hashtags: themen- und ortsbezogen (#Zahngesundheit, #Implantat, #ZahnarztKöln), höchstens fünf sinnvolle: Instagram erlaubt seit Dezember 2025 nur noch fünf Hashtags pro Beitrag und Reel. Verzichten Sie auf Superlative wie #besterZahnarzt.",
+          "Hashtags: themen- und ortsbezogen (#Zahngesundheit, #Implantat, #ZahnarztKöln), höchstens fünf sinnvolle. Instagram erlaubt seit Dezember 2025 nur noch fünf Hashtags pro Beitrag und Reel. Verzichten Sie auf Superlative wie #besterZahnarzt.",
         ],
       },
       {
@@ -368,7 +368,7 @@ export const GUIDES_DE: Guide[] = [
         paragraphs: ["Beginnen Sie mit den Fragen, die Ihr Team täglich beantwortet. Drei Zeitpunkte bieten sich an:"],
         list: [
           "Vor dem ersten Termin: Was passiert bei der ersten Untersuchung, was bringe ich mit, warum ein Röntgenbild?",
-          "Vor einer Behandlung: Wurzelbehandlung, Implantat, Extraktion, professionelle Zahnreinigung, Aligner: die Schritte verständlich erklärt.",
+          "Vor einer Behandlung: Wurzelbehandlung, Implantat, Extraktion, professionelle Zahnreinigung oder Aligner, jeweils die Schritte verständlich erklärt.",
           "Nach einer Behandlung: Verhalten nach dem Zahnziehen, Essen nach einer Füllung, Pflege von Implantaten, Empfindlichkeit nach Bleaching.",
           "Für Kinder und Eltern: Milchzahnpflege, der erste Zahnarztbesuch, Fissurenversiegelung und Fluoridierung.",
         ],

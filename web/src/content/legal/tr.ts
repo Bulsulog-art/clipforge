@@ -406,7 +406,7 @@ export const TR: LegalText = {
 
     imprint: {
       title: "Künye",
-      description: "dentvideo.com künyesi: BLS AI Automation DOO (Podgorica, Karadağ) sicil, vergi numarası, müdür ve iletişim bilgileri.",
+      description: "dentvideo.com künyesi: BLS AI Automation DOO'nun (Podgorica, Karadağ) sicil, vergi numarası, müdür ve iletişim bilgileri.",
       intro: ["dentvideo.com'un sağlayıcısına ilişkin bilgiler (Alman Dijital Hizmetler Kanunu (DDG) § 5 ve AB Elektronik Ticaret Direktifi 5. madde kapsamında)."],
       sections: [
         { heading: "Sağlayıcı", blocks: [{ operator: true }] },

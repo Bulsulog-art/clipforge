@@ -38,7 +38,7 @@ export const SOLUTIONS_TR: SolutionPage[] = [
         heading: "Her video nasıl denetlenir?",
         paragraphs: ["Her metin ve paylaşım yazısı size ulaşmadan önce üç yazılım kontrolünden geçer. Geçemeyen yeniden yazılır ya da hiç üretilmez."],
         list: [
-          "Tanıtım kuralları: sık kısıtlanan ifadeler yakalanır: garanti, “ağrısız”, “kalıcı”, üstünlük iddiaları, fiyat, indirim, öncesi-sonrası vaadi, hasta yorumları.",
+          "Tanıtım kuralları: garanti, “ağrısız”, “kalıcı”, üstünlük iddiaları, fiyat, indirim, öncesi-sonrası vaadi ve hasta yorumları gibi sık kısıtlanan ifadeler yakalanır.",
           "Klinik doğruluk: genel diş hekimi rolünde çalışan bir yazılım denetçisi her ifadeyi yaygın klinik kılavuzlarla karşılaştırır.",
           "Ses ve görüntü: seslendirme var ve duyuluyor, sessiz boşluk ya da siyah kare yok, boyut doğru.",
         ],

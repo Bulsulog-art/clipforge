@@ -321,7 +321,7 @@ export const GUIDES_FR: Guide[] = [
         heading: "Texte de publication et hashtags",
         paragraphs: [
           "Le texte sous la vidéo reprend en bref ce qu'elle dit, sans ajouter de promesse. Une structure qui marche : la question en première ligne, la réponse en deux ou trois phrases, puis « Votre dentiste vous dira ce qui convient dans votre cas ». Le nom du cabinet et la ville suffisent pour être trouvé.",
-          "Hashtags : par thème et par ville (#santébuccodentaire, #implantdentaire, #dentistenantes), cinq au maximum : depuis décembre 2025, Instagram limite les publications et les Reels à cinq hashtags. Évitez les superlatifs comme « #meilleurdentiste » et tout ce qui évoque une offre.",
+          "Hashtags : par thème et par ville (#santébuccodentaire, #implantdentaire, #dentistenantes), cinq au maximum. Depuis décembre 2025, Instagram limite les publications et les Reels à cinq hashtags. Évitez les superlatifs comme « #meilleurdentiste » et tout ce qui évoque une offre.",
         ],
       },
       {
