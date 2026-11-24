@@ -31,7 +31,7 @@ export const GUIDES_DE: Guide[] = [
     description: "Ratgeber für Zahnarztpraxen: welche Kurzvideos Patienten ansehen, Reels-Format, Untertitel, Rhythmus und was Heilmittelwerbegesetz und Berufsordnung verbieten.",
     h1: "Instagram-Videos für Zahnarztpraxen",
     intro:
-      "Gute Instagram-Videos für Zahnarztpraxen beantworten in 20 bis 60 Sekunden eine einzige Patientenfrage — hochkant, untertitelt und sachlich formuliert. Ein bis drei Videos pro Woche genügen. Erfolgsversprechen, „schmerzfrei“, Rabatte, Superlative und Patientenstimmen gehören nicht hinein, weil Heilmittelwerbegesetz und zahnärztliche Berufsordnung sie einschränken.",
+      "Gute Instagram-Videos für Zahnarztpraxen beantworten in 20 bis 60 Sekunden eine einzige Patientenfrage, hochkant, untertitelt und sachlich formuliert. Ein bis drei Videos pro Woche genügen. Erfolgsversprechen, „schmerzfrei“, Rabatte, Superlative und Patientenstimmen gehören nicht hinein, weil Heilmittelwerbegesetz und zahnärztliche Berufsordnung sie einschränken.",
     sections: [
       {
         heading: "Warum Patienten Videos ansehen",
@@ -61,14 +61,14 @@ export const GUIDES_DE: Guide[] = [
       {
         heading: "Das Reels-Format: erste Sekunde, ein Gedanke, Untertitel",
         paragraphs: [
-          "Kurzvideos laufen auf Instagram als Reels im Hochformat (9:16). Stellen Sie die Frage in der ersten Sekunde, gesprochen und als Text im Bild. Beantworten Sie sie dann in zwei, drei klaren Sätzen und schließen Sie ruhig ab, etwa mit „Wenn Sie unsicher sind, sprechen wir beim nächsten Kontrolltermin darüber“ — ohne Druck, ohne Angebot.",
+          "Kurzvideos laufen auf Instagram als Reels im Hochformat (9:16). Stellen Sie die Frage in der ersten Sekunde, gesprochen und als Text im Bild. Beantworten Sie sie dann in zwei, drei klaren Sätzen und schließen Sie ruhig ab, etwa mit „Wenn Sie unsicher sind, sprechen wir beim nächsten Kontrolltermin darüber“. Ohne Druck, ohne Angebot.",
           "Untertitel sind Pflicht. Viele sehen ohne Ton, und Untertitel helfen auch Menschen mit Hörbeeinträchtigung und Patienten, deren Muttersprache nicht Deutsch ist. Platzieren Sie sie im unteren Drittel, aber oberhalb der App-Symbole.",
         ],
       },
       {
         heading: "Reels, Storys, Profil: welches Video wohin",
         paragraphs: [
-          "Reels erreichen am ehesten Menschen, die Ihnen noch nicht folgen — ideal für Frage-Antwort-Videos. Storys verschwinden nach 24 Stunden und eignen sich für den Alltag mit bestehenden Followern: ein kurzer Einblick, ein Hinweis, eine Umfrage. Angepinnte Videos im Profil sieht jeder neue Besucher zuerst; drei gute Kandidaten sind ein Vorstellungsvideo, „Was passiert beim ersten Termin?“ und die häufigste Patientenfrage.",
+          "Reels erreichen am ehesten Menschen, die Ihnen noch nicht folgen, und sind damit ideal für Frage-Antwort-Videos. Storys verschwinden nach 24 Stunden und eignen sich für den Alltag mit bestehenden Followern: ein kurzer Einblick, ein Hinweis, eine Umfrage. Angepinnte Videos im Profil sieht jeder neue Besucher zuerst; drei gute Kandidaten sind ein Vorstellungsvideo, „Was passiert beim ersten Termin?“ und die häufigste Patientenfrage.",
           "Ordnen Sie Story-Highlights nach Themen wie „Erster Termin“, „Nach der Behandlung“, „Kinder“. So finden Patienten mit wenigen Klicks, was sie suchen.",
         ],
       },
@@ -76,13 +76,13 @@ export const GUIDES_DE: Guide[] = [
         heading: "Rhythmus statt Masse",
         paragraphs: [
           "Regelmäßigkeit zählt mehr als Menge. Ein bis drei kurze Aufklärungsvideos pro Woche sind für die meisten Praxen gut machbar. Feste Tage erleichtern dem Team die Arbeit und Followern die Gewöhnung.",
-          "Am effizientesten: einmal fünf Minuten sprechen und daraus mehrere kurze Clips schneiden. So deckt ein Termin eine ganze Woche ab. Wer keine Zeit zum Drehen hat, ergänzt mit vertonten Aufklärungsvideos — mehr dazu im Ratgeber [Patientenaufklärung per Video](guide:patientenaufklaerung-videos-zahnarztpraxis).",
+          "Am effizientesten: einmal fünf Minuten sprechen und daraus mehrere kurze Clips schneiden. So deckt ein Termin eine ganze Woche ab. Wer keine Zeit zum Drehen hat, ergänzt mit vertonten Aufklärungsvideos. Mehr dazu im Ratgeber [Patientenaufklärung per Video](guide:patientenaufklaerung-videos-zahnarztpraxis).",
         ],
       },
       {
         heading: "Woran Sie Erfolg erkennen",
         paragraphs: [
-          "Likes allein sagen wenig. Aussagekräftiger für Aufklärungsvideos sind: wie viel eines Videos angesehen wird, wie oft es gespeichert und geteilt wird, welche Nachrichten danach kommen — und ob Patienten beim Termin sagen, sie hätten Ihr Video gesehen. Notieren Sie monatlich, welche Themen gut liefen, und machen Sie mehr davon.",
+          "Likes allein sagen wenig. Aussagekräftiger für Aufklärungsvideos sind: wie viel eines Videos angesehen wird, wie oft es gespeichert und geteilt wird, welche Nachrichten danach kommen und ob Patienten beim Termin sagen, sie hätten Ihr Video gesehen. Notieren Sie monatlich, welche Themen gut liefen, und machen Sie mehr davon.",
           "Wachstum über Gewinnspiele oder gekaufte Reichweite ist für Zahnarztpraxen keine gute Idee: Gewinnspiele sind werberechtlich heikel, und Follower, die nicht in Ihrer Region wohnen, werden keine Patienten. Ein langsam wachsendes Publikum aus echten Patienten ist mehr wert.",
         ],
       },
@@ -128,8 +128,8 @@ export const GUIDES_DE: Guide[] = [
     reviewed: "2026-11-10",
     title: "Heilmittelwerbegesetz für Zahnärzte: Was ist auf Instagram und TikTok erlaubt?",
     seoTitle: "Heilmittelwerbegesetz: Was Zahnärzte posten dürfen",
-    seoDescription: "HWG, UWG und Berufsordnung in Social Media: Erfolgsversprechen, Vorher-Nachher, Patientenstimmen, Rabatte, Datenschutz – mit Checkliste für die Praxis.",
-    description: "HWG, UWG und Berufsordnung für Zahnarztpraxen in Social Media: Erfolgsversprechen, Vorher-Nachher, Patientenstimmen, Rabatte, Datenschutz — mit Checkliste. Keine Rechtsberatung.",
+    seoDescription: "HWG, UWG und Berufsordnung in Social Media: Erfolgsversprechen, Vorher-Nachher, Patientenstimmen, Rabatte, Datenschutz. Mit Checkliste für die Praxis.",
+    description: "HWG, UWG und Berufsordnung für Zahnarztpraxen in Social Media: Erfolgsversprechen, Vorher-Nachher, Patientenstimmen, Rabatte, Datenschutz, mit Checkliste. Keine Rechtsberatung.",
     h1: "Heilmittelwerbegesetz für Zahnärzte: Was ist in Social Media erlaubt?",
     intro:
       "Zahnärztinnen und Zahnärzte dürfen in Social Media sachlich über ihre Tätigkeit informieren; verboten ist berufswidrige Werbung. Maßgeblich sind das Heilmittelwerbegesetz (HWG), das UWG und die Berufsordnung der Landeszahnärztekammer. Heikel sind vor allem Erfolgsversprechen, irreführende Aussagen, Superlative und Vergleiche, Rabatte und Werbegaben sowie Vorher-Nachher-Bilder bei bestimmten Eingriffen.",
@@ -137,7 +137,7 @@ export const GUIDES_DE: Guide[] = [
       {
         heading: "Darf ein Zahnarzt überhaupt werben?",
         paragraphs: [
-          "Ein umfassendes Werbeverbot für Zahnärzte gibt es seit Langem nicht mehr. Die Musterberufsordnung der Bundeszahnärztekammer (§ 21 MBO-Z) und die Berufsordnungen der Länder erlauben sachangemessene Information über die Berufstätigkeit und verbieten berufswidrige Werbung — insbesondere anpreisende, irreführende, herabsetzende oder vergleichende. Die Paragrafennummern unterscheiden sich je nach Land; der Grundsatz ist überall ähnlich.",
+          "Ein umfassendes Werbeverbot für Zahnärzte gibt es seit Langem nicht mehr. Die Musterberufsordnung der Bundeszahnärztekammer (§ 21 MBO-Z) und die Berufsordnungen der Länder erlauben sachangemessene Information über die Berufstätigkeit und verbieten berufswidrige Werbung, insbesondere anpreisende, irreführende, herabsetzende oder vergleichende. Die Paragrafennummern unterscheiden sich je nach Land; der Grundsatz ist überall ähnlich.",
           "Ein Instagram-Post, ein TikTok-Video oder ein YouTube-Short der Praxis ist in aller Regel Werbung im Sinne dieser Regeln, auch wenn er „nur“ informieren soll. Das gilt auch für berufliche Posts auf dem privaten Profil der Zahnärztin.",
         ],
       },
@@ -200,7 +200,7 @@ export const GUIDES_DE: Guide[] = [
       {
         heading: "Wie DentVideo diese Prüfung übernimmt",
         paragraphs: [
-          "[DentVideo](landing:) prüft jedes Skript und jeden Beitragstext auf die Aussagen, die in der Gesundheitswerbung häufig eingeschränkt sind — Garantien, „schmerzfrei“, „dauerhaft“, Superlative, Preise, Rabatte, Vorher-Nachher-Versprechen, Patientenstimmen — und lässt riskante Formulierungen neu schreiben. Ihre eigenen Aufnahmen werden nicht verändert, sondern mit Begründung markiert. Das ersetzt keine Rechtsberatung: Sie geben jedes Video frei. Eigene Beitragstexte, Website-Texte oder Anzeigen können Sie vorab kostenlos im [Werbe-Check „Ist mein Post erlaubt?“](checker:) prüfen: Er markiert jeden Satz mit Begründung und Quelle. Welche Pflichtangaben ins Profil gehören, steht im Ratgeber [Impressum auf Instagram](guide:impressum-instagram-zahnarztpraxis). Für Österreich und die Schweiz gibt es einen eigenen [Ratgeber zur Zahnarzt-Werbung in AT und CH](guide:zahnarzt-werbung-oesterreich-schweiz); Themen, die unbedenklich sind, finden Sie in den [Social-Media-Ideen](guide:social-media-zahnarztpraxis-ideen).",
+          "[DentVideo](landing:) prüft jedes Skript und jeden Beitragstext auf die Aussagen, die in der Gesundheitswerbung häufig eingeschränkt sind (Garantien, „schmerzfrei“, „dauerhaft“, Superlative, Preise, Rabatte, Vorher-Nachher-Versprechen, Patientenstimmen), und lässt riskante Formulierungen neu schreiben. Ihre eigenen Aufnahmen werden nicht verändert, sondern mit Begründung markiert. Das ersetzt keine Rechtsberatung: Sie geben jedes Video frei. Eigene Beitragstexte, Website-Texte oder Anzeigen können Sie vorab kostenlos im [Werbe-Check „Ist mein Post erlaubt?“](checker:) prüfen: Er markiert jeden Satz mit Begründung und Quelle. Welche Pflichtangaben ins Profil gehören, steht im Ratgeber [Impressum auf Instagram](guide:impressum-instagram-zahnarztpraxis). Für Österreich und die Schweiz gibt es einen eigenen [Ratgeber zur Zahnarzt-Werbung in AT und CH](guide:zahnarzt-werbung-oesterreich-schweiz); Themen, die unbedenklich sind, finden Sie in den [Social-Media-Ideen](guide:social-media-zahnarztpraxis-ideen).",
         ],
       },
     ],
@@ -296,8 +296,8 @@ export const GUIDES_DE: Guide[] = [
       {
         heading: "Woher neue Themen kommen",
         paragraphs: [
-          "Wenn die Liste leer wird, helfen drei Quellen. Erstens Ihr Team: Empfang und ZFA hören täglich, was Patienten am Telefon und am Stuhl fragen — bitten Sie sie, eine Woche lang jede Frage zu notieren. Zweitens Google: Tippen Sie „Implantat“ oder „Bleaching“ ins Suchfeld und lesen Sie die Vorschläge; Muster wie „… schädlich“, „… wie lange“, „nach …“ zeigen echte Sorgen. Drittens Ihr eigenes Profil: Kommentare und Nachrichten unter Videos sind das nächste Thema.",
-          "Preisfragen kommen häufig, sind aber kein Videothema. Beantworten Sie sie persönlich; wiederholt sich die Frage, erklären Sie in einem Video den Ablauf und die Faktoren, die den Aufwand bestimmen — ohne Beträge.",
+          "Wenn die Liste leer wird, helfen drei Quellen. Erstens Ihr Team: Empfang und ZFA hören täglich, was Patienten am Telefon und am Stuhl fragen. Bitten Sie sie, eine Woche lang jede Frage zu notieren. Zweitens Google: Tippen Sie „Implantat“ oder „Bleaching“ ins Suchfeld und lesen Sie die Vorschläge; Muster wie „… schädlich“, „… wie lange“, „nach …“ zeigen echte Sorgen. Drittens Ihr eigenes Profil: Kommentare und Nachrichten unter Videos sind das nächste Thema.",
+          "Preisfragen kommen häufig, sind aber kein Videothema. Beantworten Sie sie persönlich; wiederholt sich die Frage, erklären Sie in einem Video den Ablauf und die Faktoren, die den Aufwand bestimmen, ohne Beträge.",
         ],
       },
       {
@@ -323,14 +323,14 @@ export const GUIDES_DE: Guide[] = [
           "Woche 4: „Ab wann zum Zahnarzt mit dem Kind?“ · „Anzeichen für Zähneknirschen“ · Anfahrt und Barrierefreiheit",
         ],
         after: [
-          "Drei Beiträge sind zu viel? Fangen Sie mit einem an. [DentVideo](landing:) übernimmt diese Planung: Es wählt jede Woche fünf Themen aus Ihren Leistungen und echten Patientenfragen, schreibt, vertont und prüft die Videos — Sie geben nur frei.",
+          "Drei Beiträge sind zu viel? Fangen Sie mit einem an. [DentVideo](landing:) übernimmt diese Planung: Es wählt jede Woche fünf Themen aus Ihren Leistungen und echten Patientenfragen, schreibt, vertont und prüft die Videos. Sie geben nur frei.",
         ],
       },
     ],
     faq: [
-      { q: "Wie oft sollte eine Zahnarztpraxis diese Ideen posten?", a: "Ein Rhythmus, den Ihr Team das ganze Jahr hält, zählt mehr als eine große Zahl. Der Ratgeber [Wie oft sollte eine Zahnarztpraxis posten — und wann?](guide:wie-oft-sollte-eine-zahnarztpraxis-posten) schlägt Rhythmen nach verfügbarer Zeit vor und zeigt, wo Sie die aktiven Zeiten Ihrer Follower finden." },
+      { q: "Wie oft sollte eine Zahnarztpraxis diese Ideen posten?", a: "Ein Rhythmus, den Ihr Team das ganze Jahr hält, zählt mehr als eine große Zahl. Der Ratgeber [Wie oft sollte eine Zahnarztpraxis posten, und wann?](guide:wie-oft-sollte-eine-zahnarztpraxis-posten) schlägt Rhythmen nach verfügbarer Zeit vor und zeigt, wo Sie die aktiven Zeiten Ihrer Follower finden." },
       { q: "Gibt es einen fertigen Plan für ein ganzes Jahr?", a: "Ja: Unser [Redaktionsplan für die Zahnarztpraxis](guide:redaktionsplan-social-media-zahnarztpraxis) enthält 52 Wochenthemen, abgestimmt auf Termine wie den Tag der Zahngesundheit am 25. September." },
-      { q: "Was sollte eine Zahnarztpraxis auf Instagram posten?", a: "Kurze Antworten auf Patientenfragen, verständliche Erklärungen von Behandlungen, Pflegetipps und Vorstellungen des Teams — sachlich, vorsichtig formuliert und ohne Versprechen." },
+      { q: "Was sollte eine Zahnarztpraxis auf Instagram posten?", a: "Kurze Antworten auf Patientenfragen, verständliche Erklärungen von Behandlungen, Pflegetipps und Vorstellungen des Teams. Alles sachlich, vorsichtig formuliert und ohne Versprechen." },
       { q: "Wie oft sollte eine Praxis posten?", a: "Ein bis drei Beiträge pro Woche sind für die meisten Praxen gut machbar. Regelmäßigkeit ist wichtiger als Häufigkeit." },
       { q: "Brauche ich für TikTok andere Inhalte?", a: "Meist nicht. Dasselbe hochformatige, untertitelte Kurzvideo funktioniert auf Instagram Reels, TikTok und YouTube Shorts; nur den Text passen Sie an." },
       { q: "Darf ich Gewinnspiele machen?", a: "Gewinnspiele und Werbegaben sind in der Werbung für Heilbehandlungen nach § 7 HWG und dem Berufsrecht heikel. Verzichten Sie darauf oder lassen Sie sie vorher rechtlich prüfen." },
@@ -359,7 +359,7 @@ export const GUIDES_DE: Guide[] = [
       {
         heading: "Was Aufklärungsvideos leisten",
         paragraphs: [
-          "Ein Teil dessen, was im Behandlungszimmer gesagt wird, ist zu Hause vergessen — besonders, wenn Patienten nervös sind oder die Betäubung noch wirkt. Ein kurzes Video lässt sich jederzeit wieder ansehen. Das Team muss dieselbe Frage nicht mehrmals täglich beantworten, und alle Patienten bekommen dieselbe, geprüfte Information.",
+          "Ein Teil dessen, was im Behandlungszimmer gesagt wird, ist zu Hause vergessen, besonders wenn Patienten nervös sind oder die Betäubung noch wirkt. Ein kurzes Video lässt sich jederzeit wieder ansehen. Das Team muss dieselbe Frage nicht mehrmals täglich beantworten, und alle Patienten bekommen dieselbe, geprüfte Information.",
           "Wichtig: Die rechtlich geforderte Aufklärung vor einem Eingriff erfolgt mündlich im Gespräch mit der Zahnärztin; Unterlagen und Videos dürfen ergänzen, aber nicht ersetzen. Verstehen Sie Videos deshalb als Vorbereitung und Erinnerung.",
         ],
       },
@@ -368,7 +368,7 @@ export const GUIDES_DE: Guide[] = [
         paragraphs: ["Beginnen Sie mit den Fragen, die Ihr Team täglich beantwortet. Drei Zeitpunkte bieten sich an:"],
         list: [
           "Vor dem ersten Termin: Was passiert bei der ersten Untersuchung, was bringe ich mit, warum ein Röntgenbild?",
-          "Vor einer Behandlung: Wurzelbehandlung, Implantat, Extraktion, professionelle Zahnreinigung, Aligner — die Schritte verständlich erklärt.",
+          "Vor einer Behandlung: Wurzelbehandlung, Implantat, Extraktion, professionelle Zahnreinigung, Aligner: die Schritte verständlich erklärt.",
           "Nach einer Behandlung: Verhalten nach dem Zahnziehen, Essen nach einer Füllung, Pflege von Implantaten, Empfindlichkeit nach Bleaching.",
           "Für Kinder und Eltern: Milchzahnpflege, der erste Zahnarztbesuch, Fissurenversiegelung und Fluoridierung.",
         ],
@@ -378,7 +378,7 @@ export const GUIDES_DE: Guide[] = [
         paragraphs: ["Dieselbe einfache Struktur macht Schreiben und Zuschauen leichter:"],
         list: [
           "Frage (erste 3 Sekunden): „Wann darf ich nach dem Zahnziehen wieder essen?“",
-          "Kurze Antwort (1 Satz): „In der Regel, sobald die Betäubung nachgelassen hat — mit lauwarmer, weicher Kost.“",
+          "Kurze Antwort (1 Satz): „In der Regel, sobald die Betäubung nachgelassen hat, mit lauwarmer, weicher Kost.“",
           "Begründung (1–2 Sätze): Warum das Blutgerinnsel für die Heilung wichtig ist.",
           "Was tun (2–3 Punkte): eingriffsbezogene Hinweise, etwa am ersten Tag keine heißen Getränke, kein Strohhalm, nicht rauchen.",
           "Wann anrufen (1 Satz): „Wenn Blutung oder Schmerzen zunehmen, rufen Sie uns an.“",
@@ -392,7 +392,7 @@ export const GUIDES_DE: Guide[] = [
       {
         heading: "Genau und vertrauenswürdig bleiben",
         paragraphs: [
-          "Bleiben Sie bei anerkannten Empfehlungen und formulieren Sie vorsichtig, wo Ergebnisse variieren: „in der Regel“, „bei den meisten Patienten“, „Ihre Zahnärztin sagt Ihnen, was für Sie gilt“. Halten Sie Nachsorgehinweise eingriffsbezogen — was nach einer Extraktion richtig ist, kann nach einer Füllung falsch sein.",
+          "Bleiben Sie bei anerkannten Empfehlungen und formulieren Sie vorsichtig, wo Ergebnisse variieren: „in der Regel“, „bei den meisten Patienten“, „Ihre Zahnärztin sagt Ihnen, was für Sie gilt“. Halten Sie Nachsorgehinweise eingriffsbezogen: Was nach einer Extraktion richtig ist, kann nach einer Füllung falsch sein.",
           "Der Text unter dem Video muss dasselbe sagen wie das Video. Lassen Sie jedes Video vor der Veröffentlichung von einer Zahnärztin ansehen. Werden die Videos auch in Social Media gezeigt, gilt das Werberecht; Details im [Ratgeber zum Heilmittelwerbegesetz](guide:heilmittelwerbegesetz-zahnarzt-social-media).",
         ],
       },
@@ -427,7 +427,7 @@ export const GUIDES_DE: Guide[] = [
         heading: "Selbst sprechen oder vertonen lassen?",
         paragraphs: [
           "Patienten vertrauen der Person, die sie behandeln wird; Videos, in denen die Zahnärztin selbst erklärt, wirken am stärksten. Jede Woche zu drehen ist aber selten realistisch. Ein guter Mittelweg: Die häufigsten Themen erklären Sie selbst, den Rest übernehmen vertonte Aufklärungsvideos. Wie Sie in fünf Minuten drehen, steht im Ratgeber [Instagram-Videos für Zahnarztpraxen](guide:instagram-videos-fuer-zahnarztpraxen).",
-          "[DentVideo](landing:) plant jede Woche fünf Themen aus Ihren Leistungen, schreibt, vertont und untertitelt die Aufklärungsvideos in Ihrer Sprache und prüft jedes auf fachliche Richtigkeit und Werberecht. Freigegebene Videos laden Sie mit Text herunter — für Instagram, Wartezimmer oder Website.",
+          "[DentVideo](landing:) plant jede Woche fünf Themen aus Ihren Leistungen, schreibt, vertont und untertitelt die Aufklärungsvideos in Ihrer Sprache und prüft jedes auf fachliche Richtigkeit und Werberecht. Freigegebene Videos laden Sie mit Text herunter, für Instagram, Wartezimmer oder Website.",
         ],
       },
     ],
@@ -526,7 +526,7 @@ export const GUIDES_DE: Guide[] = [
       {
         heading: "Wie DentVideo hilft",
         paragraphs: [
-          "[DentVideo](landing:) erstellt sachliche Aufklärungsvideos auf Deutsch (auch in Schweizer Schreibweise ohne ß, wenn Sie das wünschen) und weiteren Sprachen und prüft jedes Skript auf die Aussagen, die in der Gesundheitswerbung häufig eingeschränkt sind: Garantien, „schmerzfrei“, Superlative, Preise, Rabatte, Vorher-Nachher-Versprechen, Patientenstimmen. Das ist ein sorgfältiger Filter, keine Rechtsberatung — Sie geben jedes Video frei. Eigene Texte prüfen Sie kostenlos im [Werbe-Check „Ist mein Post erlaubt?“](checker:) mit dem Markt Österreich oder Schweiz. [Ihre Videos ansehen, bevor Sie zahlen](start:).",
+          "[DentVideo](landing:) erstellt sachliche Aufklärungsvideos auf Deutsch (auch in Schweizer Schreibweise ohne ß, wenn Sie das wünschen) und weiteren Sprachen und prüft jedes Skript auf die Aussagen, die in der Gesundheitswerbung häufig eingeschränkt sind: Garantien, „schmerzfrei“, Superlative, Preise, Rabatte, Vorher-Nachher-Versprechen, Patientenstimmen. Das ist ein sorgfältiger Filter, keine Rechtsberatung. Sie geben jedes Video frei. Eigene Texte prüfen Sie kostenlos im [Werbe-Check „Ist mein Post erlaubt?“](checker:) mit dem Markt Österreich oder Schweiz. [Ihre Videos ansehen, bevor Sie zahlen](start:).",
         ],
       },
     ],
@@ -566,7 +566,7 @@ export const GUIDES_DE: Guide[] = [
         heading: "Vier Wege im Vergleich",
         paragraphs: [],
         list: [
-          "Agentur: übernimmt Planung, Gestaltung und Posting und spart Zeit. Kosten sind oft hoch, und nicht jede Agentur kennt Heilmittelwerbegesetz und Berufsordnung — Rabattaktionen, Gewinnspiele und Vorher-Nachher-Slider sind in anderen Branchen üblich, bei Zahnärzten riskant.",
+          "Agentur: übernimmt Planung, Gestaltung und Posting und spart Zeit. Kosten sind oft hoch, und nicht jede Agentur kennt Heilmittelwerbegesetz und Berufsordnung. Rabattaktionen, Gewinnspiele und Vorher-Nachher-Slider sind in anderen Branchen üblich, bei Zahnärzten riskant.",
           "Freier Social-Media-Manager: flexibler und oft günstiger, stark bei Dreh und Schnitt. Die Kontinuität hängt an einer Person, das Rechtswissen schwankt.",
           "Team: kennt Praxis und Patienten aus erster Hand, Inhalte wirken authentisch. Doch die Zeit ist knapp, und die Behandlung hat immer Vorrang.",
           "Software: erstellt regelmäßige Inhalte schnell und planbar. Allgemeine Tools kennen das Werberecht im Gesundheitswesen nicht; auch bei einem spezialisierten Tool bleibt die letzte Prüfung bei der Zahnärztin.",
@@ -589,7 +589,7 @@ export const GUIDES_DE: Guide[] = [
         heading: "Wenn das Team selbst übernimmt",
         paragraphs: [
           "Soll Social Media aus dem Team kommen, behandeln Sie es als feste Aufgabe mit fester Zeit pro Woche, nicht als etwas „für zwischendurch“. Ideal ist jemand, der gut mit Patienten kommuniziert, sorgfältig schreibt und diskret mit Daten umgeht. Geben Sie dieser Person eine kurze Zusammenfassung der Werberegeln und die Freigabe-Checkliste; medizinische Inhalte gibt immer die Zahnärztin frei.",
-          "Bereiten Sie außerdem Antwortvorlagen für Nachrichten vor: Terminwunsch, Preisfrage (persönlich und schriftlich beantworten), akute Beschwerden (Hinweis auf die Telefonnummer der Praxis). Keine Diagnosen per Direktnachricht — „Das schauen wir uns beim Termin an“ ist die sichere Antwort.",
+          "Bereiten Sie außerdem Antwortvorlagen für Nachrichten vor: Terminwunsch, Preisfrage (persönlich und schriftlich beantworten), akute Beschwerden (Hinweis auf die Telefonnummer der Praxis). Keine Diagnosen per Direktnachricht: „Das schauen wir uns beim Termin an“ ist die sichere Antwort.",
         ],
       },
       {
@@ -603,7 +603,7 @@ export const GUIDES_DE: Guide[] = [
         paragraphs: ["Pakete umfassen unterschiedliche Leistungen und lassen sich schlecht direkt vergleichen. Bewerten Sie stattdessen nach denselben Kriterien:"],
         list: [
           "Wie viele Beiträge pro Woche kommen tatsächlich veröffentlichungsreif an?",
-          "Wie viel Zeit kostet die Zahnärztin die Freigabe — nur ansehen oder jedes Mal umschreiben?",
+          "Wie viel Zeit kostet die Zahnärztin die Freigabe: nur ansehen oder jedes Mal umschreiben?",
           "Wer prüft fachliche Richtigkeit und Werberecht vor der Freigabe?",
           "Klingt der Inhalt nach Ihrer Praxis oder nach einer Vorlage, die viele Praxen bekommen?",
           "Was passiert mit Konten und Material beim Wechsel?",
@@ -628,7 +628,7 @@ export const GUIDES_DE: Guide[] = [
         heading: "Das Mischmodell: für viele Praxen realistisch",
         paragraphs: [
           "Für viele Praxen trägt ein Mischmodell am längsten: Regelmäßige Aufklärungsvideos kommen aus einem Tool oder von außen, die Zahnärztin ergänzt ein- bis zweimal im Monat eine kurze eigene Aufnahme, und das Team beantwortet Nachrichten und postet. So bleibt das Profil aktiv, klingt nach der Praxis, und niemand steht jede Woche unter Druck. Themen dafür liefern die [Social-Media-Ideen](guide:social-media-zahnarztpraxis-ideen).",
-          "[DentVideo](landing:) ist eine Software für den Inhaltsteil: Sie erstellt jede Woche fünf kurze Aufklärungsvideos, prüft jedes Skript auf fachliche Richtigkeit und Werberecht und schneidet Ihre eigenen Aufnahmen in untertitelte Clips. Posten und Nachrichten bleiben bei Ihnen oder Ihrer Agentur — DentVideo veröffentlicht nichts selbst. [Sehen Sie vor der Zahlung eine Live-Vorschau mit Ihrem Logo](start:). Eine Tabelle mit allen Optionen finden Sie unter [DentVideo im Vergleich mit Agentur, Canva und ChatGPT](video:dentvideo-agentur-canva-chatgpt).",
+          "[DentVideo](landing:) ist eine Software für den Inhaltsteil: Sie erstellt jede Woche fünf kurze Aufklärungsvideos, prüft jedes Skript auf fachliche Richtigkeit und Werberecht und schneidet Ihre eigenen Aufnahmen in untertitelte Clips. Posten und Nachrichten bleiben bei Ihnen oder Ihrer Agentur. DentVideo veröffentlicht nichts selbst. [Sehen Sie vor der Zahlung eine Live-Vorschau mit Ihrem Logo](start:). Eine Tabelle mit allen Optionen finden Sie unter [DentVideo im Vergleich mit Agentur, Canva und ChatGPT](video:dentvideo-agentur-canva-chatgpt).",
         ],
       },
     ],

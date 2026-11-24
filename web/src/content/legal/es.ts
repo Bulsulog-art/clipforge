@@ -19,7 +19,7 @@ export const ES: LegalText = {
       director: "Administrador",
       contact: "Correo electrónico",
       brand: "Marca",
-      brandValue: "{brand} — producto: DentVideo",
+      brandValue: "{brand} (producto: DentVideo)",
     },
     table: { provider: "Proveedor", purpose: "Finalidad", data: "Datos", location: "Ubicación" },
   },
@@ -91,7 +91,7 @@ export const ES: LegalText = {
               list: [
                 "Starter: {starter} al mes.",
                 "Practice: {practice} al mes.",
-                "Group (grupos y clínicas con varias sedes): condiciones a medida por acuerdo — contacto {email}. Group no se puede comprar en la web.",
+                "Group (grupos y clínicas con varias sedes): condiciones a medida por acuerdo (contacto: {email}). Group no se puede comprar en la web.",
               ],
             },
             "Los pagos los gestiona Dodo Payments, que actúa como comerciante registrado (merchant of record) y revendedor autorizado: te vende la suscripción, cobra tu medio de pago, aparece en el extracto de tu tarjeta, calcula y cobra los impuestos aplicables y emite tu factura. A la compra se aplican además las condiciones para compradores de Dodo Payments. Nunca vemos los datos completos de tu tarjeta.",
@@ -342,7 +342,7 @@ export const ES: LegalText = {
         {
           heading: "3. Instrucciones",
           blocks: [
-            "Tratamos los datos solo siguiendo instrucciones documentadas de la clínica —los Términos, este DPA y el uso que haga de los ajustes del servicio—, salvo que la ley exija otra cosa; en ese caso se lo comunicamos antes, salvo que la ley lo prohíba. Si creemos que una instrucción infringe la normativa de protección de datos, se lo diremos a la clínica.",
+            "Tratamos los datos solo siguiendo instrucciones documentadas de la clínica (los Términos, este DPA y el uso que haga de los ajustes del servicio), salvo que la ley exija otra cosa; en ese caso se lo comunicamos antes, salvo que la ley lo prohíba. Si creemos que una instrucción infringe la normativa de protección de datos, se lo diremos a la clínica.",
           ],
         },
         { heading: "4. Confidencialidad", blocks: ["Todas las personas de {shortName} que pueden acceder a los datos están obligadas a la confidencialidad."] },
@@ -406,7 +406,7 @@ export const ES: LegalText = {
 
     imprint: {
       title: "Aviso legal",
-      description: "Aviso legal de dentvideo.com: BLS AI Automation DOO, Podgorica, Montenegro — registro, identificación fiscal, administrador y contacto.",
+      description: "Aviso legal de dentvideo.com: registro, identificación fiscal, administrador y contacto de BLS AI Automation DOO, Podgorica, Montenegro.",
       intro: ["Información sobre el titular de dentvideo.com (conforme al § 5 de la ley alemana de servicios digitales, DDG, y al artículo 5 de la Directiva europea sobre comercio electrónico)."],
       sections: [
         { heading: "Titular", blocks: [{ operator: true }] },

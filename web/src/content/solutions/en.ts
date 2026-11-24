@@ -28,7 +28,7 @@ export const SOLUTIONS_EN: SolutionPage[] = [
       {
         heading: "What your clinic gets each week",
         paragraphs: [
-          "You describe the clinic once — language, services, tone, colors and logo. From then on a new week of videos is ready every Monday, and we email you when it is.",
+          "You describe the clinic once: language, services, tone, colors and logo. From then on a new week of videos is ready every Monday, and we email you when it is.",
         ],
         list: [
           "Five short vertical videos, usually around half a minute each, answering questions patients really search for.",
@@ -41,7 +41,7 @@ export const SOLUTIONS_EN: SolutionPage[] = [
       {
         heading: "Why not a general AI video generator?",
         paragraphs: [
-          "General AI video tools are good at producing something quickly: an avatar reading a script, stock clips, a template. For a dental clinic that is where the work starts, not where it ends. Someone still has to choose topics that match your treatments, write a script that is clinically sound, and keep out the words health-advertising rules restrict — “painless”, guarantees, prices, discounts, before-and-after promises, testimonials.",
+          "General AI video tools are good at producing something quickly: an avatar reading a script, stock clips, a template. For a dental clinic that is where the work starts, not where it ends. Someone still has to choose topics that match your treatments, write a script that is clinically sound, and keep out the words health-advertising rules restrict: “painless”, guarantees, prices, discounts, before-and-after promises, testimonials.",
           "DentVideo was built around that second part. There are no avatar faces, fake doctors or stock patients: footage is limited to objects, and every video carries your own logo and colors. The scripts are written for your country's patients and software-checked twice before they reach you. If you want to compare the options side by side, read [DentVideo vs an agency, Canva and ChatGPT](video:dentvideo-vs-agency-canva-chatgpt).",
         ],
       },
@@ -49,12 +49,12 @@ export const SOLUTIONS_EN: SolutionPage[] = [
         heading: "How every video is checked",
         paragraphs: ["Each script and caption goes through three software checks before it reaches your inbox. What fails is rewritten or not made."],
         list: [
-          "Advertising rules: commonly restricted claims are caught in ten languages — guarantees, “painless”, “permanent”, superlatives, prices, discounts, before-and-after promises and testimonials.",
+          "Advertising rules: commonly restricted claims are caught in ten languages: guarantees, “painless”, “permanent”, superlatives, prices, discounts, before-and-after promises and testimonials.",
           "Clinical accuracy: software set up to think like a general dentist checks each statement against mainstream guidance, and that advice belongs to the right procedure.",
           "Sound and picture: narration present and audible, no silent gaps or black frames, the right size for the platform.",
         ],
         after: [
-          "The checks are a careful filter, not legal advice. Rules differ by country — see our [overview of dental advertising rules](guide:dental-social-media-advertising-rules) — and the clinic stays responsible for what it posts.",
+          "The checks are a careful filter, not legal advice. Rules differ by country, and the clinic stays responsible for what it posts. Our [overview of dental advertising rules](guide:dental-social-media-advertising-rules) covers the differences.",
         ],
       },
       {
@@ -66,7 +66,7 @@ export const SOLUTIONS_EN: SolutionPage[] = [
       {
         heading: "Your own face, when you have five minutes",
         paragraphs: [
-          "Patients tend to trust the person who will treat them. On plans that include your own recordings, a filming card suggests what to say; you record a few minutes on your phone and DentVideo cuts it into short captioned clips with your logo. Your words are never changed — a clip worth a second look is marked with the reason and a suggested wording. Tips for filming are in [Instagram videos for dentists](guide:instagram-videos-for-dentists).",
+          "Patients tend to trust the person who will treat them. On plans that include your own recordings, a filming card suggests what to say; you record a few minutes on your phone and DentVideo cuts it into short captioned clips with your logo. Your words are never changed. A clip worth a second look is marked with the reason and a suggested wording. Tips for filming are in [Instagram videos for dentists](guide:instagram-videos-for-dentists).",
         ],
       },
       {
@@ -86,7 +86,7 @@ export const SOLUTIONS_EN: SolutionPage[] = [
         list: [
           "[Create an account](start:) and describe your clinic: language, services, tone, colors, logo.",
           "Watch a live preview of your own branded videos in the browser, before you pay.",
-          "Choose a plan — monthly, no minimum term. See [plans and pricing](landing:).",
+          "Choose a plan: monthly, no minimum term. See [plans and pricing](landing:).",
           "Your first week of videos is made right after payment; after that, every Monday.",
         ],
       },
@@ -145,7 +145,7 @@ export const SOLUTIONS_EN: SolutionPage[] = [
         { label: "What you get", values: ["Five finished, narrated and captioned videos a week", "Whatever the contract covers: often posts, filming, ads, comments", "Templates and an editor; you make the video", "Text: ideas, scripts, captions"] },
         { label: "Your time each week", values: ["A few minutes to watch and approve", "Briefings, feedback rounds, sign-offs", "Hours to write, design, record and edit", "Prompting, checking, then making the video elsewhere"] },
         { label: "Who picks topics", values: ["From your treatments and what patients search", "The agency's calendar, agreed with you", "You", "You, with suggestions"] },
-        { label: "Health-advertising check", values: ["Every script and caption, software-checked before you see it", "Depends on the agency — ask", "Up to you", "Up to you"] },
+        { label: "Health-advertising check", values: ["Every script and caption, software-checked before you see it", "Depends on the agency, so ask", "Up to you", "Up to you"] },
         { label: "Clinical accuracy check", values: ["Software set up to think like a general dentist; you decide", "Depends on the agency", "Up to you", "Up to you; it can be wrong"] },
         { label: "Your own face on screen", values: ["Record a few minutes; clips cut for you", "Usually, with on-site filming", "If you film and edit it", "No"] },
         { label: "Commitment", values: ["Monthly, no minimum term", "Often a retainer with a minimum term", "Subscription design tool", "General AI subscription"] },
@@ -156,7 +156,7 @@ export const SOLUTIONS_EN: SolutionPage[] = [
       {
         heading: "When an agency is the better choice",
         paragraphs: [
-          "If you want someone to run everything — filming in the clinic, paid ads, answering comments, a website — a good dental marketing agency does more than any tool. You pay for people's time, so it usually costs considerably more, and you take part in briefings and approvals. Before signing, ask who checks the content against your country's health-advertising rules; our guide on [choosing an agency or software](guide:dental-video-marketing-agency-or-software) lists the questions.",
+          "If you want someone to run everything (filming in the clinic, paid ads, answering comments, a website), a good dental marketing agency does more than any tool. You pay for people's time, so it usually costs considerably more, and you take part in briefings and approvals. Before signing, ask who checks the content against your country's health-advertising rules; our guide on [choosing an agency or software](guide:dental-video-marketing-agency-or-software) lists the questions.",
         ],
       },
       {
@@ -166,7 +166,7 @@ export const SOLUTIONS_EN: SolutionPage[] = [
         ],
       },
       {
-        heading: "Where ChatGPT helps — and where it stops",
+        heading: "Where ChatGPT helps, and where it stops",
         paragraphs: [
           "ChatGPT and similar assistants are quick at ideas, first drafts and captions. They do not know your treatment list or brand unless you tell them each time, they can state things confidently that are wrong, and they have no built-in check for dental advertising rules in your country. Their output is text to check, not a finished video in your colors.",
         ],
@@ -174,7 +174,7 @@ export const SOLUTIONS_EN: SolutionPage[] = [
       {
         heading: "When DentVideo fits",
         paragraphs: [
-          "DentVideo fits a clinic that wants to post regularly, does not have hours each week, and wants the risky words kept out before anything reaches the dentist. You get [five finished AI dental videos a week](video:ai-dental-video-maker), software-checked for advertising rules and clinical accuracy, and you approve each one. It does not run ads, film in your clinic or post for you — if you need that too, an agency can post DentVideo's videos alongside its own work. [See a live preview with your own logo](start:) before deciding.",
+          "DentVideo fits a clinic that wants to post regularly, does not have hours each week, and wants the risky words kept out before anything reaches the dentist. You get [five finished AI dental videos a week](video:ai-dental-video-maker), software-checked for advertising rules and clinical accuracy, and you approve each one. It does not run ads, film in your clinic or post for you. If you need that too, an agency can post DentVideo's videos alongside its own work. [See a live preview with your own logo](start:) before deciding.",
         ],
       },
       {
@@ -192,7 +192,7 @@ export const SOLUTIONS_EN: SolutionPage[] = [
     faq: [
       {
         q: "Is DentVideo cheaper than a dental marketing agency?",
-        a: "Usually, because it is software rather than people's time — see the plans on the [DentVideo homepage](landing:). An agency can do more (filming, ads, comments), so compare what you actually need, not only the price.",
+        a: "Usually, because it is software rather than people's time. See the plans on the [DentVideo homepage](landing:). An agency can do more (filming, ads, comments), so compare what you actually need, not only the price.",
       },
       {
         q: "Can I use DentVideo together with Canva or ChatGPT?",

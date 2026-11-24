@@ -3,17 +3,17 @@ import type { Guide } from "../dentvideo";
 // Guías en español (España y Latinoamérica). Reglas: solo lo que es cierto hoy;
 // sin estadísticas inventadas ni precios; normativa prudente y con fuentes oficiales.
 
-const RD1907 = { label: "Real Decreto 1907/1996, publicidad con pretendida finalidad sanitaria — BOE", url: "https://www.boe.es/eli/es/rd/1996/08/02/1907/con" };
-const LGP = { label: "Ley 34/1988, General de Publicidad — BOE", url: "https://www.boe.es/eli/es/l/1988/11/11/34/con" };
-const LGS = { label: "Ley 14/1986, General de Sanidad — BOE", url: "https://www.boe.es/eli/es/l/1986/04/25/14/con" };
-const LOPDGDD = { label: "Ley Orgánica 3/2018, de Protección de Datos (LOPDGDD) — BOE", url: "https://www.boe.es/eli/es/lo/2018/12/05/3/con" };
-const LO1982 = { label: "Ley Orgánica 1/1982, derecho a la propia imagen — BOE", url: "https://www.boe.es/eli/es/lo/1982/05/05/1/con" };
-const RGPD = { label: "Reglamento General de Protección de Datos (RGPD), art. 9 — EUR-Lex", url: "https://eur-lex.europa.eu/eli/reg/2016/679/oj" };
+const RD1907 = { label: "Real Decreto 1907/1996, publicidad con pretendida finalidad sanitaria (BOE)", url: "https://www.boe.es/eli/es/rd/1996/08/02/1907/con" };
+const LGP = { label: "Ley 34/1988, General de Publicidad (BOE)", url: "https://www.boe.es/eli/es/l/1988/11/11/34/con" };
+const LGS = { label: "Ley 14/1986, General de Sanidad (BOE)", url: "https://www.boe.es/eli/es/l/1986/04/25/14/con" };
+const LOPDGDD = { label: "Ley Orgánica 3/2018, de Protección de Datos (LOPDGDD), BOE", url: "https://www.boe.es/eli/es/lo/2018/12/05/3/con" };
+const LO1982 = { label: "Ley Orgánica 1/1982, derecho a la propia imagen (BOE)", url: "https://www.boe.es/eli/es/lo/1982/05/05/1/con" };
+const RGPD = { label: "Reglamento General de Protección de Datos (RGPD), art. 9 (EUR-Lex)", url: "https://eur-lex.europa.eu/eli/reg/2016/679/oj" };
 const AEPD = { label: "Agencia Española de Protección de Datos (AEPD)", url: "https://www.aepd.es/" };
-const CGD = { label: "Consejo General de Dentistas de España — Código Español de Ética y Deontología Dental", url: "https://consejodentistas.es/" };
-const TS_FAMOSOS = { label: "Poder Judicial — El Tribunal Supremo avala la prohibición de difundir publicidad de clínicas de odontología utilizando a personas famosas", url: "https://www.poderjudicial.es/cgpj/es/Poder-Judicial/Noticias-Judiciales/El-Tribunal-Supremo-avala-la-prohibicion-de-difundir-publicidad-de-clinicas-de-odontologia-utilizando-a-personas-famosas" };
-const DEFENSOR = { label: "Defensor del Pueblo — Control específico de la publicidad de las clínicas dentales (recomendación)", url: "https://www.defensordelpueblo.es/resoluciones/control-especifico-de-la-publicidad-de-las-clinicas-dentales" };
-const COFEPRIS = { label: "COFEPRIS (México) — publicidad de servicios de salud", url: "https://www.gob.mx/cofepris" };
+const CGD = { label: "Consejo General de Dentistas de España: Código Español de Ética y Deontología Dental", url: "https://consejodentistas.es/" };
+const TS_FAMOSOS = { label: "Poder Judicial: El Tribunal Supremo avala la prohibición de difundir publicidad de clínicas de odontología utilizando a personas famosas", url: "https://www.poderjudicial.es/cgpj/es/Poder-Judicial/Noticias-Judiciales/El-Tribunal-Supremo-avala-la-prohibicion-de-difundir-publicidad-de-clinicas-de-odontologia-utilizando-a-personas-famosas" };
+const DEFENSOR = { label: "Defensor del Pueblo: Control específico de la publicidad de las clínicas dentales (recomendación)", url: "https://www.defensordelpueblo.es/resoluciones/control-especifico-de-la-publicidad-de-las-clinicas-dentales" };
+const COFEPRIS = { label: "COFEPRIS (México): publicidad de servicios de salud", url: "https://www.gob.mx/cofepris" };
 
 export const GUIDES_ES: Guide[] = [
   {
@@ -193,7 +193,7 @@ export const GUIDES_ES: Guide[] = [
       {
         heading: "Latinoamérica: cada país tiene su autoridad",
         paragraphs: [
-          "Si tu clínica está en Latinoamérica o se dirige a pacientes de allí, las reglas son otras. En México, por ejemplo, la publicidad de servicios de salud está regulada por la Ley General de Salud y su reglamento en materia de publicidad, bajo la supervisión de la COFEPRIS. En otros países intervienen el ministerio de salud y el colegio odontológico. Los principios suelen coincidir —veracidad, no engañar, no prometer resultados—, pero los requisitos concretos, como permisos o leyendas obligatorias, cambian. Consulta siempre la normativa local.",
+          "Si tu clínica está en Latinoamérica o se dirige a pacientes de allí, las reglas son otras. En México, por ejemplo, la publicidad de servicios de salud está regulada por la Ley General de Salud y su reglamento en materia de publicidad, bajo la supervisión de la COFEPRIS. En otros países intervienen el ministerio de salud y el colegio odontológico. Los principios suelen coincidir (veracidad, no engañar, no prometer resultados), pero los requisitos concretos, como permisos o leyendas obligatorias, cambian. Consulta siempre la normativa local.",
         ],
       },
       {
@@ -212,7 +212,7 @@ export const GUIDES_ES: Guide[] = [
       {
         heading: "Cómo hace DentVideo esta revisión",
         paragraphs: [
-          "[DentVideo](landing:) revisa cada guion y cada texto en busca de las afirmaciones que la publicidad sanitaria suele restringir —garantías, “sin dolor”, “permanente”, superlativos, precios, descuentos, promesas de antes y después, testimonios— y hace reescribir lo arriesgado. Tus grabaciones no se modifican: lo dudoso se marca con el motivo. No es asesoramiento jurídico; tú apruebas cada vídeo. Si escribes tú el texto de un post, una web o un anuncio, pégalo antes en el [comprobador gratuito «¿Puedo publicar esto?»](checker:) y elige España o México: marca cada frase con el motivo y una alternativa. Para imágenes de pacientes, lee la guía de [consentimiento y fotos de pacientes](guide:consentimiento-fotos-pacientes-clinica-dental); para temas seguros, las [ideas de contenido](guide:ideas-contenido-instagram-clinica-dental).",
+          "[DentVideo](landing:) revisa cada guion y cada texto en busca de las afirmaciones que la publicidad sanitaria suele restringir (garantías, “sin dolor”, “permanente”, superlativos, precios, descuentos, promesas de antes y después, testimonios) y hace reescribir lo arriesgado. Tus grabaciones no se modifican: lo dudoso se marca con el motivo. No es asesoramiento jurídico; tú apruebas cada vídeo. Si escribes tú el texto de un post, una web o un anuncio, pégalo antes en el [comprobador gratuito «¿Puedo publicar esto?»](checker:) y elige España o México: marca cada frase con el motivo y una alternativa. Para imágenes de pacientes, lee la guía de [consentimiento y fotos de pacientes](guide:consentimiento-fotos-pacientes-clinica-dental); para temas seguros, las [ideas de contenido](guide:ideas-contenido-instagram-clinica-dental).",
         ],
       },
     ],

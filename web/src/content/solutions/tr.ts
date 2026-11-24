@@ -30,7 +30,7 @@ export const SOLUTIONS_TR: SolutionPage[] = [
       {
         heading: "Neden herhangi bir yapay zekâ video aracı değil?",
         paragraphs: [
-          "Genel yapay zekâ video araçları hızlıca bir şey üretir: metin okuyan bir avatar, hazır görüntüler, bir şablon. Bir diş kliniği için iş asıl burada başlar. Birinin tedavilerinize uygun konuları seçmesi, klinik açıdan doğru bir metin yazması ve yönetmeliğin sorunlu saydığı ifadeleri — sonuç vaadi, “ağrısız”, fiyat, indirim, öncesi-sonrası, hasta yorumu — dışarıda tutması gerekir.",
+          "Genel yapay zekâ video araçları hızlıca bir şey üretir: metin okuyan bir avatar, hazır görüntüler, bir şablon. Bir diş kliniği için iş asıl burada başlar. Birinin tedavilerinize uygun konuları seçmesi, klinik açıdan doğru bir metin yazması ve yönetmeliğin sorunlu saydığı ifadeleri (sonuç vaadi, “ağrısız”, fiyat, indirim, öncesi-sonrası, hasta yorumu) dışarıda tutması gerekir.",
           "DentVideo bu ikinci kısım için yapıldı. Avatar, sahte hekim ya da hazır hasta görüntüsü yoktur: görüntüler yalnızca nesneleri gösterir, her videoda sizin logonuz ve renkleriniz bulunur. Seçenekleri yan yana görmek isterseniz [DentVideo, ajans, Canva ve ChatGPT karşılaştırmasını](video:dentvideo-ajans-canva-chatgpt) okuyun.",
         ],
       },
@@ -38,7 +38,7 @@ export const SOLUTIONS_TR: SolutionPage[] = [
         heading: "Her video nasıl denetlenir?",
         paragraphs: ["Her metin ve paylaşım yazısı size ulaşmadan önce üç yazılım kontrolünden geçer. Geçemeyen yeniden yazılır ya da hiç üretilmez."],
         list: [
-          "Tanıtım kuralları: sık kısıtlanan ifadeler yakalanır — garanti, “ağrısız”, “kalıcı”, üstünlük iddiaları, fiyat, indirim, öncesi-sonrası vaadi, hasta yorumları.",
+          "Tanıtım kuralları: sık kısıtlanan ifadeler yakalanır: garanti, “ağrısız”, “kalıcı”, üstünlük iddiaları, fiyat, indirim, öncesi-sonrası vaadi, hasta yorumları.",
           "Klinik doğruluk: genel diş hekimi rolünde çalışan bir yazılım denetçisi her ifadeyi yaygın klinik kılavuzlarla karşılaştırır.",
           "Ses ve görüntü: seslendirme var ve duyuluyor, sessiz boşluk ya da siyah kare yok, boyut doğru.",
         ],
@@ -112,7 +112,7 @@ export const SOLUTIONS_TR: SolutionPage[] = [
         { label: "Ne alırsınız", values: ["Her hafta beş bitmiş, seslendirilmiş, altyazılı video", "Sözleşmenin kapsadığı iş: paylaşım, çekim, reklam, yorum yönetimi", "Şablon ve editör; videoyu siz yaparsınız", "Metin: fikir, senaryo, paylaşım yazısı"] },
         { label: "Haftalık zamanınız", values: ["İzleyip onaylamak için birkaç dakika", "Brif, revizyon turları, onaylar", "Yazmak, tasarlamak, çekmek, kurgulamak için saatler", "Komut yazmak, kontrol etmek, videoyu başka yerde yapmak"] },
         { label: "Konuları kim seçer", values: ["Tedavilerinizden ve hastaların aradıklarından", "Ajansın içerik takvimi, sizinle birlikte", "Siz", "Siz, önerilerle"] },
-        { label: "Tanıtım kuralları denetimi", values: ["Her metin, siz görmeden önce yazılımla", "Ajansa bağlı — sorun", "Size kalır", "Size kalır"] },
+        { label: "Tanıtım kuralları denetimi", values: ["Her metin, siz görmeden önce yazılımla", "Ajansa bağlı, sorun", "Size kalır", "Size kalır"] },
         { label: "Klinik doğruluk denetimi", values: ["Genel diş hekimi rolünde bir yazılım denetçisi; karar sizde", "Ajansa bağlı", "Size kalır", "Size kalır; hata yapabilir"] },
         { label: "Kendi yüzünüz", values: ["Birkaç dakika kayıt; klipler hazırlanır", "Genellikle, klinikte çekimle", "Kendiniz çekip kurgularsanız", "Hayır"] },
         { label: "Taahhüt", values: ["Aylık, taahhütsüz", "Çoğu zaman taahhütlü aylık ücret", "Tasarım aracı aboneliği", "Yapay zekâ asistanı aboneliği"] },
@@ -123,7 +123,7 @@ export const SOLUTIONS_TR: SolutionPage[] = [
       {
         heading: "Ajans ne zaman daha doğru seçimdir?",
         paragraphs: [
-          "Her şeyi birinin üstlenmesini istiyorsanız — klinikte çekim, reklam, yorumlar, web sitesi — iyi bir diş kliniği ajansı herhangi bir araçtan fazlasını yapar. İnsanların zamanına ödeme yaparsınız, bu yüzden genellikle belirgin biçimde daha pahalıdır ve brif ile onay süreçlerine katılırsınız. Sözleşmeden önce içeriği tanıtım yönetmeliğine göre kimin denetlediğini sorun; [diş kliniği sosyal medya yönetimi](guide:dis-klinigi-sosyal-medya-yonetimi) rehberimiz soruları sıralar.",
+          "Her şeyi (klinikte çekim, reklam, yorumlar, web sitesi) birinin üstlenmesini istiyorsanız iyi bir diş kliniği ajansı herhangi bir araçtan fazlasını yapar. İnsanların zamanına ödeme yaparsınız, bu yüzden genellikle belirgin biçimde daha pahalıdır ve brif ile onay süreçlerine katılırsınız. Sözleşmeden önce içeriği tanıtım yönetmeliğine göre kimin denetlediğini sorun; [diş kliniği sosyal medya yönetimi](guide:dis-klinigi-sosyal-medya-yonetimi) rehberimiz soruları sıralar.",
         ],
       },
       {

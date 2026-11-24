@@ -21,11 +21,11 @@ export const TREATMENTS_TR: Guide[] = [
     sample: "implant-asamalari",
     title: "İmplant hasta bilgilendirme videoları: hastaların soruları, video konuları ve kaçınılacak ifadeler",
     seoTitle: "İmplant hasta bilgilendirme videoları",
-    seoDescription: "Diş klinikleri için kısa implant videoları: aşamalar, iyileşme süreci, bakım — ve tanıtım yönetmeliğine takılabilecek kesin sonuç vaatleri.",
+    seoDescription: "Diş klinikleri için kısa implant videoları: aşamalar, iyileşme süreci, bakım ve tanıtım yönetmeliğine takılabilecek kesin sonuç vaatleri.",
     description: "Hastaların implant tedavisi hakkında sorduğu sorular, bunları yanıtlayan altı kısa video, beş adımlı senaryo yapısı ve sağlık tanıtım kurallarına takılabilecek ifadeler.",
     h1: "İmplant hasta bilgilendirme videoları: ne çekmeli, neyi söylememeli?",
     intro:
-      "İmplant hasta bilgilendirme videosu, implant tedavisinin bir aşamasını — muayene, implantın yerleştirilmesi, iyileşme süreci, üst yapı ya da bakım — sade bir dille anlatan kısa bir videodur. Amaç, hastanın muayeneye gerçekçi beklentilerle gelmesidir. İşe yarayan videolar tek bir soruyu bir dakikanın altında yanıtlar, olağan süreci anlatır, sonuç vaat etmez ve izleyiciyi kendi durumunu hekimiyle konuşmaya davet ederek biter.",
+      "İmplant hasta bilgilendirme videosu, implant tedavisinin bir aşamasını (muayene, implantın yerleştirilmesi, iyileşme süreci, üst yapı ya da bakım) sade bir dille anlatan kısa bir videodur. Amaç, hastanın muayeneye gerçekçi beklentilerle gelmesidir. İşe yarayan videolar tek bir soruyu bir dakikanın altında yanıtlar, olağan süreci anlatır, sonuç vaat etmez ve izleyiciyi kendi durumunu hekimiyle konuşmaya davet ederek biter.",
     sections: [
       {
         heading: "Hastalar implant hakkında neler soruyor?",
@@ -142,11 +142,11 @@ export const TREATMENTS_TR: Guide[] = [
     ...DATES,
     title: "Şeffaf plak hasta bilgilendirme videoları: konular, senaryo yapısı ve kaçınılacak iddialar",
     seoTitle: "Şeffaf plak hasta bilgilendirme videoları",
-    seoDescription: "Şeffaf plak hastaları için kısa videolar: takma süresi, temizlik, ataşmanlar, pekiştirme plağı — “görünmez” ve süre vaadi içermeden.",
+    seoDescription: "Şeffaf plak hastaları için kısa videolar: takma süresi, temizlik, ataşmanlar, pekiştirme plağı. “Görünmez” ve süre vaadi içermeden.",
     description: "Hastaların şeffaf plak tedavisi hakkında sorduğu sorular, altı kısa video önerisi, beş adımlı senaryo ve tanıtım kurallarına takılabilecek ifadeler.",
     h1: "Şeffaf plak hasta bilgilendirme videoları: ne çekmeli, neyi söylememeli?",
     intro:
-      "Şeffaf plak hasta bilgilendirme videosu, tedavinin bir bölümünü — plakların günde kaç saat takılacağını, nasıl temizleneceğini, ataşmanların ne işe yaradığını, kontrol randevularını, tedavi sonrası pekiştirme plağını — kısa ve altyazılı bir videoyla anlatır. İşe yarayan videolar hastanın tedaviye uymasına yardım eder; sonuç ya da bitiş tarihi vaat etmez, çünkü ikisi de vakaya ve plakların ne kadar düzenli takıldığına bağlıdır.",
+      "Şeffaf plak hasta bilgilendirme videosu, tedavinin bir bölümünü (plakların günde kaç saat takılacağını, nasıl temizleneceğini, ataşmanların ne işe yaradığını, kontrol randevularını, tedavi sonrası pekiştirme plağını) kısa ve altyazılı bir videoyla anlatır. İşe yarayan videolar hastanın tedaviye uymasına yardım eder; sonuç ya da bitiş tarihi vaat etmez, çünkü ikisi de vakaya ve plakların ne kadar düzenli takıldığına bağlıdır.",
     sections: [
       {
         heading: "Hastalar şeffaf plak hakkında neler soruyor?",
@@ -265,11 +265,11 @@ export const TREATMENTS_TR: Guide[] = [
     sample: "beyazlatma-hassasiyet",
     title: "Diş beyazlatma bilgilendirme videoları: mitler, hassasiyet ve kaçınılacak tanıtım ifadeleri",
     seoTitle: "Diş beyazlatma bilgilendirme videoları",
-    seoDescription: "Diş klinikleri için kısa beyazlatma videoları: mine mitleri, hassasiyet, kron ve dolgular, evde beyazlatma — önce-sonra ve kampanya içermeden.",
+    seoDescription: "Diş klinikleri için kısa beyazlatma videoları: mine mitleri, hassasiyet, kron ve dolgular, evde beyazlatma. Önce-sonra ve kampanya içermeden.",
     description: "Hastaların diş beyazlatma hakkında sorduğu sorular, altı kısa video önerisi, beş adımlı senaryo ve estetik tedavilerde tanıtım kurallarına takılabilecek ifadeler.",
     h1: "Diş beyazlatma bilgilendirme videoları: ne çekmeli, neyi söylememeli?",
     intro:
-      "Diş beyazlatma bilgilendirme videosu, beyazlatmayla ilgili tek bir soruyu — mineye zarar verir mi, sonrasında dişler neden hassaslaşır, kron ve dolguların rengi değişir mi, marketten alınan ürünler aynı mı — kısa ve altyazılı bir videoyla yanıtlar. Beyazlatma estetik bir tedavidir; klinik videolarının reklama en kolay kaydığı konu da budur. Bu nedenle iyi videolar bilgiyi verir, kararı muayeneye bırakır.",
+      "Diş beyazlatma bilgilendirme videosu, beyazlatmayla ilgili tek bir soruyu (mineye zarar verir mi, sonrasında dişler neden hassaslaşır, kron ve dolguların rengi değişir mi, marketten alınan ürünler aynı mı) kısa ve altyazılı bir videoyla yanıtlar. Beyazlatma estetik bir tedavidir; klinik videolarının reklama en kolay kaydığı konu da budur. Bu nedenle iyi videolar bilgiyi verir, kararı muayeneye bırakır.",
     sections: [
       {
         heading: "Hastalar diş beyazlatma hakkında neler soruyor?",
@@ -338,14 +338,14 @@ export const TREATMENTS_TR: Guide[] = [
         paragraphs: [
           "Beyazlatmaya ilgi düğün sezonundan, bayramlardan ve yaz tatilinden önce artar; bu dönemlerde daha fazla estetik içerik paylaşmak cazip gelir. Yine de dengeyi koruyun: yalnızca beyazlatmadan oluşan bir hesap reklam gibi görünür. Koruyucu konuların yanında ayda bir mit çürüten beyazlatma videosu makul bir ritimdir; estetik konuların yıl içinde nereye oturduğunu [içerik takvimi](guide:dis-klinigi-sosyal-medya-icerik-takvimi) gösterir.",
           "Bakım videosu sosyal medya dışında da değerlidir: tedavi günü hastaya gönderin, öneriler evde elinin altında olsun.",
-          "Beyazlatma videoları kliniğinizin nasıl düşündüğünü göstermek için de iyi bir fırsattır. Önce çürük ve diş eti sorunlarına neden baktığınızı anlatan ve sonuçların kişiden kişiye değiştiğini açıkça söyleyen bir klinik, kusursuz bir ton vaat eden klinikten daha fazla güven kazanır — ve aynı zamanda kuralların doğru tarafında kalır.",
+          "Beyazlatma videoları kliniğinizin nasıl düşündüğünü göstermek için de iyi bir fırsattır. Önce çürük ve diş eti sorunlarına neden baktığınızı anlatan ve sonuçların kişiden kişiye değiştiğini açıkça söyleyen bir klinik, kusursuz bir ton vaat eden klinikten daha fazla güven kazanır ve aynı zamanda kuralların doğru tarafında kalır.",
         ],
       },
       {
         heading: "Beyazlatma videoları muayenede nasıl kullanılır?",
         paragraphs: [
           "Beyazlatmayla ilgilenen hastalar muayeneye çoğu zaman sosyal medyada gördükleri, filtreyle düzenlenmiş gülüş görüntüleriyle gelir. Randevudan önce gönderilen kısa bir video gerçekçi beklentiler oluşturur: kron ve dolguların rengini koruduğunu, ulaşılabilecek açıklığın başlangıç rengine bağlı olduğunu ve geçici hassasiyet görülebileceğini anlatır. Böylece muayenede, yalnızca o hastanın durumuna özgü sorulara daha fazla zaman kalır.",
-          "Muayeneden sonra hâlâ kararsız olan hastaya, görüşmenin kısa özetiyle birlikte mine mitini anlatan videoyu gönderebilirsiniz. Hasta bilgileri evde elinin altında olur ve kararını acele etmeden verir — bilgilendirmenin amacı da tam olarak budur.",
+          "Muayeneden sonra hâlâ kararsız olan hastaya, görüşmenin kısa özetiyle birlikte mine mitini anlatan videoyu gönderebilirsiniz. Hasta bilgileri evde elinin altında olur ve kararını acele etmeden verir. Bilgilendirmenin amacı da tam olarak budur.",
           "Aynı videolar ekibiniz için de bir ortak dil oluşturur: resepsiyonda telefonla beyazlatma soran birine videonun bağlantısını göndermek, tutarlı ve kurallara uygun bir yanıt vermenin kolay bir yoludur.",
         ],
       },
@@ -384,7 +384,7 @@ export const TREATMENTS_TR: Guide[] = [
     ...DATES,
     title: "Çocuk diş sağlığı bilgilendirme videoları: ebeveynlere yönelik konular, rıza ve kaçınılacaklar",
     seoTitle: "Çocuk diş sağlığı videoları: ebeveynler için",
-    seoDescription: "Ebeveynlere yönelik kısa çocuk diş sağlığı videoları: ilk muayene, fırçalama, şeker, biberon, diş hekimi korkusu — rıza ve kaçınılacak ifadelerle.",
+    seoDescription: "Ebeveynlere yönelik kısa çocuk diş sağlığı videoları: ilk muayene, fırçalama, şeker, biberon, diş hekimi korkusu. Rıza ve kaçınılacak ifadelerle birlikte.",
     description: "Ebeveynlerin çocuklarının dişleri hakkında sorduğu sorular, altı kısa video önerisi, diş hekimi korkusundan nasıl söz edileceği ve çocuk görüntüleri için rıza kuralları.",
     h1: "Çocuk diş sağlığı bilgilendirme videoları: ebeveynler için ne çekmeli?",
     intro:
@@ -411,7 +411,7 @@ export const TREATMENTS_TR: Guide[] = [
           caption: "Ebeveynlere yönelik altı video ve en çok işe yaradığı yer",
           columns: ["Video", "Yanıtladığı soru", "En çok işe yaradığı yer"],
           rows: [
-            ["İlk diş hekimi ziyareti", "Ne zaman gelinmeli, neler olur — çoğunlukla bakmak ve tanışmak", "Sosyal medya; randevu onay mesajı"],
+            ["İlk diş hekimi ziyareti", "Ne zaman gelinmeli, neler olur: çoğunlukla bakmak ve tanışmak", "Sosyal medya; randevu onay mesajı"],
             ["Küçük dişleri fırçalamak", "Teknik, ebeveyn desteği, güncel öneriye uygun miktarda florürlü macun", "Sosyal medya; bekleme salonu"],
             ["Biberon ve gece içecekleri", "Gece süt ya da meyve suyunun dişlere neden zarar verdiği", "Sosyal medya"],
             ["Atıştırmalıklar ve sıklık", "Şekerin yalnızca miktarı değil sıklığı da önemlidir", "Sosyal medya; okul dönemi hatırlatması"],
@@ -432,7 +432,7 @@ export const TREATMENTS_TR: Guide[] = [
           caption: "Çocuk diş sağlığı videoları: riskli ve daha güvenli",
           columns: ["Riskli içerik ya da ifade", "Neden sorunlu", "Daha güvenli yaklaşım"],
           rows: [
-            ["Klinikte koltukta gerçek bir çocuk", "Velinin açık ve yazılı rızasını gerektirir; çocuk kendisi rıza veremez", "Çizimler, oyuncaklar, yalnızca eller — ya da yüz göstermemek"],
+            ["Klinikte koltukta gerçek bir çocuk", "Velinin açık ve yazılı rızasını gerektirir; çocuk kendisi rıza veremez", "Çizimler, oyuncaklar, yalnızca eller ya da yüz göstermemek"],
             ["“Hiç acımayacak”", "Kesin bir vaat; çocuğun aklına acı fikrini de sokar", "“Diş hekimi dişlerini sayacak ve aletlerini sana gösterecek”"],
             ["Çürük süt dişlerinin korkutucu görüntüleri", "Korkuya dayalı mesaj; rahatsız edici olabilir", "Nedeni ve onu önleyen alışkanlığı anlatmak"],
             ["Çocuklara yönelik çekiliş ve yarışmalar", "Sağlık hizmeti tanıtımında risklidir", "Ebeveynlere pratik bilgiyle seslenmek"],
@@ -447,7 +447,7 @@ export const TREATMENTS_TR: Guide[] = [
         heading: "Diş hekimi korkusundan videoda nasıl söz edilir?",
         paragraphs: [
           "Ebeveynler iyi niyetle “korkma” ya da “hiç acımayacak” der; ancak ikisi de çocuğun aklına korku ve acı fikrini yerleştirir. Ebeveynlere yönelik kısa bir video daha sakin bir dil önerebilir: olacakları tarafsız sözcüklerle anlatmak (“diş hekimi dişlerini sayacak”), önceden diş hekimine gitmeyi anlatan bir resimli kitap okumak, çocuğun sevdiği oyuncağı yanına almasına izin vermek ve kendi kaygılarını çocuğa yansıtmamak.",
-          "Bu tür videolar en çok paylaşılan klinik videoları arasındadır, çünkü ebeveynlere doğrudan yardım eder — ve kliniğinizin çocuklara nasıl yaklaştığını tek bir çocuk görüntüsü olmadan gösterir.",
+          "Bu tür videolar en çok paylaşılan klinik videoları arasındadır, çünkü ebeveynlere doğrudan yardım eder ve kliniğinizin çocuklara nasıl yaklaştığını tek bir çocuk görüntüsü olmadan gösterir.",
         ],
       },
       {
@@ -474,7 +474,7 @@ export const TREATMENTS_TR: Guide[] = [
       {
         heading: "DentVideo çocuk diş sağlığı videolarını nasıl hazırlar?",
         paragraphs: [
-          "Çocuk diş hekimliğini hizmetleriniz arasında belirtirseniz, [DentVideo](landing:) ebeveynlere yönelik bu tür konuları haftalık videolarınıza ekler. Videolarda avatar çocuklar ya da gerçek hastalar yoktur — görüntüler nesnelerle sınırlıdır — ve her senaryo size ulaşmadan önce kesin vaatler, korkutucu ifadeler ve klinik doğruluk açısından denetlenir. Her videoyu siz onaylarsınız. [Kliniğinizin logosuyla canlı önizlemeyi görün](start:).",
+          "Çocuk diş hekimliğini hizmetleriniz arasında belirtirseniz, [DentVideo](landing:) ebeveynlere yönelik bu tür konuları haftalık videolarınıza ekler. Videolarda avatar çocuklar ya da gerçek hastalar yoktur (görüntüler nesnelerle sınırlıdır) ve her senaryo size ulaşmadan önce kesin vaatler, korkutucu ifadeler ve klinik doğruluk açısından denetlenir. Her videoyu siz onaylarsınız. [Kliniğinizin logosuyla canlı önizlemeyi görün](start:).",
         ],
       },
     ],
@@ -507,11 +507,11 @@ export const TREATMENTS_TR: Guide[] = [
     sample: "dis-tasi-temizligi",
     title: "Diş eti hastalığı bilgilendirme videoları: kanayan diş eti, periodontitis, diş taşı ve kaçınılacak ifadeler",
     seoTitle: "Diş eti hastalığı bilgilendirme videoları",
-    seoDescription: "Kısa diş eti videoları: kanayan diş eti, diş taşı temizliği, gingivitis ve periodontitis, bakım — korkutucu iddia ve görüntüler olmadan.",
+    seoDescription: "Kısa diş eti videoları: kanayan diş eti, diş taşı temizliği, gingivitis ve periodontitis, bakım. Korkutucu iddia ve görüntüler olmadan.",
     description: "Hastaların diş eti hastalığı hakkında sorduğu sorular, altı kısa video önerisi, genel sağlıkla bağlantıların korkutmadan nasıl anlatılacağı ve kaçınılacak ifadeler.",
     h1: "Diş eti hastalığı bilgilendirme videoları: ne çekmeli, neyi söylememeli?",
     intro:
-      "Diş eti hastalığı bilgilendirme videosu, diş eti sağlığıyla ilgili tek bir konuyu — diş etinin neden kanadığını, diş taşının neden temizlenmesi gerektiğini, gingivitis ile periodontitis arasındaki farkı, tedaviden sonra düzenli kontrolün önemini — kısa ve sakin bir videoyla anlatır. Diş eti hastalığı yaygındır ve erken döneminde çoğu zaman acı vermez. Bu yüzden bu videolar hastanın belirtileri erken fark etmesine yardım eder; amaçları korkutmak değil, bilgilendirmektir.",
+      "Diş eti hastalığı bilgilendirme videosu, diş eti sağlığıyla ilgili tek bir konuyu (diş etinin neden kanadığını, diş taşının neden temizlenmesi gerektiğini, gingivitis ile periodontitis arasındaki farkı, tedaviden sonra düzenli kontrolün önemini) kısa ve sakin bir videoyla anlatır. Diş eti hastalığı yaygındır ve erken döneminde çoğu zaman acı vermez. Bu yüzden bu videolar hastanın belirtileri erken fark etmesine yardım eder; amaçları korkutmak değil, bilgilendirmektir.",
     sections: [
       {
         heading: "Hastalar diş eti hastalığı hakkında neler soruyor?",
@@ -589,7 +589,7 @@ export const TREATMENTS_TR: Guide[] = [
       {
         heading: "DentVideo diş eti videolarını nasıl hazırlar?",
         paragraphs: [
-          "Yukarıdaki örnek — “Diş taşı diş etlerinizi sessizce nasıl tehdit eder?” — bir demo klinik için hazırlanmış gerçek bir DentVideo videosudur. [DentVideo](landing:) diş eti sağlığı konularını sunduğunuz hizmetlerden planlar, kendi dilinizde ve renklerinizde seslendirir, altyazılar ve her senaryoyu size ulaşmadan önce korkutucu ifadeler, abartılı sağlık iddiaları, “ağrısız” vaatleri ve klinik doğruluk açısından denetler. Rahatsız edici görüntü kullanılmaz; görüntüler nesnelerle sınırlıdır. [Canlı önizlemenizi görün](start:).",
+          "Yukarıdaki “Diş taşı diş etlerinizi sessizce nasıl tehdit eder?” örneği, bir demo klinik için hazırlanmış gerçek bir DentVideo videosudur. [DentVideo](landing:) diş eti sağlığı konularını sunduğunuz hizmetlerden planlar, kendi dilinizde ve renklerinizde seslendirir, altyazılar ve her senaryoyu size ulaşmadan önce korkutucu ifadeler, abartılı sağlık iddiaları, “ağrısız” vaatleri ve klinik doğruluk açısından denetler. Rahatsız edici görüntü kullanılmaz; görüntüler nesnelerle sınırlıdır. [Canlı önizlemenizi görün](start:).",
         ],
       },
     ],
@@ -625,11 +625,11 @@ export const TREATMENTS_TR: Guide[] = [
     ...DATES,
     title: "Kanal tedavisi bilgilendirme videoları: süreç, korku, mitler ve kaçınılacak ifadeler",
     seoTitle: "Kanal tedavisi hasta bilgilendirme videoları",
-    seoDescription: "Kısa kanal tedavisi videoları: işlem nasıl yapılır, neden kron gerekebilir, sonrası, mitler — kesin vaatler ve korkutucu dil olmadan.",
+    seoDescription: "Kısa kanal tedavisi videoları: işlem nasıl yapılır, neden kron gerekebilir, sonrası, mitler. Kesin vaatler ve korkutucu dil olmadan.",
     description: "Hastaların kanal tedavisi hakkında sorduğu sorular, altı kısa video önerisi, kanal tedavisi korkusu ve mitlerle nasıl başa çıkılacağı ve kaçınılacak ifadeler.",
     h1: "Kanal tedavisi bilgilendirme videoları: ne çekmeli, neyi söylememeli?",
     intro:
-      "Kanal tedavisi bilgilendirme videosu, tedavinin bir bölümünü — neden gerektiğini, koltukta neler olduğunu, sonrasında nelerin beklenebileceğini, neden çoğu zaman kron gerektiğini — kısa ve sakin bir videoyla anlatır. Kanal tedavisinin ünü, pek çok hastanın sonradan anlattığı deneyimden daha kötüdür. Bu yüzden en çok işe yarayan videolar mitlerin yerine sade gerçekleri koyar, ama kimsenin hiçbir şey hissetmeyeceğini vaat etmez.",
+      "Kanal tedavisi bilgilendirme videosu, tedavinin bir bölümünü (neden gerektiğini, koltukta neler olduğunu, sonrasında nelerin beklenebileceğini, neden çoğu zaman kron gerektiğini) kısa ve sakin bir videoyla anlatır. Kanal tedavisinin ünü, pek çok hastanın sonradan anlattığı deneyimden daha kötüdür. Bu yüzden en çok işe yarayan videolar mitlerin yerine sade gerçekleri koyar, ama kimsenin hiçbir şey hissetmeyeceğini vaat etmez.",
     sections: [
       {
         heading: "Hastalar kanal tedavisi hakkında neler soruyor?",
@@ -702,7 +702,7 @@ export const TREATMENTS_TR: Guide[] = [
       {
         heading: "Kanal tedavisi videoları en çok nerede işe yarar?",
         paragraphs: [
-          "Sosyal medyadan çok onun dışında. En değerli an, kanal tedavisi randevusunu onaylayan mesajdır: hastanın evde izleyebileceği 40 saniyelik bir açıklama kaygıyı azaltır ve randevu iptallerinin önüne geçebilir. Bakım videosu aynı gün gönderilen takip mesajına aittir. Sosyal medyada ise mit videosu ve neden kanal tedavisi videosu dengeli bir karışımın parçası olarak iyi işler — [diş hekimi Instagram paylaşım fikirleri](guide:dis-hekimi-instagram-paylasim-fikirleri) ve [hasta bilgilendirme videoları](guide:hasta-bilgilendirme-videolari) rehberlerine bakın.",
+          "Sosyal medyadan çok onun dışında. En değerli an, kanal tedavisi randevusunu onaylayan mesajdır: hastanın evde izleyebileceği 40 saniyelik bir açıklama kaygıyı azaltır ve randevu iptallerinin önüne geçebilir. Bakım videosu aynı gün gönderilen takip mesajına aittir. Sosyal medyada ise mit videosu ve neden kanal tedavisi videosu dengeli bir karışımın parçası olarak iyi işler. Ayrıntılar için [diş hekimi Instagram paylaşım fikirleri](guide:dis-hekimi-instagram-paylasim-fikirleri) ve [hasta bilgilendirme videoları](guide:hasta-bilgilendirme-videolari) rehberlerine bakın.",
           "Kendi yüzünüzle kısa bir açıklama çekmek isterseniz, kanal tedavisi bunun için çok uygun bir konudur: hastalar kendilerini tedavi edecek hekimin sakin sesini duyduğunda daha rahat hisseder. Telefonla çekim için [diş hekimi videosu nasıl çekilir](guide:dis-hekimi-video-cekimi) rehberindeki adımları izleyebilirsiniz.",
         ],
       },

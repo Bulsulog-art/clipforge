@@ -53,7 +53,7 @@ export const SOLUTIONS_PL: SolutionPage[] = [
       {
         heading: "Własna twarz, gdy znajdzie się pięć minut",
         paragraphs: [
-          "Pacjenci zwykle ufają osobie, która będzie ich leczyć. W planach z własnymi nagraniami karta nagrania podpowiada, co powiedzieć; nagrywają Państwo kilka minut telefonem, a DentVideo tnie to na krótkie klipy z napisami i logo. Państwa słowa nigdy nie są zmieniane — fragment wart ponownego przejrzenia jest oznaczony z uzasadnieniem i propozycją sformułowania.",
+          "Pacjenci zwykle ufają osobie, która będzie ich leczyć. W planach z własnymi nagraniami karta nagrania podpowiada, co powiedzieć; nagrywają Państwo kilka minut telefonem, a DentVideo tnie to na krótkie klipy z napisami i logo. Państwa słowa nigdy nie są zmieniane. Fragment wart ponownego przejrzenia jest oznaczony z uzasadnieniem i propozycją sformułowania.",
         ],
       },
       {
@@ -63,7 +63,7 @@ export const SOLUTIONS_PL: SolutionPage[] = [
           "Nie publikuje za Państwa. Akceptują Państwo film, pobierają go lub udostępniają i publikują samodzielnie.",
           "Nie prowadzi płatnych kampanii, nie odpowiada na komentarze i nie nagrywa w gabinecie.",
           "Nie obiecuje nowych pacjentów. Pomaga być widocznym dzięki jasnym odpowiedziom; wyniki zależą od wielu czynników.",
-          "Nie jest gotową biblioteką animacji zabiegów — każdy film powstaje dla Państwa gabinetu.",
+          "Nie jest gotową biblioteką animacji zabiegów. Każdy film powstaje dla Państwa gabinetu.",
         ],
       },
       {
@@ -79,7 +79,7 @@ export const SOLUTIONS_PL: SolutionPage[] = [
       },
     ],
     faq: [
-      { q: "Czy DentVideo to agencja marketingu stomatologicznego?", a: "Nie. To oprogramowanie, które co tydzień przygotowuje i sprawdza filmy edukacyjne; publikację prowadzi gabinet. Agencja zajmuje się zwykle także kampaniami, nagraniami na miejscu i komentarzami — i może publikować filmy z DentVideo." },
+      { q: "Czy DentVideo to agencja marketingu stomatologicznego?", a: "Nie. To oprogramowanie, które co tydzień przygotowuje i sprawdza filmy edukacyjne; publikację prowadzi gabinet. Agencja zajmuje się zwykle także kampaniami, nagraniami na miejscu i komentarzami, a przy tym może publikować filmy z DentVideo." },
       { q: "Czy w filmach występują awatary AI lub fikcyjni pacjenci?", a: "Nie. Lektor to głos syntetyczny, ale nie ma awatarów, fikcyjnych lekarzy ani pacjentów. Materiał wideo pokazuje wyłącznie przedmioty, a każdy film ma logo i kolory gabinetu." },
       { q: "Czy mogę zobaczyć filmy przed płatnością?", a: "Tak. Po opisaniu gabinetu widzą Państwo podgląd na żywo z logo, kolorami i nazwą gabinetu. Pierwszy pełny tydzień powstaje zaraz po wyborze planu." },
       { q: "Czy kontrola jest poradą prawną?", a: "Nie. Wychwytuje sformułowania często ograniczane i oznacza to, co warto przejrzeć, ale przepisy się zmieniają. Każdy film akceptują Państwo." },

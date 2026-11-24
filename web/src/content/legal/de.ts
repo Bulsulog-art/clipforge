@@ -19,7 +19,7 @@ export const DE: LegalText = {
       director: "Geschäftsführer",
       contact: "E-Mail",
       brand: "Marke",
-      brandValue: "{brand} — Produkt: DentVideo",
+      brandValue: "{brand} (Produkt: DentVideo)",
     },
     table: { provider: "Anbieter", purpose: "Zweck", data: "Daten", location: "Standort" },
   },
@@ -91,7 +91,7 @@ export const DE: LegalText = {
               list: [
                 "Starter: {starter} pro Monat.",
                 "Practice: {practice} pro Monat.",
-                "Group (Praxisgruppen und Praxen mit mehreren Standorten): individuelle Bedingungen nach Vereinbarung — Kontakt {email}. Group kann nicht auf der Website gekauft werden.",
+                "Group (Praxisgruppen und Praxen mit mehreren Standorten): individuelle Bedingungen nach Vereinbarung (Kontakt: {email}). Group kann nicht auf der Website gekauft werden.",
               ],
             },
             "Zahlungen wickelt Dodo Payments ab, das als Händler (Merchant of Record) und autorisierter Wiederverkäufer handelt: Es verkauft Ihnen das Abonnement, belastet Ihr Zahlungsmittel, erscheint auf Ihrer Kartenabrechnung, berechnet und erhebt anfallende Steuern und stellt Ihre Rechnung aus. Für den Kauf gelten zusätzlich die Käuferbedingungen von Dodo Payments. Wir sehen Ihre vollständigen Kartendaten nie.",
@@ -206,7 +206,7 @@ export const DE: LegalText = {
         {
           heading: "3. Cookies und Browserspeicher",
           blocks: [
-            "Wir nutzen nur, was der Dienst braucht: Sitzungs-Cookies für die Anmeldung, ein Cookie für Ihre Sprache, ein Cookie für Ihren Fortschritt bei der Registrierung und kurzlebigen Browserspeicher während der Registrierung. Wir nutzen keine Werbe- oder Analyse-Cookies Dritter. Kommen Sie über eine unserer Google-Anzeigen, speichert der Browserspeicher dieser Website außerdem die Klick-Kennung der Anzeige für bis zu 90 Tage – in der EU/im EWR, im Vereinigten Königreich und in der Schweiz erst, nachdem Sie es erlaubt haben; lehnen Sie ab, wird sie nicht gespeichert. Wir laden keine Werbe- oder Analyse-Skripte Dritter (kein Google-Tag).",
+            "Wir nutzen nur, was der Dienst braucht: Sitzungs-Cookies für die Anmeldung, ein Cookie für Ihre Sprache, ein Cookie für Ihren Fortschritt bei der Registrierung und kurzlebigen Browserspeicher während der Registrierung. Wir nutzen keine Werbe- oder Analyse-Cookies Dritter. Kommen Sie über eine unserer Google-Anzeigen, speichert der Browserspeicher dieser Website außerdem die Klick-Kennung der Anzeige für bis zu 90 Tage. In der EU/im EWR, im Vereinigten Königreich und in der Schweiz geschieht das erst, nachdem Sie es erlaubt haben; lehnen Sie ab, wird sie nicht gespeichert. Wir laden keine Werbe- oder Analyse-Skripte Dritter (kein Google-Tag).",
           ],
         },
         {
@@ -334,7 +334,7 @@ export const DE: LegalText = {
             {
               list: [
                 "Betroffene Personen: Zahnärzte und Mitarbeitende der Praxis; Personen, die in von der Praxis hochgeladenen Aufnahmen zu sehen oder zu hören sind; Patienten nur, wenn die Praxis Inhalte hochlädt, die sie erkennbar machen.",
-                "Datenkategorien: Namen, E-Mail-Adressen, Bild und Stimme, Transkripte, Angaben im Praxisprofil. Gesundheitsdaten braucht DentVideo nicht; sie werden nur verarbeitet, wenn die Praxis sie hochlädt — dann ist die Praxis für eine Rechtsgrundlage und die ausdrückliche Einwilligung des Patienten verantwortlich.",
+                "Datenkategorien: Namen, E-Mail-Adressen, Bild und Stimme, Transkripte, Angaben im Praxisprofil. Gesundheitsdaten braucht DentVideo nicht; sie werden nur verarbeitet, wenn die Praxis sie hochlädt. Dann ist die Praxis für eine Rechtsgrundlage und die ausdrückliche Einwilligung des Patienten verantwortlich.",
               ],
             },
           ],
@@ -342,7 +342,7 @@ export const DE: LegalText = {
         {
           heading: "3. Weisungen",
           blocks: [
-            "Wir verarbeiten die Daten nur auf dokumentierte Weisung der Praxis — das sind die Nutzungsbedingungen, dieser AVV und die Nutzung der Einstellungen des Dienstes —, sofern das Recht nichts anderes verlangt; dann informieren wir die Praxis vorher, soweit das Recht es nicht verbietet. Halten wir eine Weisung für datenschutzwidrig, teilen wir das der Praxis mit.",
+            "Wir verarbeiten die Daten nur auf dokumentierte Weisung der Praxis (das sind die Nutzungsbedingungen, dieser AVV und die Nutzung der Einstellungen des Dienstes), sofern das Recht nichts anderes verlangt; dann informieren wir die Praxis vorher, soweit das Recht es nicht verbietet. Halten wir eine Weisung für datenschutzwidrig, teilen wir das der Praxis mit.",
           ],
         },
         { heading: "4. Vertraulichkeit", blocks: ["Alle bei {shortName}, die auf die Daten zugreifen können, sind zur Vertraulichkeit verpflichtet."] },
@@ -406,7 +406,7 @@ export const DE: LegalText = {
 
     imprint: {
       title: "Impressum",
-      description: "Impressum von dentvideo.com: BLS AI Automation DOO, Podgorica, Montenegro — Register, Steuernummer, Geschäftsführer und Kontakt.",
+      description: "Impressum von dentvideo.com: Register, Steuernummer, Geschäftsführer und Kontakt der BLS AI Automation DOO, Podgorica, Montenegro.",
       intro: ["Angaben gemäß § 5 Digitale-Dienste-Gesetz (DDG) und Art. 5 der EU-Richtlinie über den elektronischen Geschäftsverkehr."],
       sections: [
         { heading: "Anbieter", blocks: [{ operator: true }] },

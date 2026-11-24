@@ -4,15 +4,15 @@ import type { Guide } from "../dentvideo";
 // مخاطبة الجمع (أنتم)، بلا أسعار ولا إحصاءات ولا شهادات مرضى.
 
 const DHA_STANDARDS = {
-  label: "هيئة الصحة بدبي — معايير محتوى الإعلانات الطبية على وسائل التواصل الاجتماعي، الإصدار 1.1",
+  label: "هيئة الصحة بدبي: معايير محتوى الإعلانات الطبية على وسائل التواصل الاجتماعي، الإصدار 1.1",
   url: "https://www.dha.gov.ae/uploads/042022/Standards%20for%20Medical%20Advertisement%20Content%20in%20Social%20Media2022433965.pdf",
 };
 const DHA_CIRCULAR = {
-  label: "هيئة الصحة بدبي — التعميم CIR-2026-00000144 بشأن معايير الإعلانات الطبية على وسائل التواصل",
+  label: "هيئة الصحة بدبي: التعميم CIR-2026-00000144 بشأن معايير الإعلانات الطبية على وسائل التواصل",
   url: "https://www.dha.gov.ae/en/circulars/details/CIR-2026-00000144",
 };
 const MOHAP = {
-  label: "وزارة الصحة ووقاية المجتمع (الإمارات) — خدمة ترخيص الإعلان الصحي على وسائل التواصل الاجتماعي",
+  label: "وزارة الصحة ووقاية المجتمع (الإمارات): خدمة ترخيص الإعلان الصحي على وسائل التواصل الاجتماعي",
   url: "https://mohap.gov.ae/en/services/license-for-healthcare-advertisement-on-social-media",
 };
 

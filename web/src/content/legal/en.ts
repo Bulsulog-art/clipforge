@@ -19,7 +19,7 @@ export const EN: LegalText = {
       director: "Managing director",
       contact: "Email",
       brand: "Brand",
-      brandValue: "{brand} — product: DentVideo",
+      brandValue: "{brand} (product: DentVideo)",
     },
     table: { provider: "Provider", purpose: "Purpose", data: "Data", location: "Location" },
   },
@@ -94,7 +94,7 @@ export const EN: LegalText = {
               list: [
                 "Starter: {starter} per month.",
                 "Practice: {practice} per month.",
-                "Group (groups and multi-location practices): custom terms by agreement — contact {email}. Group cannot be bought on the website.",
+                "Group (groups and multi-location practices): custom terms by agreement (contact {email}). Group cannot be bought on the website.",
               ],
             },
             "Payments are handled by Dodo Payments, which acts as merchant of record and authorized reseller: it sells you the subscription, charges your payment method, appears on your card statement, calculates and collects any applicable taxes and issues your invoice. Dodo Payments' buyer terms also apply to the purchase. We never see your full card details.",
@@ -212,7 +212,7 @@ export const EN: LegalText = {
         {
           heading: "3. Cookies and browser storage",
           blocks: [
-            "We use only what the service needs: login session cookies, a cookie that remembers your language, a cookie that remembers how far you got in sign-up, and short-lived browser storage while you sign up. We use no advertising or third-party analytics cookies. If you came from one of our Google ads, this site's own browser storage also keeps the ad click identifier for up to 90 days — in the EU/EEA, the UK and Switzerland only after you allow it; if you decline, it is not stored. We load no third-party advertising or analytics scripts (no Google tag).",
+            "We use only what the service needs: login session cookies, a cookie that remembers your language, a cookie that remembers how far you got in sign-up, and short-lived browser storage while you sign up. We use no advertising or third-party analytics cookies. If you came from one of our Google ads, this site's own browser storage also keeps the ad click identifier for up to 90 days. In the EU/EEA, the UK and Switzerland it does so only after you allow it, and if you decline, it is not stored. We load no third-party advertising or analytics scripts (no Google tag).",
           ],
         },
         {
@@ -421,7 +421,7 @@ export const EN: LegalText = {
 
     imprint: {
       title: "Imprint",
-      description: "Legal notice for dentvideo.com: BLS AI Automation DOO, Podgorica, Montenegro — register, tax ID, managing director and contact.",
+      description: "Legal notice for dentvideo.com: register, tax ID, managing director and contact of BLS AI Automation DOO, Podgorica, Montenegro.",
       intro: ["Information about the provider of dentvideo.com (under § 5 of the German Digital Services Act, DDG, and Article 5 of the EU E-Commerce Directive)."],
       sections: [
         {
