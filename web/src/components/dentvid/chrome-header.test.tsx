@@ -93,11 +93,22 @@ describe("site header, signed out", () => {
     for (const l of LOCALES) expect(chromeWords(l).start, l).toBe(LANDING[l].hero.cta);
   });
 
-  it("the sign-up wizard (quiet) keeps only the logo and the skip link: no start button", () => {
+  it("the sign-up wizard (quiet) keeps only the logo: no start button", () => {
     const html = header("en", "/dentvideo/start");
     expect(html).not.toContain('data-cta="header"');
-    expect(anchors(html).map((x) => x.text)).toEqual([HEADER_TEXT.en.skip, ""]);
+    expect(anchors(html).map((x) => x.text)).toEqual([""]);
   });
+
+  it.each(["/dentvideo/start", "/dentvideo/app", "/dentvideo/app/settings"])(
+    "%s: the language is the visitor's, so the server HTML has no skip link in any language until it is known",
+    (at) => {
+      const html = header("en", at);
+      expect(html).not.toContain('href="#main"');
+      for (const l of LOCALES) expect(html, l).not.toContain(HEADER_TEXT[l].skip);
+      // The jump target stays, so the link works once it appears.
+      expect(html).toContain('<div id="main"');
+    },
+  );
 
   it("a header click is counted as a try of the no-account preview, as the hero's is, not as a sign-up click", () => {
     tracked.length = 0;

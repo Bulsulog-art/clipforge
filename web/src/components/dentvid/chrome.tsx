@@ -114,12 +114,12 @@ export function DvHeader({ guideLocales, text }: Props) {
   const tab = appTab(path);
   const t = text[locale];
   const signedIn = useSignedIn();
-  // Skip link (shown on focus) to a mark after the header, where <main> begins.
+  // Skip link (on focus) to the mark where <main> begins; as the nav, not before the language is known.
   return (
     <>
-      <a href="#main" className="sr-only focus:not-sr-only focus:fixed focus:start-4 focus:top-3 focus:z-50 focus:rounded-full focus:bg-dv-ink focus:px-4 focus:py-2.5 focus:text-sm focus:font-semibold focus:text-white">
+      {ready && <a href="#main" className="sr-only focus:not-sr-only focus:fixed focus:start-4 focus:top-3 focus:z-50 focus:rounded-full focus:bg-dv-ink focus:px-4 focus:py-2.5 focus:text-sm focus:font-semibold focus:text-white">
         {t.skip}
-      </a>
+      </a>}
       {tab ? <AppHeader t={t} locale={locale} ready={ready} tab={tab} /> : <SiteHeader t={t} locale={locale} ready={ready} quiet={isFunnel(path) || isPostPage(path)} signedIn={signedIn} />}
       <div id="main" className="scroll-mt-40" />
     </>
