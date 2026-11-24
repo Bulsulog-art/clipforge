@@ -733,7 +733,13 @@ export async function handleDentvideoEvent(db: SupabaseClient, evt: DvWebhookEve
         confirmEmail = result;
         await tell(db, deps, clinic.id, (c) =>
           cancellationAlert(
-            alerts.customerAtRisk({ clinic: { ...c, tier: c.tier ?? clinic.plan_tier ?? null }, event: evt.type, from: "active", to: `active until ${end.slice(0, 10)}, then cancelled` }),
+            alerts.customerAtRisk({
+              clinic: { ...c, tier: c.tier ?? clinic.plan_tier ?? null },
+              event: evt.type,
+              from: "active",
+              to: `active until ${end.slice(0, 10)}, then cancelled`,
+              cancellationConfirmed: result === "sent",
+            }),
             { result, endsAt: end, email: c.email ?? null },
           ),
         );

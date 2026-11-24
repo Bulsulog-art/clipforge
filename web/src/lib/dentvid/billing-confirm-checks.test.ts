@@ -141,18 +141,28 @@ describe("an App Store subscription waiting to take over", () => {
 
 describe("what the owner is told", () => {
   const END = "2026-12-10T00:00:00.000Z";
-  const base = () => alerts.customerAtRisk({ clinic: { id: CLINIC, name: "Sample Dental Practice", email: "dr@clinic.example" }, event: "subscription.cancelled", from: "active", to: "active until 2026-12-10, then cancelled" });
+  const base = (cancellationConfirmed?: boolean) =>
+    alerts.customerAtRisk({ clinic: { id: CLINIC, name: "Sample Dental Practice", email: "dr@clinic.example" }, event: "subscription.cancelled", from: "active", to: "active until 2026-12-10, then cancelled", cancellationConfirmed });
 
-  it("keeps the alert's key, title and question, and replaces the lines that were about plans stopping now", () => {
-    const a = cancellationAlert(base(), { result: "sent", endsAt: END, email: "dr@clinic.example" });
+  it("sent: keeps the alert's key, title and question and ops-alert's own 'emailed a confirmation' line, and replaces the line about plans stopping now", () => {
+    const a = cancellationAlert(base(true), { result: "sent", endsAt: END, email: "dr@clinic.example" });
+    expect(a.key).toBe(`at_risk:${CLINIC}:subscription.cancelled`);
     expect(a.key).toBe(base().key);
     expect(a.titleEn).toBe(base().titleEn);
     expect(a.todo).toEqual(base().todo);
     expect(a.done).toEqual([
       "The clinic keeps getting its weekly videos until 2026-12-10; then the plan ends, and its library stays until 2027-03-10 unless it chooses a plan again.",
-      "The clinic was sent a written confirmation in its language with both dates.",
+      "The clinic was emailed a confirmation of the end date and how long its library stays (in its language, once).",
     ]);
+    expect(a.done.join(" ")).not.toMatch(/No email was sent|payment notices|new weeks stop/);
     expect(libraryUntil(new Date(END)).toISOString().slice(0, 10)).toBe("2027-03-10");
+  });
+
+  it("not sent: the 'no email' line about payment notices is replaced with the reason, whatever the base said", () => {
+    for (const result of ["failed", "already sent", "timed out", "app store takes over", "account deletion", "demo clinic", "test account", "not active", "no email"]) {
+      const done = cancellationAlert(base(), { result, endsAt: END, email: "dr@clinic.example" }).done.join(" ");
+      expect(done, result).not.toMatch(/No email was sent to the clinic by DentVideo|payment notices|emailed a confirmation of the end date/);
+    }
   });
 
   it("asks for a confirmation by hand exactly when the clinic should have had one and did not", () => {

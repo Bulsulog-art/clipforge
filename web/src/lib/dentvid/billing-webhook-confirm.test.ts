@@ -4,7 +4,7 @@ import { LIMITS, slidingWindow } from "@/lib/rate-limit";
 import { accountDeletionMarker, confirmMailWith, handleDentvideoEvent, type DvWebhookDeps } from "./billing-webhook";
 import type { DvSubRecord, DvTier } from "./billing";
 import type { SubscriptionStore } from "./subscriptions";
-import { MemoryOpsStore, type OwnerAlert } from "./ops-alert";
+import { MemoryOpsStore, renderAlert, type OwnerAlert } from "./ops-alert";
 import type { AppleSubRecord, AppleSubscriptionStore } from "./apple-store";
 import { sendBillingConfirmation, type BillingConfirmNotice } from "./billing-confirm-email";
 import { deletionLimitKey } from "./billing-confirm-checks";
@@ -451,9 +451,32 @@ describe("the owner's alert says what the clinic was told", () => {
     expect(a.key).toBe(`at_risk:${CLINIC}:subscription.cancelled`);
     expect(a.done).toEqual([
       "The clinic keeps getting its weekly videos until 2026-12-10; then the plan ends, and its library stays until 2027-03-10 unless it chooses a plan again.",
-      "The clinic was sent a written confirmation in its language with both dates.",
+      // ops-alert.ts customerAtRisk's own line: step 6 passes cancellationConfirmed when the email was sent.
+      "The clinic was emailed a confirmation of the end date and how long its library stays (in its language, once).",
     ]);
-    expect(a.done.join(" ")).not.toMatch(/No email was sent/);
+    expect(a.done.join(" ")).not.toMatch(/No email was sent|payment notices|update its card/);
+  });
+
+  it("sent, end to end: the owner's alert email matches the email the clinic received", async () => {
+    const { db } = fakeDb(paying());
+    const mail = realMail();
+    const d = deps({ subs: ledger(), sendConfirmMail: mail.sendConfirmMail });
+    const r = await handleDentvideoEvent(db, cancel(), d);
+    expect(r.body).toMatchObject({ confirmEmail: "sent" });
+    expect(mail.sent).toHaveLength(1);
+    expect(mail.sent[0].text).toContain(`You keep getting your weekly videos until ${ny(END)}.`);
+    expect(d.raised.map((a) => a.key)).toEqual([`at_risk:${CLINIC}:subscription.cancelled`]);
+    const owner = renderAlert(d.raised[0]).text;
+    expect(owner).toContain("The clinic was emailed a confirmation of the end date and how long its library stays (in its language, once).");
+    expect(owner).toContain("until 2026-12-10");
+    expect(owner).not.toMatch(/No email was sent|payment notices|new weeks stop/);
+  });
+
+  it("already sent (a claim from an earlier delivery): the alert does not claim a new email went out", async () => {
+    const { db } = fakeDb(paying());
+    const d = deps({ subs: ledger(), sendConfirmMail: async () => "already sent" });
+    await handleDentvideoEvent(db, cancel(), d);
+    expect(d.raised[0].done[1]).toBe("The clinic already had its written confirmation of this cancellation.");
   });
 
   it("failed: the alert says so and asks the owner to confirm by hand, with the dates to give", async () => {

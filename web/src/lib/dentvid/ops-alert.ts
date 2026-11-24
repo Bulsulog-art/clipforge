@@ -685,7 +685,15 @@ export const alerts = {
     };
   },
 
-  customerAtRisk(a: { clinic: ClinicRef; event: string; from: string; to: string; clinicEmailed?: boolean }): OwnerAlert {
+  /**
+   * A paying clinic's payment failed, or its subscription stopped. What the clinic was told by email:
+   *   clinicEmailed          the payment-problem email (what happened, how to update its card);
+   *   cancellationConfirmed  the written confirmation of a cancellation (web billing-confirm-email.ts):
+   *                          the day its weekly videos stop and how long its library stays. Only for a
+   *                          cancellation; a payment problem keeps its own wording.
+   * Neither: no email from DentVideo.
+   */
+  customerAtRisk(a: { clinic: ClinicRef; event: string; from: string; to: string; clinicEmailed?: boolean; cancellationConfirmed?: boolean }): OwnerAlert {
     const failed = /failed|on_hold|past_due/.test(a.event);
     return {
       key: `at_risk:${a.clinic.id}:${a.event}`,
@@ -696,9 +704,11 @@ export const alerts = {
       what: [`Dodo sent ${a.event}: plan ${a.from} → ${a.to} (${tierLabel(a.clinic)}).`],
       done: [
         a.to === "active" ? "Nothing changed yet — the clinic keeps access through Dodo's grace period." : "The clinic keeps its videos; new weeks stop until it pays again.",
-        a.clinicEmailed
-          ? "The clinic was emailed what happened and how to update its card (in its language, once per incident); the app shows “update your payment” instead of the plan picker."
-          : "No email was sent to the clinic by DentVideo (Dodo sends its own payment notices).",
+        a.cancellationConfirmed && !failed
+          ? "The clinic was emailed a confirmation of the end date and how long its library stays (in its language, once)."
+          : a.clinicEmailed
+            ? "The clinic was emailed what happened and how to update its card (in its language, once per incident); the app shows “update your payment” instead of the plan picker."
+            : "No email was sent to the clinic by DentVideo (Dodo sends its own payment notices).",
       ],
       todo: failed
         ? [`Write a friendly note${a.clinic.email ? ` to ${a.clinic.email}` : ""}: their card may have expired; the billing portal link is in Settings.`]
