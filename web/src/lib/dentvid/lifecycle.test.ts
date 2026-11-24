@@ -143,7 +143,7 @@ describe("scheduler: which activation email is due (fake clock)", () => {
     expect(late).toEqual([]); // 21:00 in Tokyo
   });
 
-  it("walks one clinic through two weeks of hourly runs: exactly four emails, day 0, 1, 3 and 7", async () => {
+  it("walks one clinic through two weeks of hourly runs: exactly three emails, day 0, 1 and 3", async () => {
     const created = new Date("2026-11-01T09:10:00Z");
     const m = memoryStore([clinic(1, { created_at: created.toISOString() })]);
     const { send, sent } = sender();

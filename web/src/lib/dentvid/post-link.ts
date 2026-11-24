@@ -22,6 +22,10 @@ import type { Locale } from "@/content/dentvideo";
  *         same rule as approve-link's POST: ready + pending only, never a
  *         flagged video, never a paused or cancelled clinic.
  *         {action:"posted", on} ticks an approved video as posted (0012).
+ *         {action:"shared", method} counts a share or download the page
+ *         just made: the clinic's video_shared event, recorded here on the
+ *         server with the token's clinic (the page sends no anonymous
+ *         browser event), at most once per video.
  *
  * Nothing here publishes anything; the clinic posts the video itself.
  */
@@ -113,15 +117,52 @@ export async function loadPostView(t: string | null | undefined, v: string | nul
   };
 }
 
-export type PostAction = { t?: unknown; v?: unknown; action?: unknown; on?: unknown };
+export type PostAction = { t?: unknown; v?: unknown; action?: unknown; on?: unknown; method?: unknown; device?: unknown };
 
-export async function handlePostAction(body: PostAction, deps: { store: PostLinkStore; secret: string | null; now?: Date; onApproved?: (clinicId: string) => void }): Promise<{ status: number; body: { ok: boolean; stored?: boolean; error?: string } }> {
+/** How the page handed the video over: the phone's share sheet, or a download (events.ts video_shared). */
+export type ShareMethodProp = "share" | "download";
+const SHARE_METHODS: readonly string[] = ["share", "download"] satisfies ShareMethodProp[];
+const DEVICES: readonly string[] = ["mobile", "tablet", "desktop"];
+
+/** A share from the post page counts once per video, for this long (a week's link lives APPROVE_TTL_DAYS). */
+export const SHARE_ONCE_TTL_S = 10 * 86_400;
+export const shareOnceKey = (itemId: string) => `dv:shared:${itemId.toLowerCase()}`;
+
+/**
+ * Counting a share: `claim` takes the video's once-only key (Redis SET NX,
+ * shareOnceKey), `record` stores the clinic's video_shared event and says
+ * whether it was stored, `release` frees the key again when it was not, so a
+ * later tap can still count.
+ */
+export type ShareCounter = {
+  claim(itemId: string): Promise<boolean>;
+  release(itemId: string): Promise<void>;
+  record(e: { clinicId: string; method: ShareMethodProp; locale: Locale; device?: string }): Promise<boolean>;
+};
+
+export type PostActionResult = { status: number; body: { ok: boolean; stored?: boolean; error?: string } };
+
+export async function handlePostAction(
+  body: PostAction,
+  deps: { store: PostLinkStore; secret: string | null; now?: Date; onApproved?: (clinicId: string) => void; shares?: ShareCounter },
+): Promise<PostActionResult> {
   const tok = verifyApproveToken(typeof body.t === "string" ? body.t : null, deps.secret, deps.now ?? new Date());
   const id = typeof body.v === "string" ? body.v.toLowerCase() : "";
   if (!tok || !UUID.test(id)) return { status: 400, body: { ok: false, error: "invalid" } };
-  if (body.action !== "approve" && body.action !== "posted") return { status: 400, body: { ok: false, error: "action" } };
+  if (body.action !== "approve" && body.action !== "posted" && body.action !== "shared") return { status: 400, body: { ok: false, error: "action" } };
+  if (body.action === "shared" && !(typeof body.method === "string" && SHARE_METHODS.includes(body.method))) return { status: 400, body: { ok: false, error: "method" } };
   const clinic = await deps.store.clinic(tok.clinicId);
   if (!clinic || clinic.plan !== "active") return { status: 409, body: { ok: false, error: "inactive" } };
+  if (body.action === "shared") {
+    const items = await deps.store.week(tok.clinicId, tok.week);
+    const item = items.find((i) => i.id.toLowerCase() === id);
+    // The same rule as the page itself: only a video it would show could have been shared from it.
+    if (!shareable(item)) return { status: 409, body: { ok: false, error: "not shareable" } };
+    const device = typeof body.device === "string" && DEVICES.includes(body.device) ? body.device : undefined;
+    const locale = asLocale(clinic.language ?? undefined) ?? "en";
+    const stored = await countShare(deps.shares, item.id, { clinicId: tok.clinicId, method: body.method as ShareMethodProp, locale, device });
+    return { status: 200, body: { ok: true, stored } };
+  }
   if (body.action === "approve") {
     const items = await deps.store.week(tok.clinicId, tok.week);
     const item = items.find((i) => i.id.toLowerCase() === id);
@@ -134,6 +175,15 @@ export async function handlePostAction(body: PostAction, deps: { store: PostLink
   const r = await deps.store.posted(tok.clinicId, tok.week, id, body.on !== false);
   if (r === "none") return { status: 409, body: { ok: false, error: "not approved" } };
   return { status: 200, body: { ok: true, stored: r === "ok" } };
+}
+
+/** The clinic's video_shared event for this video, unless it was counted already. True when this call stored it. */
+async function countShare(shares: ShareCounter | undefined, itemId: string, e: Parameters<ShareCounter["record"]>[0]): Promise<boolean> {
+  if (!shares) return false;
+  if (!(await shares.claim(itemId).catch(() => true))) return false;
+  const stored = await shares.record(e).catch(() => false);
+  if (!stored) await shares.release(itemId).catch(() => {});
+  return stored;
 }
 
 export { APPROVE_TTL_DAYS };
