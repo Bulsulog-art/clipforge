@@ -5,8 +5,9 @@ DentVideo email is sent from `DentVideo <hello@dentvideo.com>` with
 `reply_to: hello@dentvideo.com`, so a clinic's reply to any email (welcome,
 "videos ready", payment problem, reminders) lands here. The in-app
 **Settings → Help & contact** button opens a mail with the subject
-`DentVideo help · <clinic name> · <clinic id>` and the clinic id in the body;
-the app footer link opens one with the subject `DentVideo help`.
+`DentVideo help · <clinic name> · <clinic id>` (written in the app's language,
+for example `DentVideo Hilfe · …`) and the clinic id in the body; the app
+footer link opens one with the subject `DentVideo help`.
 
 ## How to work a message
 
@@ -15,27 +16,54 @@ the app footer link opens one with the subject `DentVideo help`.
    sender's email.
 2. **Check before you answer.** Admin → clinic: plan state, this week's videos
    (made / flagged / approved), emails sent (`dentvid_email_sends`), billing
-   events. Admin → System for a delayed week run.
-3. **Answer in the clinic's language** (the language in its profile; the
-   message's language if they wrote in another one). Use the approved answers
-   below, then add the one sentence that is specific to them.
-4. **Tone:** warm, short, plain. Sign with your first name and "DentVideo".
+   events. Admin → System for a delayed week run. Each question below says
+   what to check first.
+3. **Link the help center answer, in the clinic's language.** The help center
+   is the single source for answers (see the next section). Send the link to
+   the answer, then add the one or two sentences that are specific to this
+   clinic. Don't paste answers from this page, from memory or from an old
+   email: they go stale, the help center doesn't.
+4. **Answer in the clinic's language** (the language in its profile; the
+   message's language if they wrote in another one).
+5. **Tone:** warm, short, plain. Sign with your first name and "DentVideo".
    No exclamation marks in a row, no emoji, no jargon ("pipeline", "job",
    "render"). Say "software-assisted check" / "you approve", the words the app
    and emails use.
 
-## Help center
+## The help center is the single source
 
-Public answers for paying clinics live at `dentvideo.com/help` (and `/de/help`,
-`/es/help`, `/tr/help`, `/fr/help`, `/ja/help`, `/ar/help`, `/pl/help`), one
-anchor per answer, e.g. `dentvideo.com/de/help#cancel`. Content:
-`web/src/content/help/<locale>.ts`; anchors: `web/src/content/dentvideo-help-links.ts`.
-The app links the matching answer from settings fields, the record page, empty
-or delayed weeks, billing problems and the post sheet; the welcome, "videos
-ready", payment-problem and "not posted" emails link one too. When you answer a
-question the help center covers, add the link to the answer in the clinic's
-language. When a question keeps coming that it doesn't cover, add an answer in
-all eight languages (the tests require it).
+Every answer a clinic needs is on `dentvideo.com/help`, one anchor per answer,
+in the eight site languages. The link to one answer, by the clinic's language:
+
+| Clinic's language | Link to the answer `<id>` |
+|---|---|
+| English | `https://dentvideo.com/help#<id>` |
+| German | `https://dentvideo.com/de/help#<id>` |
+| Spanish | `https://dentvideo.com/es/help#<id>` |
+| Turkish | `https://dentvideo.com/tr/help#<id>` |
+| French | `https://dentvideo.com/fr/help#<id>` |
+| Japanese | `https://dentvideo.com/ja/help#<id>` |
+| Arabic | `https://dentvideo.com/ar/help#<id>` |
+| Polish | `https://dentvideo.com/pl/help#<id>` |
+| Italian, Portuguese | the English link (there is no help center in these languages yet; the emails do the same) |
+
+For example, a German clinic asking how to cancel gets
+`https://dentvideo.com/de/help#cancel`.
+
+- Content: `web/src/content/help/<locale>.ts`. Anchors: `HELP_IDS` in
+  `web/src/content/dentvideo-help-links.ts`.
+- The app links the matching answer from settings fields, the record page,
+  empty or delayed weeks, billing problems and the post sheet; the welcome,
+  "videos ready", payment-problem and "not posted" emails link one too.
+- **An answer is wrong or missing?** Fix the help center, in all eight
+  languages (the tests require it), not this page. This page only says which
+  answer to link and what to check first.
+- `web/src/content/support-playbook.test.ts` checks that every answer linked
+  here exists, that each language's link is the address dentvideo.com
+  serves, and that the facts the short summaries state (times, limits, button
+  and error names, the admin section to look in) are still what the help
+  center, the app and the admin page say. The rest of a summary's wording is
+  not checked: when you change an answer, reread its summary here.
 
 ## Rules (never break these)
 
@@ -45,7 +73,10 @@ all eight languages (the tests require it).
 - Never post on a clinic's behalf, and never ask for their social media
   passwords. DentVideo does not post; the clinic shares.
 - Never take card details by email. Payments are handled by Dodo Payments
-  (merchant of record): Settings → Plan and billing, or we send a secure link.
+  (merchant of record). The clinic changes its card, cancels and downloads
+  invoices itself in **Settings → Plan and billing → "Manage billing"**
+  (self-serve billing has been live since 2026-11-17, when `DODO_API_KEY` was
+  set in production). If that does not work for them, see question 8.
 - Never quote a price from memory. Prices come from `web/src/lib/dentvid/pricing.ts`
   and the plan screen in the app; send the clinic to the plan screen.
 - Don't promise a response time we cannot keep. "A person reads every
@@ -56,89 +87,175 @@ all eight languages (the tests require it).
   a patient, don't forward it; answer from the admin panel and delete the
   attachment from the mailbox.
 
-## Top questions with approved answers
+## Top questions: which answer to link
+
+"In short" is for you, so you can pick the right answer and spot a
+mismatch with what the clinic sees. Don't paste it; link the answer.
 
 ### 1. When do my first videos arrive?
 
-- **EN:** Your first week of videos is made right after payment, usually in about 15 minutes. We email you as soon as they're ready for your review. After that, a new week arrives every Monday.
-- **TR:** İlk haftanızın videoları ödemeden hemen sonra hazırlanır, genellikle yaklaşık 15 dakika sürer. İncelemeye hazır olduklarında size e-posta göndeririz. Sonrasında her pazartesi yeni haftanın videoları gelir.
-- **DE:** Die Videos Ihrer ersten Woche entstehen direkt nach der Zahlung, meist in etwa 15 Minuten. Sobald sie zur Freigabe bereitstehen, schicken wir Ihnen eine E-Mail. Danach kommt jeden Montag eine neue Woche.
-
-*Check first:* Admin → clinic → first week job. If it is delayed or failed, say so honestly and give a new time only once it is running.
+- **Link:** `first-videos`. If this week's videos are missing later on:
+  `no-videos-this-week`.
+- **In short:** the first week is made right after payment and is usually
+  ready within an hour. The Videos page updates by itself and we email when
+  the videos are ready for review. After that, five new videos every Monday.
+- *Check first:* Admin → clinic → first week job. If it is delayed or
+  failed, say so honestly and give a new time only once it is running.
 
 ### 2. How do I approve a video?
 
-- **EN:** Open the video in your library, watch it, and tap Approve. You can also tap "Approve & share" next to a video in the "videos ready" email. Nothing is published until you approve it, and approving only marks it ready to post; we never post for you.
-- **TR:** Videoyu kütüphanenizde açın, izleyin ve Onayla'ya dokunun. "Videolar hazır" e-postasında her videonun yanındaki "Onayla ve paylaş" düğmesini de kullanabilirsiniz. Siz onaylamadan hiçbir şey yayınlanmaz; onay yalnızca videoyu paylaşıma hazır işaretler, sizin adınıza paylaşım yapmayız.
-- **DE:** Öffnen Sie das Video in Ihrer Bibliothek, sehen Sie es an und tippen Sie auf „Freigeben“. Sie können auch in der E-Mail „Videos sind fertig“ neben einem Video auf „Freigeben & teilen“ tippen. Ohne Ihre Freigabe wird nichts veröffentlicht, und eine Freigabe markiert das Video nur als bereit zum Posten; wir posten nie für Sie.
+- **Link:** `approve`.
+- **In short:** Videos → "Watch and approve" → "Approve" (or "Decline").
+  "Approve all" approves the ready ones in one tap and never includes videos
+  that need a look. The "videos ready" email also has "Approve & share" next
+  to each video. Approving only marks a video ready to post; we never post
+  for them.
 
-### 3. How do I post a video on Instagram / Facebook?
+### 3. How do I post a video on Instagram, TikTok or Facebook?
 
-- **EN:** On an approved video, tap Share. On a phone, the share sheet opens and the caption is copied, so you can paste it into your post. If sharing doesn't work on your device, tap Download, post the video from Instagram or Facebook as usual and paste the caption. Each video shows a suggested day and time to post.
-- **TR:** Onaylı bir videoda Paylaş'a dokunun. Telefonda paylaşım menüsü açılır ve açıklama metni kopyalanır; gönderinize yapıştırmanız yeterli. Cihazınızda paylaşım çalışmazsa İndir'e dokunun, videoyu Instagram ya da Facebook'tan her zamanki gibi paylaşın ve metni yapıştırın. Her video için önerilen bir paylaşım günü ve saati gösterilir.
-- **DE:** Tippen Sie bei einem freigegebenen Video auf „Teilen“. Auf dem Handy öffnet sich das Teilen-Menü und die Bildunterschrift wird kopiert, Sie fügen sie nur noch ein. Klappt das Teilen auf Ihrem Gerät nicht, tippen Sie auf „Herunterladen“, posten das Video wie gewohnt über Instagram oder Facebook und fügen den Text ein. Zu jedem Video schlagen wir einen Tag und eine Uhrzeit vor.
+- **Link:** `share`. For one app: `instagram`, `tiktok-shorts`, `facebook`;
+  for their Google profile: `google-business`; for when to post:
+  `posting-times`.
+- **In short:** on an approved video, tap "Post it". On a phone, "Save video +
+  copy caption" saves the video and copies the caption with hashtags; on a
+  computer the video downloads. They post it from their own account, paste the
+  caption, then tap "Mark as posted". If saving doesn't work on their device:
+  "Download".
 
 ### 4. Is the content medically accurate? Is it allowed in my country?
 
-- **EN:** Every video gets a software-assisted check for clinical accuracy and health-advertising rules before you see it, and anything worth a second look is marked with the reason. It is an automated check, not legal advice: you know your patients and your rules, so the final say is yours, and nothing is published until you approve it.
-- **TR:** Her video, siz görmeden önce klinik doğruluk ve sağlık reklamı kuralları açısından yazılım destekli bir kontrolden geçer; ikinci bir bakış gerektiren her şey nedeniyle birlikte işaretlenir. Bu otomatik bir kontroldür, hukuki görüş değildir: hastalarınızı ve kurallarınızı siz bilirsiniz, son karar sizindir ve siz onaylamadan hiçbir şey yayınlanmaz.
-- **DE:** Jedes Video wird softwaregestützt auf fachliche Richtigkeit und Heilmittelwerberecht geprüft, bevor Sie es sehen; alles, was einen zweiten Blick verdient, ist mit Begründung markiert. Das ist eine automatische Prüfung, keine Rechtsberatung: Das letzte Wort haben Sie, und ohne Ihre Freigabe wird nichts veröffentlicht.
+- **Link:** `software-check`. When they ask who is liable: `responsibility`.
+- **In short:** before they see a script, software checks it against
+  health-advertising rules and mainstream clinical guidance; anything worth a
+  second look is marked with the reason. It is an automated check, not legal
+  advice, and the final say is theirs.
 
-### 5. A video is "marked for a look". What do I do?
+### 5. A video "needs a look". What do I do?
 
-- **EN:** The card shows why it was marked. Watch it with that reason in mind: if it's fine for your clinic, approve it; if not, just leave it unapproved. It is never published unless you approve it. Reply to this email if you'd like us to change something.
-- **TR:** Kartta neden işaretlendiği yazar. Videoyu bu nedeni düşünerek izleyin: kliniğiniz için uygunsa onaylayın, değilse onaylamadan bırakın. Siz onaylamadıkça asla yayınlanmaz. Bir şeyin değişmesini isterseniz bu e-postayı yanıtlayın.
-- **DE:** Auf der Karte steht der Grund. Sehen Sie das Video mit diesem Grund im Kopf an: Passt es für Ihre Praxis, geben Sie es frei; wenn nicht, lassen Sie es einfach unfreigegeben. Ohne Ihre Freigabe wird es nie veröffentlicht. Antworten Sie auf diese E-Mail, wenn wir etwas ändern sollen.
+- **Link:** `needs-a-look`.
+- **In short:** the reason is on the card, under "What to check before
+  posting". If the video suits the clinic, they approve it; if not, they
+  decline it with a short note. A marked video is never approved without them.
 
-### 6. Can you change a video (wording, topic, my logo or colours)?
+### 6. Can you change a video (wording, topic, our logo or colors)?
 
-- **EN:** Logo, colours, services and language are in Settings, and the next videos use them. To change one specific video, tap "Ask for a change" on its card and write what should be different. Only that video is made again, with the same checks, and you approve it again before posting. You can ask for up to 3 changes a week; if the changed version doesn't pass the checks, your current video stays as it is.
-- **TR:** Logo, renkler, hizmetler ve dil Ayarlar'dadır; sonraki videolar bunları kullanır. Tek bir videoyu değiştirmek için kartındaki "Değişiklik iste"ye dokunup neyin farklı olması gerektiğini yazın. Yalnızca o video aynı kontrollerle yeniden hazırlanır ve paylaşmadan önce yeniden onaylarsınız. Haftada en fazla 3 değişiklik isteyebilirsiniz; değiştirilmiş sürüm kontrollerden geçmezse mevcut videonuz olduğu gibi kalır.
-- **DE:** Logo, Farben, Leistungen und Sprache stellen Sie in den Einstellungen ein; die nächsten Videos übernehmen das. Um ein einzelnes Video zu ändern, tippen Sie auf seiner Karte auf „Änderung anfragen“ und schreiben, was anders sein soll. Nur dieses Video wird mit denselben Prüfungen neu erstellt, und Sie geben es vor dem Posten erneut frei. Bis zu 3 Änderungen pro Woche sind möglich; besteht die geänderte Fassung die Prüfungen nicht, bleibt Ihr bisheriges Video unverändert.
-
-*Internal:* Admin → Requests (or the clinic's page) shows each change request, its note and status. A request that failed "technical" or "busy" also sent you an alert; the clinic's old video is untouched. If a clinic needs more than 3 a week, do it by hand rather than raising the cap for everyone (`DENTVID_MAX_CHANGES_PER_CLINIC_WEEK`).
+- **Link:** one video: `wrong-video`. Logo and color: `logo-colors`.
+  Background photos: `background-photos`. Topics: `services`. Language or
+  form of address: `language`. Voice: `narrator-voice`.
+- **In short:** "Ask for a change" on the video's card remakes only that
+  video, with the same checks, and they approve it again; up to 3 changes a
+  week. If the changed version doesn't pass the checks, the current video
+  stays. Settings changes (logo, color, services, language, voice) apply to
+  the next videos.
+- *Internal:* Admin → Requests (or the clinic's page) shows each change
+  request, its note and status. A request that failed "technical" or "busy"
+  also sent you an alert; the clinic's old video is untouched. If a clinic
+  needs more than 3 a week, do it by hand rather than raising the cap for
+  everyone (`DENTVID_MAX_CHANGES_PER_CLINIC_WEEK`).
 
 ### 7. I didn't get the email / the code doesn't arrive.
 
-- **EN:** Please check your spam or promotions folder for mail from hello@dentvideo.com and mark it "not spam" so the next ones arrive. A sign-in code works for 15 minutes; you can ask for a new one on the sign-in screen. If it still doesn't arrive, tell us the address you used and we'll check.
-- **TR:** Lütfen hello@dentvideo.com adresinden gelen e-postalar için spam veya promosyonlar klasörünüze bakın ve "spam değil" olarak işaretleyin, böylece sonrakiler gelen kutunuza düşer. Giriş kodu 15 dakika geçerlidir; giriş ekranından yeni kod isteyebilirsiniz. Yine gelmezse kullandığınız adresi bize yazın, kontrol edelim.
-- **DE:** Bitte sehen Sie im Spam- oder Werbung-Ordner nach E-Mails von hello@dentvideo.com und markieren Sie sie als „kein Spam“, damit die nächsten ankommen. Ein Anmeldecode gilt 15 Minuten; auf dem Anmeldebildschirm können Sie einen neuen anfordern. Kommt er weiterhin nicht an, nennen Sie uns die verwendete Adresse, wir prüfen das.
-
-*Check first:* Admin → Emails for a failed send to that clinic.
+- **Link:** `sign-in`.
+- **In short:** look in spam or promotions for mail from hello@dentvideo.com
+  and mark it as not spam. A sign-in code works for 15 minutes; a new one can
+  be requested on the sign-in screen. "Forgot your password?" is there too.
+- *Check first:* Admin → Emails for a failed send to that clinic.
 
 ### 8. My payment failed / my videos are paused.
 
-- **EN:** Your videos stay in your library. To carry on, open DentVideo, go to Settings → Plan and billing and update your card; it takes a minute. Please don't buy a new plan, as that would charge you twice. If the button doesn't work, reply and we'll send you a secure link.
-- **TR:** Videolarınız kütüphanenizde kalır. Devam etmek için DentVideo'yu açın, Ayarlar → Plan ve faturalandırma bölümünden kartınızı güncelleyin; bir dakika sürer. Lütfen yeni plan satın almayın, iki kez ücretlendirilirsiniz. Düğme çalışmazsa yanıtlayın, size güvenli bir bağlantı gönderelim.
-- **DE:** Ihre Videos bleiben in Ihrer Bibliothek. Um weiterzumachen, öffnen Sie DentVideo, gehen zu Einstellungen → Tarif und Abrechnung und aktualisieren Ihre Karte; das dauert eine Minute. Bitte kaufen Sie keinen neuen Tarif, sonst zahlen Sie doppelt. Funktioniert die Schaltfläche nicht, antworten Sie, wir schicken Ihnen einen sicheren Link.
+- **Link:** `payment-failed`. To change the card: `update-card`.
+- **In short:** the videos stay in the library and can still be shared; only
+  new weekly videos pause until a payment goes through. They tap "Update
+  payment details", or change the card in Settings → Plan and billing →
+  "Manage billing". They should not buy a new plan: that would charge them
+  twice.
+- *Check first:* Admin → clinic → billing events. "Manage billing" shows on
+  every paying plan, a paused one too, so a clinic with a billing problem
+  usually sees the button and gets an error under it when it taps:
+  - "There is no active subscription on this account." means no Dodo
+    subscription is stored on the clinic. Look under Admin → clinic → "Plan,
+    subscriptions and payments".
+  - "We couldn't open the billing portal. Please try again in a moment."
+    means Dodo did not answer. If it keeps happening, it is a failure.
+  - No button at all: the plan is unpaid or has ended (or online billing is
+    switched off on the server, which shows for every clinic). A plan bought
+    in the iPhone app shows an App Store card instead (question 9).
+- *If it fails for them,* the app and the payment email promise a secure
+  link. There is no admin button for that link yet, so pass it to Berke.
+  Never ask for card details.
 
-### 9. How do I cancel? Do I get a refund? Where is my invoice? What happens to our videos?
+### 9. How do I cancel? Refunds? Where is my invoice? What happens to our videos?
 
-- **EN:** Plans are monthly and you can cancel any time in Settings → Plan and billing. You keep access until the end of the period you've paid for. After that, your library stays for 90 days, so you can still watch and download your videos; we email you 14 days and 1 day before they are deleted, and the videos you've downloaded stay yours to use. A started period isn't refunded in part, unless the law requires it or the service failed; details are in our Refund Policy. Invoices are issued by Dodo Payments, our payment provider, and are in your payment receipt email.
-- **TR:** Planlar aylıktır, istediğiniz zaman Ayarlar → Plan ve faturalandırma bölümünden iptal edebilirsiniz. Ödediğiniz dönemin sonuna kadar erişiminiz devam eder. Sonrasında kütüphaneniz 90 gün daha kalır; videolarınızı izleyip indirebilirsiniz. Silinmeden 14 gün ve 1 gün önce size e-posta göndeririz; indirdiğiniz videoları kullanmaya devam edebilirsiniz. Başlamış bir dönem için kısmi iade yapılmaz; yasanın gerektirdiği ya da hizmetin aksadığı durumlar hariç. Ayrıntılar İade Politikamızda. Faturaları ödeme sağlayıcımız Dodo Payments düzenler; ödeme makbuzu e-postanızda bulunur.
-- **DE:** Die Tarife sind monatlich und jederzeit in Einstellungen → Tarif und Abrechnung kündbar. Sie behalten den Zugang bis zum Ende des bezahlten Zeitraums. Danach bleibt Ihre Bibliothek noch 90 Tage, damit Sie Ihre Videos ansehen und herunterladen können; wir schreiben Ihnen 14 Tage und 1 Tag vor der Löschung, und heruntergeladene Videos dürfen Sie weiter nutzen. Ein begonnener Zeitraum wird nicht anteilig erstattet, außer das Gesetz verlangt es oder der Dienst hat versagt; Einzelheiten stehen in unserer Erstattungsrichtlinie. Rechnungen stellt unser Zahlungsanbieter Dodo Payments aus; Sie finden sie in der Zahlungsbestätigung per E-Mail.
-
-*Internal:* the 90 days count from the end of the paid period (`dentvid_clinics.plan_ended_at`); the deletion date is on the clinic's admin page and in the app. A clinic that asks for more time: choosing a plan again keeps everything; otherwise point them to Settings → Your data → "Download my data". The worker's daily retention job (`DENTVID_RETENTION_MODE`: `delete` by default, `dry-run`, `off`) never touches active, paused or trial clinics, keeps settings and the logo, and emails you the counts whenever it deletes anything.
+- **Link:** `cancel`, `invoices`, `after-cancel`; for a full copy of their
+  data: `export-data`.
+- **In short:**
+  - Cancel: Settings → Plan and billing → "Manage billing", or we do it for
+    them. Plans are monthly with no minimum term; access runs to the end of
+    the paid period. A started period isn't refunded in part unless the law
+    requires it or the service failed (Refund Policy).
+  - Invoices: under Settings → Plan and billing → "Manage billing". Dodo
+    Payments issues them and also emails a receipt after every payment, so
+    DentVideo never sends a second invoice. If "Manage billing" doesn't work
+    for them, the fallback is that Dodo receipt email.
+  - After the paid period: the library stays 90 days (emails 14 days and 1
+    day before deletion); downloaded videos stay theirs to use.
+- *Cancel for them:* there is no admin button for it. If you can use the
+  Dodo dashboard, take the subscription id from Admin → clinic → "Plan,
+  subscriptions and payments" and cancel it there at the end of the current
+  period, not immediately. If you can't, pass it to Berke the same day. Once
+  it is done, reply in the clinic's language that the plan is canceled and
+  runs to the end of the period they paid for.
+- *Internal:* the 90 days count from the end of the paid period
+  (`dentvid_clinics.plan_ended_at`); the deletion date is on the clinic's
+  admin page and in the app. A clinic that asks for more time: choosing a plan
+  again keeps everything; otherwise point them to Settings → Your data →
+  "Download my data". The worker's daily retention job
+  (`DENTVID_RETENTION_MODE`: `delete` by default, `dry-run`, `off`) never
+  touches active, paused or trial clinics, keeps settings and the logo, and
+  emails you the counts whenever it deletes anything.
+- *If Settings shows an App Store card instead of "Manage billing",* the plan
+  was bought in the iPhone app: Apple bills it, and the clinic changes or
+  cancels it in the App Store. Neither we nor Dodo can.
 
 ### 10. Can I stop the reminder emails?
 
-- **EN:** Of course. Every reminder has an Unsubscribe link at the bottom, and I've also turned them off for you now. Emails about your account, payments and ready videos still arrive, because they're part of the service.
-- **TR:** Elbette. Her hatırlatmanın altında "Abonelikten çık" bağlantısı var; ben de şimdi sizin için kapattım. Hesabınız, ödemeleriniz ve hazır videolarınızla ilgili e-postalar hizmetin parçası olduğu için gelmeye devam eder.
-- **DE:** Selbstverständlich. Jede Erinnerung hat unten einen Abmelden-Link, und ich habe sie jetzt auch für Sie abgestellt. E-Mails zu Ihrem Konto, zu Zahlungen und zu fertigen Videos kommen weiterhin, weil sie zum Dienst gehören.
+- **Link:** `reminder-emails`.
+- **In short:** every reminder and monthly summary has an "Unsubscribe" link.
+  Emails about the account, payments and ready videos keep arriving.
+- *Do first:* unsubscribe them in Admin, then tell them in your own sentence
+  that you have done it.
 
 ### 11. Can I suggest a topic?
 
-- **EN:** Yes. Use "Suggest a topic for next week" on the Videos page or in Settings: one patient question or subject, up to 140 characters. We use waiting suggestions first, up to three a week, when they fit your services and pass the same checks as every video. Under "Your suggestions" you can see what became of each one, with the reason if we couldn't make it.
-- **TR:** Evet. Videolar sayfasında veya Ayarlar'da "Gelecek hafta için konu önerin" bölümünü kullanın: bir hasta sorusu ya da konu, en fazla 140 karakter. Bekleyen önerileri, hizmetlerinize uyduklarında ve her video gibi aynı kontrollerden geçtiklerinde, haftada en fazla üç tane olmak üzere önce kullanırız. "Önerileriniz" bölümünde her birine ne olduğunu, hazırlanamadıysa nedenini görebilirsiniz.
-- **DE:** Ja. Nutzen Sie „Thema für nächste Woche vorschlagen“ auf der Seite „Videos“ oder in den Einstellungen: eine Patientenfrage oder ein Thema, bis zu 140 Zeichen. Wartende Vorschläge nutzen wir zuerst, bis zu drei pro Woche, wenn sie zu Ihren Leistungen passen und dieselben Prüfungen bestehen wie jedes Video. Unter „Ihre Vorschläge“ sehen Sie, was aus jedem geworden ist, und bei einem nicht umgesetzten den Grund.
-
-*Internal:* Admin → Requests lists every suggestion with its status and reason. A suggestion about a service the clinic doesn't list is refused "not offered": suggest they add the service in Settings.
+- **Link:** `topics`.
+- **In short:** "Suggest a topic for next week" on the Videos page or in
+  Settings: one patient question or subject, up to 140 characters. Waiting
+  suggestions are used first, up to three a week, when they fit the clinic's
+  services and pass the checks. "Your suggestions" shows what became of each.
+- *Internal:* Admin → Requests lists every suggestion with its status and
+  reason. A suggestion about a service the clinic doesn't list is refused "not
+  offered": suggest they add the service in Settings (`services`).
 
 ### 12. Do the videos have subtitles? (accessibility, YouTube, TikTok)
 
-- **EN:** Every video shows its key points on screen. For the full narration, tap "Download subtitles (.srt)" in "Post it": the file has the narrator's exact words, timed from the pauses in the narration (close, but not exact to the word, so watch it once with the video). YouTube and Facebook accept the .srt file; Instagram and TikTok don't take subtitle files, but you can turn on the app's own automatic captions and correct them with the .srt text. Videos made before subtitle files existed, and clips from your own recordings, have no .srt file.
-- **TR:** Her video ana mesajlarını ekranda gösterir. Seslendirmenin tamamı için "Paylaş" adımındaki "Altyazıyı indir (.srt)"ye dokunun: dosya seslendirmenin birebir sözlerini içerir; zamanlamalar seslendirmedeki duraklardan hesaplanır (yakındır ama kelimesi kelimesine değildir, bir kez videoyla izleyin). YouTube ve Facebook .srt dosyasını kabul eder; Instagram ve TikTok altyazı dosyası almaz, ancak uygulamanın otomatik altyazısını açıp .srt metniyle düzeltebilirsiniz. Altyazı dosyalarından önce hazırlanan videoların ve kendi kayıtlarınızdan çıkan kliplerin .srt dosyası yoktur.
-- **DE:** Jedes Video zeigt seine Kernaussagen im Bild. Für den vollständigen Sprechertext tippen Sie unter „Posten“ auf „Untertitel herunterladen (.srt)“: Die Datei enthält genau die Worte der Stimme, zeitlich aus den Pausen der Sprachaufnahme berechnet (gut passend, aber nicht wortgenau; sehen Sie sie einmal mit dem Video an). YouTube und Facebook nehmen die .srt-Datei an; Instagram und TikTok nehmen keine Untertiteldatei, aber Sie können die automatischen Untertitel der App einschalten und mit dem .srt-Text korrigieren. Videos aus der Zeit vor den Untertiteldateien und Clips aus Ihren eigenen Aufnahmen haben keine .srt-Datei.
+- **Link:** `captions`.
+- **In short:** key points are on screen in every video. "Download subtitles
+  (.srt)" in "Post it" gives the narrator's exact words, timed from the
+  pauses (close, not exact to the word). Videos made before subtitle files
+  existed, and clips from their own recordings, have no .srt file.
+
+### Other answers to link
+
+| Question | Answer |
+|---|---|
+| Starter or Practice, switching plans | `plans` |
+| A second location, a group | `group` |
+| Recording yourself (Practice) | `record` |
+| The closing line was refused | `closing-line` |
+| Using the videos on the website or in the waiting room | `other-uses` |
+| Patient information, videos that show patients | `patient-data` |
+| Data protection, the DPA | `privacy-dpa` |
+| Deleting the account | `delete-account` |
 
 ## Escalate to Berke (owner) when
 
@@ -146,7 +263,11 @@ all eight languages (the tests require it).
 - a clinic says a published video caused a complaint from a patient, a
   chamber/association or a regulator;
 - anything about personal data (access, deletion beyond Settings, a breach);
-- the same failure (emails, week run, checkout) shows for more than one clinic.
+- the same failure (emails, week run, checkout) shows for more than one clinic;
+- a clinic needs a secure billing link because "Manage billing" fails for
+  them (question 8);
+- a clinic asks us to cancel for them and you can't do it in the Dodo
+  dashboard yourself (question 9): pass it on the same day.
 
 ## Which email says what (for reference)
 

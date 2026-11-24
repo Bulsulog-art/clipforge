@@ -7,7 +7,7 @@ export const SOLUTIONS_EN: SolutionPage[] = [
     kind: "product",
     nav: "AI dental videos",
     anchor: "AI dental videos made for your clinic and software-checked before you see them",
-    blurb: "Five narrated, captioned patient-education videos a week in your colours, software-checked for advertising rules and clinical accuracy.",
+    blurb: "Five narrated, captioned patient-education videos a week in your colors, software-checked for advertising rules and clinical accuracy.",
     queries: [
       "ai dental videos",
       "dental ai video generator",
@@ -20,20 +20,20 @@ export const SOLUTIONS_EN: SolutionPage[] = [
     ],
     seoTitle: "AI Dental Video Maker for Clinics",
     seoDescription:
-      "Five narrated, captioned dental videos a week in your clinic's colours, written for patients, software-checked for ad rules and accuracy. You approve.",
+      "Five narrated, captioned dental videos a week in your clinic's colors, written for patients, software-checked for ad rules and accuracy. You approve.",
     h1: "AI dental videos for your clinic, software-checked before you see them",
     intro:
-      "DentVideo is an AI dental video maker built for clinics, not a general video generator. Every week it writes, narrates and captions five short patient-education videos about the treatments you offer, in your language, colours and logo, then runs each script through software checks for health-advertising rules and clinical accuracy. Nothing is published until the dentist approves it.",
+      "DentVideo is an AI dental video maker built for clinics, not a general video generator. Every week it writes, narrates and captions five short patient-education videos about the treatments you offer, in your language, colors and logo, then runs each script through software checks for health-advertising rules and clinical accuracy. Nothing is published until the dentist approves it.",
     sections: [
       {
         heading: "What your clinic gets each week",
         paragraphs: [
-          "You describe the clinic once — language, services, tone, colours and logo. From then on a new week of videos is ready every Monday, and we email you when it is.",
+          "You describe the clinic once — language, services, tone, colors and logo. From then on a new week of videos is ready every Monday, and we email you when it is.",
         ],
         list: [
           "Five short vertical videos, usually around half a minute each, answering questions patients really search for.",
           "A clear narration in your language and burned-in captions, so the video works with the sound off.",
-          "Your logo and colours in every video, and topics only from the treatments you list.",
+          "Your logo and colors in every video, and topics only from the treatments you list.",
           "A ready caption and hashtags for each video, copied when you share from your phone.",
           "A note on anything that deserves a second look, with the reason.",
         ],
@@ -42,7 +42,7 @@ export const SOLUTIONS_EN: SolutionPage[] = [
         heading: "Why not a general AI video generator?",
         paragraphs: [
           "General AI video tools are good at producing something quickly: an avatar reading a script, stock clips, a template. For a dental clinic that is where the work starts, not where it ends. Someone still has to choose topics that match your treatments, write a script that is clinically sound, and keep out the words health-advertising rules restrict — “painless”, guarantees, prices, discounts, before-and-after promises, testimonials.",
-          "DentVideo was built around that second part. There are no avatar faces, fake doctors or stock patients: footage is limited to objects, and every video carries your own logo and colours. The scripts are written for your country's patients and software-checked twice before they reach you. If you want to compare the options side by side, read [DentVideo vs an agency, Canva and ChatGPT](video:dentvideo-vs-agency-canva-chatgpt).",
+          "DentVideo was built around that second part. There are no avatar faces, fake doctors or stock patients: footage is limited to objects, and every video carries your own logo and colors. The scripts are written for your country's patients and software-checked twice before they reach you. If you want to compare the options side by side, read [DentVideo vs an agency, Canva and ChatGPT](video:dentvideo-vs-agency-canva-chatgpt).",
         ],
       },
       {
@@ -84,7 +84,7 @@ export const SOLUTIONS_EN: SolutionPage[] = [
         ordered: true,
         paragraphs: [],
         list: [
-          "[Create an account](start:) and describe your clinic: language, services, tone, colours, logo.",
+          "[Create an account](start:) and describe your clinic: language, services, tone, colors, logo.",
           "Watch a live preview of your own branded videos in the browser, before you pay.",
           "Choose a plan — monthly, no minimum term. See [plans and pricing](landing:).",
           "Your first week of videos is made right after payment; after that, every Monday.",
@@ -94,11 +94,11 @@ export const SOLUTIONS_EN: SolutionPage[] = [
     faq: [
       {
         q: "Is DentVideo a library of ready-made dental videos?",
-        a: "No. It makes new videos for your clinic every week, in your language and colours, about the treatments you offer. If you need a fixed library of procedure animations for chairside explanations, publishers and associations sell those; many clinics use both.",
+        a: "No. It makes new videos for your clinic every week, in your language and colors, about the treatments you offer. If you need a fixed library of procedure animations for chairside explanations, publishers and associations sell those; many clinics use both.",
       },
       {
         q: "Do the videos use AI avatars or fake patients?",
-        a: "No. The narration is a synthetic voice in your language, but there are no avatar faces, fake doctors or patients. Footage is limited to objects, and every video carries your logo and colours. For your own face, record a few minutes and DentVideo cuts it into clips.",
+        a: "No. The narration is a synthetic voice in your language, but there are no avatar faces, fake doctors or patients. Footage is limited to objects, and every video carries your logo and colors. For your own face, record a few minutes and DentVideo cuts it into clips.",
       },
       {
         q: "Which languages can the videos be in?",
@@ -106,7 +106,7 @@ export const SOLUTIONS_EN: SolutionPage[] = [
       },
       {
         q: "Can I see my videos before paying?",
-        a: "Yes. After you describe your clinic you see a live preview of how your videos will look with your own logo, colours and name. Your first full week is made right after you choose a plan.",
+        a: "Yes. After you describe your clinic you see a live preview of how your videos will look with your own logo, colors and name. Your first full week is made right after you choose a plan.",
       },
       {
         q: "Is the advertising check legal advice?",
@@ -168,7 +168,7 @@ export const SOLUTIONS_EN: SolutionPage[] = [
       {
         heading: "Where ChatGPT helps — and where it stops",
         paragraphs: [
-          "ChatGPT and similar assistants are quick at ideas, first drafts and captions. They do not know your treatment list or brand unless you tell them each time, they can state things confidently that are wrong, and they have no built-in check for dental advertising rules in your country. Their output is text to check, not a finished video in your colours.",
+          "ChatGPT and similar assistants are quick at ideas, first drafts and captions. They do not know your treatment list or brand unless you tell them each time, they can state things confidently that are wrong, and they have no built-in check for dental advertising rules in your country. Their output is text to check, not a finished video in your colors.",
         ],
       },
       {

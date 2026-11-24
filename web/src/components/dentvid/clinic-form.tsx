@@ -25,7 +25,7 @@ const COUNTRIES = ["US", "GB", "DE", "AT", "CH", "ES", "MX", "FR", "IT", "PT", "
 /** A new clinic starts in the country and language the visitor came in with. */
 const DEFAULT_COUNTRY: Record<Locale, string> = { en: "US", de: "DE", es: "ES", tr: "TR", fr: "FR", ja: "JP", ar: "AE", pl: "PL" };
 
-/** Brand colours to try when the logo gives none (or there is no logo yet). */
+/** Brand colors to try when the logo gives none (or there is no logo yet). */
 const PRESET_COLOURS = ["#0f5c5c", "#1f4e79", "#2e7d6b", "#b6774f", "#8a3b4a", "#24303a"];
 
 /** Country names in the interface's language, from the browser's own data. */
@@ -56,7 +56,7 @@ export type DraftFields = {
 
 /**
  * One clinic profile being edited: the fields, the logo (shown at once from
- * an object URL, uploaded only on save) and the colours read from it. Shared
+ * an object URL, uploaded only on save) and the colors read from it. Shared
  * by the settings form and every step of the onboarding wizard, so the live
  * preview always shows exactly what will be saved.
  */
@@ -70,7 +70,7 @@ export function useClinicDraft({
   initial?: Partial<ClinicProfile>;
   /** A signed URL of the clinic's saved logo, to preview it before any change. */
   logoUrl?: string | null;
-  /** Arrived from a personalised demo link: sent with the save (credit, and the demo's logo is copied server side). */
+  /** Arrived from a personalized demo link: sent with the save (credit, and the demo's logo is copied server side). */
   demoToken?: string;
 }) {
   const text = appText(locale);
@@ -101,7 +101,7 @@ export function useClinicDraft({
     if (objectUrl.current) URL.revokeObjectURL(objectUrl.current);
   }, []);
 
-  // A saved logo: read its colours too, so the swatches are there on return.
+  // A saved logo: read its colors too, so the swatches are there on return.
   useEffect(() => {
     if (!savedLogoUrl) return;
     let live = true;
@@ -131,7 +131,7 @@ export function useClinicDraft({
   const [logoNotesList, setLogoNotes] = useState<string[]>([]);
   const logoText = LOGO_TEXT[locale];
 
-  /** Shows one version of the logo and reads its colours; it is what will be uploaded. */
+  /** Shows one version of the logo and reads its colors; it is what will be uploaded. */
   const showLogo = useCallback(async (file: File) => {
     latest.current = file;
     setLogo(file);
@@ -149,7 +149,7 @@ export function useClinicDraft({
 
   /**
    * A new logo: prepared in the browser (any size or format a clinic has),
-   * shown now, its colours suggested. Not a usable picture: say why in the
+   * shown now, its colors suggested. Not a usable picture: say why in the
    * clinic's language and keep the logo there was (never upload it).
    */
   const chooseLogo = useCallback(async (file: File | null) => {
@@ -508,7 +508,7 @@ export function HandleField({ draft, t }: { draft: ClinicDraft; t: AppText["form
   );
 }
 
-/** Logo upload, brand colour, the logo's own colours as one-tap swatches. */
+/** Logo upload, brand color, the logo's own colors as one-tap swatches. */
 export function BrandFields({ draft, locale, showLogoPreview = false }: { draft: ClinicDraft; locale: Locale; showLogoPreview?: boolean }) {
   const t = appText(locale).form;
   const { p, colors, logoUrl, logo } = draft;

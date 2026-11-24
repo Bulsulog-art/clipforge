@@ -69,7 +69,7 @@ export const EN: LegalText = {
         {
           heading: "3. The service",
           blocks: [
-            "DentVideo makes short, narrated and captioned patient-education videos for dental clinics. Each week it plans topics from the services you offer, writes scripts, narrates them with a synthetic voice, renders the videos with your clinic's name, colours and logo, and runs automated checks for health-advertising wording and clinical plausibility. On plans that include it, it also turns recordings you upload into short captioned clips.",
+            "DentVideo makes short, narrated and captioned patient-education videos for dental clinics. Each week it plans topics from the services you offer, writes scripts, narrates them with a synthetic voice, renders the videos with your clinic's name, colors and logo, and runs automated checks for health-advertising wording and clinical plausibility. On plans that include it, it also turns recordings you upload into short captioned clips.",
             "DentVideo is not a medical device and does not give medical, legal or regulatory advice.",
           ],
         },
@@ -89,7 +89,7 @@ export const EN: LegalText = {
         {
           heading: "6. Plans, prices and payment",
           blocks: [
-            "DentVideo is paid in advance; there is no free trial. Before you pay, you can see a live preview of videos in your clinic's name, colours and logo. Current monthly list prices, excluding tax. You pay in the currency of your billing country: euros in the euro area, Turkish lira in Türkiye, US dollars everywhere else:",
+            "DentVideo is paid in advance; there is no free trial. Before you pay, you can see a live preview of videos in your clinic's name, colors and logo. Current monthly list prices, excluding tax. You pay in the currency of your billing country: euros in the euro area, Turkish lira in Türkiye, US dollars everywhere else:",
             {
               list: [
                 "Starter: {starter} per month.",
@@ -97,8 +97,8 @@ export const EN: LegalText = {
                 "Group (groups and multi-location practices): custom terms by agreement — contact {email}. Group cannot be bought on the website.",
               ],
             },
-            "Payments are handled by Dodo Payments, which acts as merchant of record and authorised reseller: it sells you the subscription, charges your payment method, appears on your card statement, calculates and collects any applicable taxes and issues your invoice. Dodo Payments' buyer terms also apply to the purchase. We never see your full card details.",
-            "Subscriptions renew automatically at the end of each monthly billing period until cancelled. If a payment fails, we may pause new videos until it is resolved.",
+            "Payments are handled by Dodo Payments, which acts as merchant of record and authorized reseller: it sells you the subscription, charges your payment method, appears on your card statement, calculates and collects any applicable taxes and issues your invoice. Dodo Payments' buyer terms also apply to the purchase. We never see your full card details.",
+            "Subscriptions renew automatically at the end of each monthly billing period until canceled. If a payment fails, we may pause new videos until it is resolved.",
             "We may change list prices. We will tell you at least 30 days in advance by email, and a new price applies only from your next renewal after that notice.",
           ],
         },
@@ -121,7 +121,7 @@ export const EN: LegalText = {
           heading: "9. What you get",
           blocks: [
             "The videos, scripts and captions made for your clinic are yours to use for your clinic's communication, including after you cancel, for everything you have downloaded.",
-            "Some videos contain stock footage from Pexels, used under the Pexels licence, and a synthetic voice. You may use them as part of the videos, but not separately (for example, by extracting and reselling the footage).",
+            "Some videos contain stock footage from Pexels, used under the Pexels license, and a synthetic voice. You may use them as part of the videos, but not separately (for example, by extracting and reselling the footage).",
             "We do not use your uploads or your videos to train AI models, and we do not show your clinic's videos to other customers.",
             "DentVideo itself (the software, design, templates and brand) remains ours.",
           ],
@@ -151,7 +151,7 @@ export const EN: LegalText = {
         {
           heading: "13. Ending the agreement",
           blocks: [
-            "You can end the agreement by cancelling your plan and deleting your account in Settings. We can end it with 30 days' notice, or at once under section 10. When an account is deleted we delete its data as described in the [Privacy Policy](privacy).",
+            "You can end the agreement by canceling your plan and deleting your account in Settings. We can end it with 30 days' notice, or at once under section 10. When an account is deleted we delete its data as described in the [Privacy Policy](privacy).",
           ],
         },
         {
@@ -197,7 +197,7 @@ export const EN: LegalText = {
             {
               list: [
                 "Account: your email address and your login (we store a password hash, never the password itself), and whether your email address is confirmed.",
-                "Clinic profile: clinic name, city and country, language, the treatments you offer, tone, social-media handle, booking link, brand colours and logo.",
+                "Clinic profile: clinic name, city and country, language, the treatments you offer, tone, social-media handle, booking link, brand colors and logo.",
                 "Recordings you upload (on plans that include them): video and audio, which contain the voice and image of whoever appears, and a transcript.",
                 "What we make for you: topics, scripts, captions, narration, rendered videos, check results and your approvals.",
                 "Billing: your plan, subscription status, renewal date and the Dodo Payments subscription, customer and payment references. Card details are handled by Dodo Payments and never reach us.",
@@ -257,7 +257,7 @@ export const EN: LegalText = {
                 "Usage events: kept as anonymous statistics; deleting your account removes their link to your clinic.",
                 "Invoices and payment records: kept by Dodo Payments as merchant of record under its own legal obligations, and by us as far as accounting and tax law requires.",
                 "Rate-limit counters: minutes to hours.",
-                "Clinics we contact with a personalised demo: we create the demo ourselves from public business information (clinic name, city, country, brand colour and logo) and keep it for up to 60 days, unless the clinic signs up. To have a demo deleted sooner, write to {email}.",
+                "Clinics we contact with a personalized demo: we create the demo ourselves from public business information (clinic name, city, country, brand color and logo) and keep it for up to 60 days, unless the clinic signs up. To have a demo deleted sooner, write to {email}.",
                 "Ad click identifiers and the conversions recorded with them: deleted 90 days after the click. What we have already reported to Google Ads is kept by Google under its own policies.",
               ],
             },
@@ -292,11 +292,11 @@ export const EN: LegalText = {
 
     refunds: {
       title: "Refund Policy",
-      description: "How cancelling and refunds work for DentVideo subscriptions.",
+      description: "How canceling and refunds work for DentVideo subscriptions.",
       intro: ["This policy is part of our [Terms of Service](terms). In short: cancel any time, keep access until the end of the period you paid for, and if the service failed, we make it right."],
       sections: [
         {
-          heading: "1. Cancelling",
+          heading: "1. Canceling",
           blocks: [
             "You can cancel at any time in Settings (Manage billing) or by writing to {email}. Cancellation stops the next renewal; it takes effect at the end of the monthly period you have already paid for, and you keep full access until then. Videos you have downloaded stay yours. Deleting your account also cancels the subscription, at once.",
           ],
@@ -379,7 +379,7 @@ export const EN: LegalText = {
         {
           heading: "6. Sub-processors",
           blocks: [
-            "The clinic gives general authorisation for the sub-processors below. We impose data protection obligations on each of them that are no less protective than this DPA, as far as their standard terms allow, and remain responsible for them.",
+            "The clinic gives general authorization for the sub-processors below. We impose data protection obligations on each of them that are no less protective than this DPA, as far as their standard terms allow, and remain responsible for them.",
             { subprocessors: true },
             "We email the clinic at least 30 days before we add or replace a sub-processor. If the clinic objects on reasonable data protection grounds and we cannot resolve it, the clinic may cancel and we refund any prepaid fee for the period after the change.",
             "Not sub-processors: Supabase is open-source software that we run ourselves on the server above (Supabase Inc. receives no data). Google search suggestions and the Pexels stock-video library receive only general search terms, never personal data. Dodo Payments acts for payment data as an independent controller under its own terms.",

@@ -154,7 +154,7 @@ export function CreateForm({ credits, tier }: { credits: number; tier: string })
           </div>
         </Field>
 
-        <Field label="Look" hint="Colour, type and rhythm. Pick one — you'll see it on the right.">
+        <Field label="Look" hint="Color, type and rhythm. Pick one — you'll see it on the right.">
           <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
             {THEMES.map((t) => (
               <button
