@@ -104,6 +104,8 @@ export function thresholds(env: Env) {
     serverErrorPerHour: num(env.DENTVID_ALERT_5XX_PER_HOUR, 10),
     /** Most alert emails in one clock hour; past it, one "muted" note and silence until the next hour (DENTVID_ALERT_MAX_PER_HOUR). */
     maxPerHour: num(env.DENTVID_ALERT_MAX_PER_HOUR, 8),
+    /** Declined-video alerts in one clock hour, on their own budget so a clinic declining a week of videos never mutes urgent alerts (DENTVID_ALERT_DECLINES_PER_HOUR). */
+    declinesPerHour: num(env.DENTVID_ALERT_DECLINES_PER_HOUR, 6),
     /** First week not in the library this many minutes after payment → re-queued automatically (DENTVID_FIRST_WEEK_REQUEUE_MIN). */
     firstWeekRequeueMin: num(env.DENTVID_FIRST_WEEK_REQUEUE_MIN, 45),
     /** …and the owner is told after this many minutes (DENTVID_FIRST_WEEK_ALERT_MIN). */
@@ -138,6 +140,12 @@ export type OwnerAlert = {
   todo: string[];
   /** Small label/value table (tier, error, counts). */
   facts?: [string, string][];
+  /**
+   * An hourly budget of its own instead of the shared maxPerHour, for alerts
+   * that come in bursts from ordinary use ("declines": a dentist declining a
+   * week of videos). They never use up the budget urgent alerts need.
+   */
+  budget?: "declines";
 };
 
 const SEVERITY: Record<Severity, { tr: string; en: string; color: string; bg: string }> = {
@@ -334,13 +342,14 @@ export async function deliverAlert(deps: AlertDeps, a: OwnerAlert): Promise<Deli
       const entry = JSON.stringify({ at: now.toISOString(), severity: a.severity, title: a.titleEn, key: a.key, clinic: a.clinic?.name ?? a.clinic?.id ?? null });
       await safe(() => deps.store!.push(ALERT_LOG_KEY(day), entry, 3 * DAY, 200), undefined);
     }
-    const max = thresholds(env).maxPerHour;
-    const sentThisHour = deps.store ? await safe(() => deps.store!.incr(`dv:alert:hour:${hourOf(now)}`, 2 * 3600), 0) : 0;
+    const max = a.budget === "declines" ? thresholds(env).declinesPerHour : thresholds(env).maxPerHour;
+    const hourKey = a.budget ? `dv:alert:hour:${a.budget}:${hourOf(now)}` : `dv:alert:hour:${hourOf(now)}`;
+    const sentThisHour = deps.store ? await safe(() => deps.store!.incr(hourKey, 2 * 3600), 0) : 0;
     if (sentThisHour > max) {
       if (sentThisHour === max + 1) {
-        await safe(() => deps.send(renderAlert(mutedAlert(max))), false);
+        await safe(() => deps.send(renderAlert(a.budget === "declines" ? declinesMutedAlert(max) : mutedAlert(max))), false);
       }
-      log("error", "owner alert muted (hourly cap)", { key: a.key });
+      log("error", "owner alert muted (hourly cap)", { key: a.key, budget: a.budget ?? "shared" });
       await release();
       return "muted";
     }
@@ -367,6 +376,21 @@ function mutedAlert(max: number): OwnerAlert {
     what: [`More than ${max} different alerts were raised within one hour. Something broad is probably wrong (database, Redis, OpenAI or the worker).`],
     done: ["Further alerts this hour are only logged (and counted in tomorrow's digest). Alerts resume next hour."],
     todo: ["Check the worker logs and /dentvideo/admin now."],
+  };
+}
+
+function declinesMutedAlert(max: number): OwnerAlert {
+  return {
+    key: "muted:declines",
+    severity: "warning",
+    titleTr: "Bu saat çok video reddedildi, gerisi özette",
+    titleEn: "Many videos declined this hour, the rest are in the digest",
+    what: [`More than ${max} videos were declined in the app within one hour, so the declines after this one are not emailed one by one.`],
+    done: [
+      "Every decline and its note is saved on its video, and next Monday's planning reads them all.",
+      "The declines after this one are listed in tomorrow's digest. Other alerts are not affected: declines have their own hourly budget.",
+    ],
+    todo: ["Open /dentvideo/admin to read the declines and reply to the dentists."],
   };
 }
 
@@ -448,6 +472,19 @@ export const weekStateKey = (clinicId: string, week: string) => `dv:weekstate:${
 /* ------------------------------------------------------------ the alerts */
 
 const tierLabel = (c: ClinicRef) => (c.tier ? c.tier : "unknown tier");
+
+/** The admin page of one clinic, as a link for an alert. */
+export const adminClinicUrl = (clinicId: string) => `https://dentvideo.com/admin/clinic/${encodeURIComponent(clinicId)}`;
+
+/** Why a dentist declined a video: the tag the app puts in front of the note (web lib/dentvid/app-ui.ts DECLINE_REASONS). */
+export type DeclineReasonTag = "wrong" | "notUs" | "look" | "other";
+/** The words the dentist tapped, as the English app shows them. */
+const DECLINE_REASON_LABEL: Record<DeclineReasonTag, string> = {
+  wrong: "Something is wrong or unclear",
+  notUs: "Not a topic for our clinic",
+  look: "Doesn't look right",
+  other: "Something else",
+};
 
 export const alerts = {
   cancelRequested(a: { clinic: ClinicRef; plan: string; subscriptionId: string | null; renewsAt: string | null; email: string | null }): OwnerAlert {
@@ -1209,6 +1246,52 @@ export const alerts = {
       ],
       done: ["Nothing automatic — this is the moment for a personal follow-up. You get this alert once per demo and step."],
       todo: next,
+    };
+  },
+
+  /**
+   * A dentist declined one of their videos in the app (web
+   * lib/dentvid/handlers/item-patch.ts). The app tells them "your note goes
+   * to our team", so a person must actually read it: one alert per video per
+   * day, urgent when they say something in it is wrong or unclear (a possible
+   * clinical or factual mistake in a video we made).
+   */
+  videoDeclined(a: { clinic: ClinicRef; itemId: string; title?: string | null; reason?: DeclineReasonTag | null; note?: string | null }): OwnerAlert {
+    const reason = a.reason ?? null;
+    const title = a.title?.trim() ? short(oneLine(a.title), 120) : "(untitled video)";
+    const words = a.note?.trim() ? short(oneLine(a.note), 400) : null;
+    const admin = adminClinicUrl(a.clinic.id);
+    const wrong = reason === "wrong";
+    return {
+      key: `declined:${a.itemId}`,
+      severity: wrong ? "urgent" : "warning",
+      budget: "declines",
+      titleTr: wrong ? "Diş hekimi bir videoda hata olduğunu söylüyor" : "Diş hekimi bir videoyu reddetti",
+      titleEn: wrong ? "A dentist says a video is wrong or unclear" : "A dentist declined a video",
+      clinic: a.clinic,
+      what: [
+        `The dentist declined “${title}” in the app${reason ? `, with the reason “${DECLINE_REASON_LABEL[reason]}”` : ", without choosing a reason"}.`,
+        words ? `Their words: “${words}”` : "They wrote no note.",
+      ],
+      facts: [
+        ["Video", title],
+        ["Video ID", a.itemId],
+        ["Reason", reason ? `[${reason}] ${DECLINE_REASON_LABEL[reason]}` : "none chosen"],
+        ["Admin", admin],
+      ],
+      done: [
+        "The decline and the note are saved on the video; the clinic's library shows it as declined. The video was not changed or replaced.",
+        "Next Monday's planning reads it: the topic counts as declined, so the repeat filter keeps it out, it no longer counts as covering its service, and the dentist's words go to the planner as a quoted note.",
+        ...(reason === "notUs" ? ["Two “not a topic for our clinic” declines on one service within four weeks rest that service for a while, as long as the clinic's other services can still fill the week."] : []),
+        "No email went to the clinic.",
+      ],
+      todo: [
+        `Reply to the dentist in their language${a.clinic.email ? ` (${a.clinic.email})` : ""}: thank them for the note and say what changes for their next videos.`,
+        ...(wrong
+          ? ["Watch the video and check its script against the note. If it is a real mistake, triage it into docs/KNOWN_MISTAKES.md (a row and the check that will catch it) before the next release."]
+          : []),
+        `Open the clinic's admin page to see the video and its script: ${admin}`,
+      ],
     };
   },
 

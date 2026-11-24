@@ -277,7 +277,26 @@ export function gradeScript(s: RubricScript): ScriptGrade {
 }
 
 /** What the clinic already posted, for repetition checks. */
-export type PastTopic = { title: string; hook?: string; service?: string; pillar?: string; question?: string; weekOf?: string };
+export type PastTopic = {
+  title: string;
+  hook?: string;
+  service?: string;
+  pillar?: string;
+  question?: string;
+  weekOf?: string;
+  /** The dentist's decision on the video; absent while it waits (dental/memory.ts historyFromRows). */
+  decision?: "approved" | "rejected";
+  /** When the dentist decided (the row's updated_at); the decision windows count from it, else from weekOf. */
+  decidedAt?: string;
+  /** Why it was declined: the tag the app puts in front of the note (web lib/dentvid/app-ui.ts declineNote). */
+  reason?: "wrong" | "notUs" | "look" | "other";
+  /** The dentist's own words with a decline, cleaned to plain text (at most 200 characters). Data, never instructions. */
+  note?: string;
+  /** The clinic ticked it as posted. */
+  posted?: boolean;
+  /** The library photos its plan used (BACKGROUND_PATH only). */
+  backgrounds?: string[];
+};
 
 const tokens = (s: string) => new Set(norm(s).split(" ").filter((t) => t.length > 2));
 export function similarity(a: string, b: string): number {

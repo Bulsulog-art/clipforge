@@ -6,7 +6,7 @@ import { scanHardRules } from "./compliance.js";
 import { hookLimit, marketRules, speechUnits, variantRule } from "./locale.js";
 import { hookExamples } from "./examples.js";
 import { BLOCKING_HOOK, hookProblems, hookShape } from "./style.js";
-import { dropRepeats, memoryBrief, type PastTopic } from "./memory.js";
+import { dropRepeats, memoryBrief, notUsDeclines, type PastTopic } from "./memory.js";
 import { seasonalBrief } from "./calendar.js";
 import { notQuite } from "./claims.js";
 
@@ -79,12 +79,38 @@ export async function planWeek(
     requests?: string[];
     /** Told which suggestions could not be planned, and why. */
     onRefused?: (refused: RequestRefusal[]) => void;
+    /** Where a decision worth knowing is logged (a service left out); defaults to the worker's logger. */
+    log?: (msg: string, extra?: Record<string, unknown>) => void;
   } = {},
 ): Promise<Topic[]> {
   const count = Math.min(14, Math.max(1, opts.count ?? 5));
   const requests = (opts.requests ?? []).slice(0, 20);
   const history = pastTopics(opts);
-  const memory = memoryBrief(history, profile.services, opts.today);
+  // Services the dentist keeps declining as "not a topic for our clinic" are
+  // left out of this week's own topics (the clinic's own suggestions still count),
+  // and so are the patient searches about them, which would pull the week back there.
+  const resting = restingServices(profile.services, history, opts.today, count);
+  const restingKeys = new Set(resting.map(serviceKey));
+  const services = profile.services.filter((s) => !restingKeys.has(serviceKey(s)));
+  const lower = (s: string) => {
+    try {
+      return s.toLocaleLowerCase(profile.language);
+    } catch {
+      return s.toLowerCase();
+    }
+  };
+  const restingWords = resting.map((s) => lower(s).trim()).filter(Boolean);
+  const searches = (opts.patientSearches ?? []).filter((q) => !restingWords.some((w) => lower(q).includes(w)));
+  if (resting.length) {
+    const log = opts.log ?? defaultLog;
+    log("strategist: services left out this week after repeated 'not us' declines", {
+      clinic: profile.name,
+      services: resting,
+      kept: new Set(services.map(serviceKey)).size,
+      searchesLeftOut: (opts.patientSearches?.length ?? 0) - searches.length,
+    });
+  }
+  const memory = memoryBrief(history, services, opts.today);
   const season = seasonalBrief(profile.country, profile.language, opts.today);
   const { topics, refused } = await agentJson(client, {
     system: `You plan short educational videos (Reels/TikTok/Shorts) for a dental clinic.
@@ -113,12 +139,13 @@ Return JSON: { "topics": [ { "title", "pillar", "question", "hook", "service", "
     user:
       `Clinic: ${profile.name}${profile.city ? `, ${profile.city}` : ""} (${profile.country}).\n` +
       `Language: ${profile.language}. Tone: ${profile.tone}. ${addressRule(profile)}\n` +
-      `Services: ${profile.services.join(", ")}.\n` +
+      `Services: ${services.join(", ")}.\n` +
+      (resting.length && requests.length ? `The clinic's own suggestions below may also be about: ${resting.join(", ")}.\n` : "") +
       `Plan ${count} videos.` +
       (memory ? `\n${memory}` : "") +
       (season ? `\n${season}` : "") +
-      (opts.patientSearches?.length
-        ? `\nWhat patients in ${profile.country} actually type into Google about these services (real searches, this week). Build most of the week on these questions — answer them as asked, never mention prices:\n- ${opts.patientSearches.join("\n- ")}`
+      (searches.length
+        ? `\nWhat patients in ${profile.country} actually type into Google about these services (real searches, this week). Build most of the week on these questions — answer them as asked, never mention prices:\n- ${searches.join("\n- ")}`
         : "") +
       (requests.length ? `\n${requestsBrief(requests)}` : ""),
     schema: weekSchema,
@@ -128,8 +155,14 @@ Return JSON: { "topics": [ { "title", "pillar", "question", "hook", "service", "
   });
 
   // Keep only topics about services the clinic offers, and cap the count.
-  const offered = profile.services.map((s) => s.toLowerCase());
-  const isOffered = (t: Topic) => offered.some((s) => t.service.toLowerCase().includes(s) || s.includes(t.service.toLowerCase()));
+  // The clinic's own suggestions are matched against every service it lists;
+  // our own topics only against the services not resting this week.
+  const matches = (list: string[]) => {
+    const lower = list.map((s) => s.toLowerCase());
+    return (t: Topic) => lower.some((s) => t.service.toLowerCase().includes(s) || s.includes(t.service.toLowerCase()));
+  };
+  const isListed = matches(profile.services);
+  const isOffered = matches(services);
   // A topic built on a banned word ("Can a root canal be painless?") can
   // only be rejected later; drop it now and let a spare take its place.
   const clean = (t: Topic) => scanHardRules(`${t.title} ${t.hook} ${t.question}`).length === 0;
@@ -144,7 +177,7 @@ Return JSON: { "topics": [ { "title", "pillar", "question", "hook", "service", "
   for (const t of topics) {
     const i = t.request;
     if (i === undefined || i >= requests.length || outcome.get(i) === "planned") continue;
-    if (!isOffered(t)) outcome.set(i, "not_offered");
+    if (!isListed(t)) outcome.set(i, "not_offered");
     else if (!clean(t)) outcome.set(i, "ad_rules");
     else {
       outcome.set(i, "planned");
@@ -168,9 +201,47 @@ Return JSON: { "topics": [ { "title", "pillar", "question", "hook", "service", "
       const key = t.service.toLowerCase().trim();
       const n = perService.get(key) ?? 0;
       perService.set(key, n + 1);
-      return n < 2;
+      return n < PER_SERVICE;
     });
   return [...asked, ...own].slice(0, count);
+}
+
+/** The worker's logger, loaded only when something is logged (this module stays free of it in pure tests). */
+const defaultLog = (msg: string, extra?: Record<string, unknown>) => {
+  void import("../logger.js").then(({ logger }) => logger.info(extra ?? {}, msg)).catch(() => {});
+};
+
+/** The most of the strategist's own topics one service may take in a week. */
+const PER_SERVICE = 2;
+/** A service as the filters compare it: "Implants" and " implants" are one service. */
+const serviceKey = (s: string) => s.toLowerCase().trim();
+
+/**
+ * The clinic's services that rest this week: declined as "not a topic for
+ * our clinic" ([notUs]) at least twice, by decisions made in the last 28
+ * days (dental/memory.ts notUsDeclines). A service rests only while the
+ * services left can still fill the week: at least two of them, and enough
+ * that `count` topics fit at PER_SERVICE each, so resting never makes a week
+ * short of the videos the clinic pays for (or of its spares). The most
+ * declined rest first. Services are counted by name without case, the way
+ * the strategist's filters match them.
+ */
+export function restingServices(services: string[], history: PastTopic[], today: Date = new Date(), count = 5): string[] {
+  const counts = notUsDeclines(history, today, 28);
+  // Each service once, as first spelled.
+  const first = new Map<string, string>();
+  for (const s of services) if (!first.has(serviceKey(s))) first.set(serviceKey(s), s);
+  const candidates = [...first]
+    .map(([k, s], i) => ({ s, i, n: counts.get(k) ?? 0 }))
+    .filter((c) => c.n >= 2)
+    .sort((a, b) => b.n - a.n || a.i - b.i);
+  const out: string[] = [];
+  for (const c of candidates) {
+    const left = first.size - out.length - 1;
+    if (left < 2 || left * PER_SERVICE < count) break;
+    out.push(c.s);
+  }
+  return out;
 }
 
 /** History from whatever the caller has: full past topics, or just titles. */

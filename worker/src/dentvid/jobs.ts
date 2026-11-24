@@ -498,13 +498,24 @@ async function makeWeek(job: WeekJob, ctx: WeekCtx, week: string): Promise<WeekR
     // filter, and topic + week for the strategist's memory (services covered
     // lately, recent hooks and their shapes — dental/memory.ts). Before, only
     // titles were read (in no particular order), so the memory saw no hooks,
-    // services or dates at all.
-    const { data: past } = await db
-      .from("dentvid_items")
-      .select("title, topic, week_of, status")
-      .eq("clinic_id", job.clinicId)
-      .order("week_of", { ascending: false })
-      .limit(200);
+    // services or dates at all. The dentist's decisions come along (approval,
+    // the decline note, when it was decided, the posted tick) so the planner
+    // learns from them, and the plan's photos for the week's variety. A
+    // database without posted_at (0012) still reads the decisions (0001);
+    // only if that fails too does it fall back to the bare columns: a week is
+    // never planned without its history.
+    const pastQuery = (cols: string) => db.from("dentvid_items").select(cols).eq("clinic_id", job.clinicId).order("week_of", { ascending: false }).limit(200);
+    const DECIDED = "title, topic, week_of, status, approval, approval_note, updated_at, backgrounds:plan->backgrounds";
+    let read = await pastQuery(`${DECIDED}, posted_at`);
+    if (read.error) {
+      logger.warn({ clinicId: job.clinicId, err: read.error.message }, "dentvid: history without the posted tick");
+      read = await pastQuery(DECIDED);
+    }
+    if (read.error) {
+      logger.warn({ clinicId: job.clinicId, err: read.error.message }, "dentvid: history without the dentist's decisions");
+      read = await pastQuery("title, topic, week_of, status");
+    }
+    const past = read.data;
     const pastRows = (past ?? []) as PastItemRow[];
     const history = historyFromRows(pastRows);
     const ids = { clinicId: job.clinicId, ownerId };
@@ -593,7 +604,7 @@ async function makeWeek(job: WeekJob, ctx: WeekCtx, week: string): Promise<WeekR
       const d = await spend.guard.reserve("topup", job.clinicId);
       if (d.ok) {
         // This week's usable videos count as history too, so the top-up neither repeats them nor piles onto their services.
-        const thisWeek = historyFromRows(rows.filter(usableRow).map((r) => ({ title: r.title, topic: r.topic, week_of: week, status: r.status })));
+        const thisWeek = historyFromRows(rows.filter(usableRow).map((r) => ({ title: r.title, topic: r.topic, week_of: week, status: r.status, backgrounds: (r.plan as { backgrounds?: unknown } | null | undefined)?.backgrounds })));
         const extra = await produce(want - usable(), [...avoid, ...rows.map((r) => r.title)], [...history, ...thisWeek]).catch((e) => {
           logger.warn({ clinicId: job.clinicId, err: (e as Error).message }, "dentvid: top-up failed");
           topupNote = `extra topics could not be made: ${cleanError(e)}`;
