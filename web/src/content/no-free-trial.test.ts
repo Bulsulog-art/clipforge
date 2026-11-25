@@ -144,7 +144,9 @@ describe("no free-trial claims anywhere", () => {
       expect(c.teaser.cta.trim().length, l).toBeGreaterThan(0);
     }
     expect(LANDING.en.hero.cta).toBe("See it with your logo");
-    expect(LANDING.en.teaser.note).toContain("full preview of your week");
+    expect(LANDING.en.teaser.note).toContain("live preview of your own videos");
+    // The preview is the live player with the clinic's logo, not a made week: never promise "your week".
+    for (const l of LOCALES) expect(LANDING[l].teaser.note, l).not.toMatch(/full preview of your week|vollständige Vorschau Ihrer Woche|vista previa completa de tu semana|aperçu complet de votre semaine|haftanızın tam önizlemesi|1週間分の完全なプレビュー|معاينة كاملة لأسبوعكم|pełny podgląd Państwa tygodnia/);
     expect(LANDING.en.before.items[0].text).toContain("before you choose a plan");
   });
 });

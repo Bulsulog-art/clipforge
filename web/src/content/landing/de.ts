@@ -29,7 +29,7 @@ export const de: LandingContent = {
     logo: "Logo hinzufügen",
     color: "Praxisfarbe",
     cta: "Weiter: Ihre Vorschau speichern",
-    note: "Nächster Schritt: ein kostenloses Konto und die vollständige Vorschau Ihrer Woche. Sie zahlen nur, wenn Sie einen Tarif wählen. Monatlich, jederzeit kündbar.",
+    note: "Nächster Schritt: ein kostenloses Konto und eine Live-Vorschau Ihrer eigenen Videos mit Logo und Farben. Sie zahlen nur, wenn Sie einen Tarif wählen. Monatlich, jederzeit kündbar.",
   },
   monday: {
     heading: "Was jeden Montag ankommt",
@@ -188,7 +188,7 @@ export const de: LandingContent = {
   before: {
     heading: "Bevor Sie sich entscheiden",
     items: [
-      { title: "Erst ansehen.", text: "Ihr Logo in einem echten Video, kostenlos und ohne Konto. Danach die vollständige Vorschau Ihrer Woche, bevor Sie einen Tarif wählen." },
+      { title: "Erst ansehen.", text: "Ihr Logo in einem echten Video, kostenlos und ohne Konto. Danach eine Live-Vorschau Ihrer eigenen Videos, bevor Sie einen Tarif wählen." },
       { title: "Kein Dreh nötig.", text: "Im Tarif Starter müssen Sie nichts filmen. Nur wenn Sie selbst zu sehen sein möchten, macht Practice Clips aus Ihren eigenen Smartphone-Aufnahmen." },
       { title: "Geprüft, dann von Ihnen freigegeben.", text: "Jedes Skript wird softwaregestützt auf fachliche Richtigkeit und das Werberecht Ihres Landes geprüft. Ohne Ihre Freigabe wird nichts veröffentlicht, und Sie posten selbst." },
       { title: "Gefällt eins nicht? Ablehnen.", text: "Lehnen Sie ein Video mit einer kurzen Notiz ab. Es geht nirgendwohin, und die Notiz geht mit dem Video an unser Team." },

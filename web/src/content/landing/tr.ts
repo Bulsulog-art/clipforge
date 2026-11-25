@@ -29,7 +29,7 @@ export const tr: LandingContent = {
     logo: "Logonuzu ekleyin",
     color: "Klinik rengi",
     cta: "Devam: önizlemenizi kaydedin",
-    note: "Sonraki adım: ücretsiz bir hesap ve haftanızın tam önizlemesi. Yalnızca bir plan seçerseniz ödeme yaparsınız; aylık, istediğiniz zaman iptal.",
+    note: "Sonraki adım: ücretsiz bir hesap ve logonuz ile renklerinizle kendi videolarınızın canlı önizlemesi. Yalnızca bir plan seçerseniz ödeme yaparsınız; aylık, istediğiniz zaman iptal.",
   },
   monday: {
     heading: "Her pazartesi ne gelir?",
@@ -188,7 +188,7 @@ export const tr: LandingContent = {
   before: {
     heading: "Karar vermeden önce",
     items: [
-      { title: "Önce görün.", text: "Logonuz gerçek bir videoda; ücretsiz ve hesap açmadan. Ardından, plan seçmeden önce haftanızın tam önizlemesi." },
+      { title: "Önce görün.", text: "Logonuz gerçek bir videoda; ücretsiz ve hesap açmadan. Ardından, plan seçmeden önce kendi videolarınızın canlı önizlemesi." },
       { title: "Çekim gerekmez.", text: "Starter planında hiç çekim yapmazsınız. Yalnızca kendiniz görünmek isterseniz Practice, telefonla kaydettiklerinizden klipler ekler." },
       { title: "Önce kontrol, sonra sizin onayınız.", text: "Her senaryo yazılımla klinik doğruluk ve ülkenizdeki sağlık tanıtım kuralları açısından kontrol edilir. Onayınız olmadan hiçbir şey yayımlanmaz; paylaşımı kendiniz yaparsınız." },
       { title: "Beğenmediniz mi? Reddedin.", text: "Neyin yanlış olduğunu not ederek reddedersiniz. Video hiçbir yere gitmez; notunuz videoyla birlikte ekibimize ulaşır." },

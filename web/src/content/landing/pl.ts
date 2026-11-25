@@ -29,7 +29,7 @@ export const pl: LandingContent = {
     logo: "Dodaj logo",
     color: "Kolor gabinetu",
     cta: "Dalej: zapisać podgląd",
-    note: "Następny krok: konto, którego założenie nic nie kosztuje, i pełny podgląd Państwa tygodnia. Płacą Państwo dopiero po wybraniu planu.",
+    note: "Następny krok: konto, którego założenie nic nie kosztuje, i podgląd na żywo Państwa własnych filmów, z logo i kolorami. Płacą Państwo dopiero po wybraniu planu.",
   },
   monday: {
     heading: "Co przychodzi w każdy poniedziałek",
@@ -188,7 +188,7 @@ export const pl: LandingContent = {
   before: {
     heading: "Zanim Państwo zdecydują",
     items: [
-      { title: "Najpierw zobaczyć.", text: "Państwa logo na prawdziwym filmie, bez płacenia i bez zakładania konta. Potem pełny podgląd tygodnia, zanim wybiorą Państwo plan." },
+      { title: "Najpierw zobaczyć.", text: "Państwa logo na prawdziwym filmie, bez płacenia i bez zakładania konta. Potem podgląd na żywo Państwa własnych filmów, zanim wybiorą Państwo plan." },
       { title: "Nie trzeba nic nagrywać.", text: "W planie Starter nie trzeba niczego nagrywać. Tylko jeśli chcą Państwo pojawić się osobiście, plan Practice dodaje klipy z Państwa nagrań telefonem." },
       { title: "Sprawdzone, potem zatwierdzone przez Państwa.", text: "Każdy scenariusz jest sprawdzany przez oprogramowanie pod kątem poprawności klinicznej i zasad reklamy usług medycznych w Państwa kraju. Bez Państwa zgody nic nie zostanie opublikowane, a publikują Państwo sami." },
       { title: "Film się nie podoba? Można go odrzucić.", text: "Wystarczy odrzucić go z notatką, co jest nie tak. Nigdzie nie trafi, a notatka trafia do naszego zespołu razem z filmem." },

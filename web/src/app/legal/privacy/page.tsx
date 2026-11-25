@@ -78,7 +78,6 @@ export default function PrivacyPage() {
         <li><strong>OpenAI</strong> — Whisper for speech-to-text and GPT-4o-mini for moment scoring. OpenAI&apos;s API policy excludes input/output from training by default.</li>
         <li><strong>RevenueCat</strong> — subscription state, entitlement, and webhook handling.</li>
         <li><strong>Apple</strong> — App Store sign-in (if used), App Store In-App Purchase, and APNs.</li>
-        <li><strong>Sentry</strong> — crash and error reporting (no PII, IPs are anonymized).</li>
         <li><strong>Coolify-managed VPS in Europe</strong> — application hosting and render workers.</li>
       </ul>
 
