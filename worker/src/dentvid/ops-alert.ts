@@ -731,7 +731,7 @@ export const alerts = {
       done: render
         ? ["Each failed video is re-attempted once; weeks that fail are retried with backoff; short weeks are topped up once."]
         : ["Nothing automatic — each request failed for its user."],
-      todo: render ? ["Check the worker logs: OpenAI / Pexels / storage / disk / memory."] : ["Check the web app logs (and Sentry) for the route above."],
+      todo: render ? ["Check the worker logs: OpenAI / Pexels / storage / disk / memory."] : ["Check the web app logs for the route above."],
     };
   },
 
