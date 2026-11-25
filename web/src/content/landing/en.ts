@@ -30,7 +30,7 @@ export const en: LandingContent = {
     logo: "Add your logo",
     color: "Brand color",
     cta: "Continue: save your preview",
-    note: "Next step: a free account and a full preview of your week. You pay only if you choose a plan.",
+    note: "Next step: a free account and a live preview of your own videos, with your logo and colors. You pay only if you choose a plan.",
   },
   monday: {
     heading: "What arrives every Monday",
@@ -189,7 +189,7 @@ export const en: LandingContent = {
   before: {
     heading: "Before you decide",
     items: [
-      { title: "See it first.", text: "Your logo on a real video, free and without an account. Then a full preview of your week before you choose a plan." },
+      { title: "See it first.", text: "Your logo on a real video, free and without an account. Then a live preview of your own videos before you choose a plan." },
       { title: "Nothing to film.", text: "Starter needs no filming at all. Only if you want to appear yourself, Practice adds clips from your own phone recordings." },
       { title: "Checked, then approved by you.", text: "Every script is software-checked for clinical accuracy and the advertising rules where you practice. Nothing is posted without your approval, and you post it yourself." },
       { title: "Don't like one? Decline it.", text: "Decline a video with a note on what is wrong. It goes nowhere, and your note reaches our team with the video." },

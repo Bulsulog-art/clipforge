@@ -59,7 +59,7 @@ const nextConfig: NextConfig = {
     const extra = (...xs: string[]) => xs.filter(Boolean).map((x) => ` ${x}`).join("");
     // Cloudflare Turnstile on the DentVideo sign-up form, only when configured.
     const turnstile = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY?.trim() ? "https://challenges.cloudflare.com" : "";
-    // CSP scoped to what we actually load: our Supabase project, Sentry,
+    // CSP scoped to what we actually load: our Supabase project,
     // RevenueCat, and our CDN. Inline scripts are allowed for Next's
     // bootstrap & React hydration ('self' + 'unsafe-inline' is the
     // pragmatic Next.js default — tighten with nonces post-launch).
@@ -69,7 +69,7 @@ const nextConfig: NextConfig = {
     const evalSrc = process.env.NODE_ENV === "production" ? "" : " 'unsafe-eval'";
     const csp = [
       "default-src 'self'",
-      `script-src 'self' 'unsafe-inline'${evalSrc} https://*.sentry.io${extra(turnstile)}`,
+      `script-src 'self' 'unsafe-inline'${evalSrc}${extra(turnstile)}`,
       ...(turnstile ? [`frame-src 'self' ${turnstile}`] : []),
       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
       "font-src 'self' https://fonts.gstatic.com data:",
@@ -77,7 +77,7 @@ const nextConfig: NextConfig = {
       // data: for the live preview's player, which unlocks its audio tags with a silent data: mp3.
       `media-src 'self' https://*.supabase.co https://cdn.clipforge.bulsulabs.com blob: data:${extra(liman, cf)}`,
       // OpenAI and fal.ai are called server-side only, so they are not listed.
-      `connect-src 'self' https://*.supabase.co wss://*.supabase.co https://*.sentry.io https://api.revenuecat.com${extra(liman, limanWs, cf, cfWs, turnstile)}`,
+      `connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.revenuecat.com${extra(liman, limanWs, cf, cfWs, turnstile)}`,
       "frame-ancestors 'none'",
       "base-uri 'self'",
       "form-action 'self'",

@@ -29,7 +29,7 @@ export const es: LandingContent = {
     logo: "Añade tu logo",
     color: "Color de la clínica",
     cta: "Continuar: guardar tu vista previa",
-    note: "Siguiente paso: una cuenta, que no cuesta nada, y la vista previa completa de tu semana. Solo pagas si eliges un plan.",
+    note: "Siguiente paso: una cuenta, que no cuesta nada, y una vista previa en vivo de tus propios vídeos, con tu logo y tus colores. Solo pagas si eliges un plan.",
   },
   monday: {
     heading: "Qué llega cada lunes",
@@ -188,7 +188,7 @@ export const es: LandingContent = {
   before: {
     heading: "Antes de decidir",
     items: [
-      { title: "Míralo primero.", text: "Tu logo en un vídeo real, sin pagar y sin crear cuenta. Después, la vista previa completa de tu semana antes de elegir plan." },
+      { title: "Míralo primero.", text: "Tu logo en un vídeo real, sin pagar y sin crear cuenta. Después, una vista previa en vivo de tus propios vídeos antes de elegir plan." },
       { title: "No tienes que grabar nada.", text: "Con Starter no hace falta grabar. Solo si quieres aparecer tú, Practice añade clips de tus propias grabaciones con el móvil." },
       { title: "Revisado, y luego lo apruebas tú.", text: "Un software revisa cada guion según la exactitud clínica y las normas de publicidad sanitaria de tu país. No se publica nada sin tu aprobación, y lo publicas tú." },
       { title: "¿Un vídeo no te gusta? Recházalo.", text: "Recházalo con una nota sobre lo que falla. No va a ninguna parte, y la nota llega a nuestro equipo junto con el vídeo." },

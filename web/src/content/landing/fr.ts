@@ -29,7 +29,7 @@ export const fr: LandingContent = {
     logo: "Ajouter votre logo",
     color: "Couleur du cabinet",
     cta: "Continuer : enregistrer votre aperçu",
-    note: "Étape suivante : la création d'un compte, sans frais, et l'aperçu complet de votre semaine. Vous ne payez que si vous choisissez une formule.",
+    note: "Étape suivante : la création d'un compte, sans frais, et un aperçu en direct de vos propres vidéos, avec votre logo et vos couleurs. Vous ne payez que si vous choisissez une formule.",
   },
   monday: {
     heading: "Ce qui arrive chaque lundi",
@@ -188,7 +188,7 @@ export const fr: LandingContent = {
   before: {
     heading: "Avant de décider",
     items: [
-      { title: "Voyez d'abord.", text: "Votre logo sur une vraie vidéo, sans compte et sans rien payer. Puis l'aperçu complet de votre semaine avant de choisir une formule." },
+      { title: "Voyez d'abord.", text: "Votre logo sur une vraie vidéo, sans compte et sans rien payer. Puis un aperçu en direct de vos propres vidéos avant de choisir une formule." },
       { title: "Rien à filmer.", text: "La formule Starter ne demande aucun tournage. Seulement si vous souhaitez apparaître vous-même, Practice ajoute des clips tirés de vos propres enregistrements au téléphone." },
       { title: "Vérifié, puis validé par vous.", text: "Chaque script est vérifié par logiciel pour l'exactitude clinique et les règles de communication en santé de votre pays. Rien n'est publié sans votre validation, et c'est vous qui publiez." },
       { title: "Une vidéo ne vous plaît pas ? Refusez-la.", text: "Refusez-la avec une note sur ce qui ne va pas. Elle ne part nulle part, et la note arrive à notre équipe avec la vidéo." },
