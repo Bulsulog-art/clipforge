@@ -71,6 +71,15 @@ describe("DentVideo routes", () => {
     }
   });
 
+  it("let the sales agent's bearer call through on its demo route only", () => {
+    expect(isBadOrigin({ ...base, pathname: "/api/dentvideo/agent/demos", authorization: "Bearer agent-token" })).toBe(false);
+    // Without the bearer header the Origin check still applies.
+    expect(isBadOrigin({ ...base, pathname: "/api/dentvideo/agent/demos" })).toBe(true);
+    for (const pathname of ["/api/dentvideo/agent/demos/x", "/api/dentvideo/agent", "/api/dentvideo/admin/demos"]) {
+      expect(isBadOrigin({ ...base, pathname, authorization: "Bearer agent-token" }), pathname).toBe(true);
+    }
+  });
+
   it("leave the worker's internal calls and the signed unsubscribe link alone", () => {
     expect(isBadOrigin({ ...base, pathname: "/api/internal/dentvideo/notify", authorization: "Bearer worker-token" })).toBe(false);
     expect(isBadOrigin({ ...base, pathname: "/api/dentvideo/unsubscribe" })).toBe(false);
