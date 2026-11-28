@@ -75,6 +75,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libpango-1.0-0 \
     libcairo2 \
     libasound2 \
+    tini \
   && rm -rf /var/lib/apt/lists/* \
   && fc-cache -f
 
@@ -135,4 +136,8 @@ USER node
 HEALTHCHECK --interval=30s --timeout=10s --start-period=20s --retries=3 \
   CMD node -e "process.exit(0)"
 
+# tini as PID 1: reaps zombies left by healthchecks and orphaned children
+# (ffmpeg, yt-dlp, Chromium) and forwards SIGTERM to node, so the BullMQ
+# graceful shutdown in dist/index.js still runs on `docker stop`.
+ENTRYPOINT ["/usr/bin/tini", "--"]
 CMD ["node", "dist/index.js"]
