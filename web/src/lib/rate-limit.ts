@@ -233,6 +233,9 @@ export const LIMITS = {
   demoLogoIp: { limit: 60, windowSec: 10 * MIN },
   // The owner creating demos (each may fetch one logo URL).
   demoAdminUser: { limit: 60, windowSec: HOUR },
+  // The automated sales agent creating demos by bearer token (api/dentvideo/agent/demos);
+  // each may fetch one logo URL. Caps a leaked token at 60 demo rows an hour.
+  demoAgent: { limit: 60, windowSec: HOUR },
   // Lifecycle reminders (welcome is once per clinic). A hard ceiling on
   // reminder emails per hour, whatever the scheduler finds due.
   lifecycleGlobal: { limit: 100, windowSec: HOUR },

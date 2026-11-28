@@ -47,8 +47,10 @@ export function isMobileApiPath(pathname: string): boolean {
  * DentVideo routes the iOS app calls with its Supabase access token. Each uses
  * dvSession(), which verifies the bearer token and ignores the cookie when one
  * is sent. Exact shapes only: a new DentVideo route stays cookie + Origin.
+ * The sales agent's demo route reads only its own bearer token, never a cookie
+ * (lib/dentvid/agent-auth), and its server-side caller sends no Origin.
  */
-const DENTVIDEO_NATIVE = [/^\/api\/dentvideo\/items\/[0-9a-f-]{36}$/i, /^\/api\/dentvideo\/account\/delete$/];
+const DENTVIDEO_NATIVE = [/^\/api\/dentvideo\/items\/[0-9a-f-]{36}$/i, /^\/api\/dentvideo\/account\/delete$/, /^\/api\/dentvideo\/agent\/demos$/];
 
 /** True when the request must be refused before any route runs. */
 export function isBadOrigin(req: {

@@ -62,6 +62,7 @@ signed = provider signature. **Limit** after this change; ⚠ = a gap found
 | `POST /api/revenuecat/webhook` | bearer secret | DB writes | global per-IP | — |
 | `POST /api/internal/dentvideo/notify` | worker (bearer, constant-time compare) | 1 Resend email | 6/h per clinic, 300/h global | ⚠ leaked token = unlimited emails to every clinic |
 | `POST /api/internal/dentvideo/lifecycle` | worker, hourly (bearer, constant-time compare) | ≤ 50 reminder emails per run | 6 runs/h; 100 reminders/h global; once per clinic and kind (`dentvid_email_log`) | a leaked token can only send reminders that are already due, once |
+| `POST /api/dentvideo/agent/demos` | automated sales agent (bearer `DENTVIDEO_AGENT_TOKEN`, ≥ 32 chars, constant-time compare; reads no cookie, so it is exempt from the Origin check only with a bearer header) | 1 `dentvid_demos` row; at most 1 logo fetch through the SSRF guard + 1 storage upload | 60/h (`demoAgent`); JSON body ≤ 8 KB; same `parseDemoInput` rules as `/admin/demos`; **404 for everyone unless both `DENTVIDEO_AGENT_TOKEN` and `DENTVIDEO_AGENT_USER_ID` (UUID) are set**; a failed logo fetch creates the demo without a logo (`logo: "skipped"`) | a leaked token can create up to 60 public demo pages an hour with any clinic name; rotate the token to revoke |
 | `GET`/`POST /api/dentvideo/unsubscribe?t=` | anyone with the signed link (HMAC token). GET only shows a confirm page (link scanners cannot opt out); POST = the button or RFC 8058 one-click, exempt from the Origin check | 1 DB write (POST only) | 30 / 10 min per IP | — |
 | `GET /api/health?deep=1` | anon | outbound calls to Supabase, Redis, OpenAI | 10/min per IP; error text no longer exposed | ⚠ public amplifier; leaked raw error messages |
 | `GET /api/health` | anon | none | excluded from middleware | — |
@@ -473,11 +474,12 @@ users paid for, and `cost-monitor.ts` alerts daily. The OpenAI dashboard cap
 | `DENTVID_COST_WEEK_USD` / `_RESTYLE_USD` / `_RECORDING_USD` | worker | `0.50` / `0.03` / `0.50` | per-op estimates |
 | `TRUST_CF_CONNECTING_IP` | web | off | `1` once dentvideo.com is behind Cloudflare with the origin locked |
 | `DENTVIDEO_ADMIN_USER_IDS` | web | — (nobody) | comma-separated Liman auth user UUIDs that may open `/dentvideo/admin`; email addresses grant nothing |
+| `DENTVIDEO_AGENT_TOKEN` + `DENTVIDEO_AGENT_USER_ID` | web | — (route off, 404) | bearer token (≥ 32 chars) for the sales agent's `POST /api/dentvideo/agent/demos`, and the UUID its demos are recorded under (`created_by`); set both or neither |
 | `DENTVIDEO_VERIFY_SECRET` | web | falls back to `DENTVID_SERVICE_ROLE_KEY` **with a one-time `SECURITY:` warning in the log** in production | HMAC key for email codes. Set a dedicated random value (owner checklist); changing it voids only codes waiting at that moment |
 | `NEXT_PUBLIC_TURNSTILE_SITE_KEY` + `TURNSTILE_SECRET_KEY` | web (site key is build-time) | off | Cloudflare Turnstile on sign-up; set both or neither |
 | `DENTVIDEO_LEGAL_PAGES` | web | on | the sign-up consent line linking `/terms` and `/privacy` (8 languages) is shown by default; `off` hides it |
 
-Every DentVideo variable the code reads (web and worker) is listed, with its default, in `web/.env.example`. The ones that matter for security: `DENTVID_SERVICE_ROLE_KEY` (server only — never `NEXT_PUBLIC_`), `DENTVIDEO_VERIFY_SECRET`, `DENTVIDEO_UNSUBSCRIBE_SECRET`, `WORKER_INTERNAL_TOKEN`, `DODO_API_KEY`, `DODO_WEBHOOK_SECRET`, `RESEND_API_KEY`, `TURNSTILE_SECRET_KEY`, `DENTVIDEO_ADMIN_USER_IDS`, `TRUST_CF_CONNECTING_IP` (only behind a locked origin), `DENTVIDEO_DEV_PREVIEW` (never in production).
+Every DentVideo variable the code reads (web and worker) is listed, with its default, in `web/.env.example`. The ones that matter for security: `DENTVID_SERVICE_ROLE_KEY` (server only — never `NEXT_PUBLIC_`), `DENTVIDEO_VERIFY_SECRET`, `DENTVIDEO_UNSUBSCRIBE_SECRET`, `WORKER_INTERNAL_TOKEN`, `DODO_API_KEY`, `DODO_WEBHOOK_SECRET`, `RESEND_API_KEY`, `TURNSTILE_SECRET_KEY`, `DENTVIDEO_ADMIN_USER_IDS`, `DENTVIDEO_AGENT_TOKEN`, `TRUST_CF_CONNECTING_IP` (only behind a locked origin), `DENTVIDEO_DEV_PREVIEW` (never in production).
 
 The compose file loads both services from `web/.env`, so in Coolify add them to the shared env.
 
