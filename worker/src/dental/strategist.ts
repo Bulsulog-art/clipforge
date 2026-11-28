@@ -1,6 +1,6 @@
 import type OpenAI from "openai";
 import { z } from "zod";
-import { agentJson, REVIEW_MODEL } from "./llm.js";
+import { agentJson, REVIEW_EFFORT, REVIEW_MODEL } from "./llm.js";
 import { PILLARS, addressRule, type ClinicProfile } from "./profile.js";
 import { scanHardRules } from "./compliance.js";
 import { hookLimit, marketRules, speechUnits, variantRule } from "./locale.js";
@@ -152,6 +152,7 @@ Return JSON: { "topics": [ { "title", "pillar", "question", "hook", "service", "
     temperature: 0.8,
     // Hooks decide whether anyone watches; worth the stronger model once a week.
     model: REVIEW_MODEL,
+    effort: REVIEW_EFFORT,
   });
 
   // Keep only topics about services the clinic offers, and cap the count.
@@ -271,6 +272,7 @@ export async function sharpenHooks(client: OpenAI, profile: ClinicProfile, topic
   try {
     const { hooks } = await agentJson(client, {
       model: REVIEW_MODEL,
+      effort: REVIEW_EFFORT,
       temperature: 0.9,
       system: `You are the editor who writes the first line of short dental-education videos (Reels/TikTok) for a clinic, in native ${profile.language}.
 For each topic: write 4 different hooks, then pick the one a patient scrolling their feed would stop for.

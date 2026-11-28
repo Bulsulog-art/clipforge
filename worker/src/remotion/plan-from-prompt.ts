@@ -1,7 +1,8 @@
-import OpenAI from "openai";
+import type OpenAI from "openai";
 import { parseScenePlan, ScenePlanError, LIMITS, THEMES } from "./scene-plan.js";
 import { normalisePlanShape } from "./normalise-plan.js";
 import { modelParams } from "../lib/model-params.js";
+import { clipforgeModel, textClient } from "../lib/text-llm.js";
 import type { ScenePlan } from "./scene-plan.js";
 
 /**
@@ -20,7 +21,12 @@ import type { ScenePlan } from "./scene-plan.js";
  * a minute and get the same answer.
  */
 
-export const PLAN_MODEL = "gpt-4o-mini";
+/**
+ * The default planner (ClipForge's prompt-to-video): the provider's small
+ * model, claude-haiku-5-5 on Claude, gpt-4o-mini on OpenAI (lib/text-llm.ts).
+ * DentVideo passes its own writer model.
+ */
+export const PLAN_MODEL = clipforgeModel();
 
 /** Roughly what a scene plan costs to produce, for the cost model. */
 export const PLAN_COST_USD = 0.005;
@@ -114,7 +120,7 @@ function userMessage(req: PlanRequest): string {
 
 export async function planFromPrompt(
   req: PlanRequest,
-  client: OpenAI = new OpenAI(),
+  client: OpenAI = textClient(),
 ): Promise<PlanResult> {
   const assets = req.userAssetCount ?? 0;
 
@@ -158,6 +164,7 @@ async function complete(
     ...modelParams(model, 0.7),
     response_format: { type: "json_object" },
     // max_completion_tokens, not max_tokens: the reasoning models reject the latter.
+    // On Claude the adapter raises it to leave room for thinking (lib/claude-chat.ts).
     max_completion_tokens: 1600,
     messages,
   });

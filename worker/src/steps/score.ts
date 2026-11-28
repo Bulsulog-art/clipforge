@@ -1,11 +1,8 @@
-import OpenAI from "openai";
-
-// Behind an HTTPS proxy (NODE_USE_ENV_PROXY=1, e.g. a dev sandbox) use Node's
-// built-in fetch, which honours HTTPS_PROXY; the SDK's bundled node-fetch does
-// not. Production keeps the SDK default, unchanged.
-const builtinFetch = process.env.NODE_USE_ENV_PROXY
-  ? (globalThis.fetch as unknown as NonNullable<ConstructorParameters<typeof OpenAI>[0]>["fetch"])
-  : undefined;
+// The text client comes from lib/text-llm.ts: Claude (claude-haiku-5-5) by
+// default, OpenAI's gpt-4o-mini with LLM_PROVIDER=openai. Behind an HTTPS
+// proxy (NODE_USE_ENV_PROXY=1) it uses Node's own fetch.
+import { clipforgeModel, textClient } from "../lib/text-llm.js";
+import { modelParams } from "../lib/model-params.js";
 import { z } from "zod";
 import type { Transcript } from "./transcribe.js";
 import { resolveNicheTemplate } from "../niche-templates.js";
@@ -83,15 +80,15 @@ Output rules:
     .map((s, i) => `[${i}] ${s.start.toFixed(2)}–${s.end.toFixed(2)}s: ${s.text}`)
     .join("\n")}`;
 
-  const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY, fetch: builtinFetch });
-  const completion = await openai.chat.completions.create({
-    model: "gpt-4o-mini",
+  const model = clipforgeModel();
+  const completion = await textClient().chat.completions.create({
+    model,
     response_format: { type: "json_object" },
     messages: [
       { role: "system", content: system },
       { role: "user", content: user },
     ],
-    temperature: 0.4,
+    ...modelParams(model, 0.4),
   });
 
   const raw = completion.choices[0].message.content ?? "{}";

@@ -30,8 +30,13 @@ export const FR: LegalText = {
       data: "Toutes les données du service : compte, profil du cabinet, fichiers envoyés, vidéos, références de facturation, journaux.",
       location: "Allemagne (UE)",
     },
+    anthropic: {
+      purpose: "Rédige et relit les scripts et le texte de chaque publication, et effectue les contrôles automatiques des scripts. Anthropic n'utilise pas les données envoyées via son API pour entraîner ses modèles.",
+      data: "Informations du profil du cabinet utilisées dans les scripts, texte des scripts et des publications.",
+      location: "États-Unis",
+    },
     openai: {
-      purpose: "Rédige et relit les scripts, crée la narration en voix de synthèse et transcrit les enregistrements envoyés lorsque notre propre service de transcription est indisponible.",
+      purpose: "Crée la narration en voix de synthèse et transcrit les enregistrements envoyés lorsque notre propre service de transcription est indisponible. Peut aussi prendre le relais pour rédiger et relire les scripts si Anthropic est indisponible.",
       data: "Informations du profil du cabinet utilisées dans les scripts, texte des scripts, audio des enregistrements (pour la transcription).",
       location: "États-Unis",
     },

@@ -1,7 +1,10 @@
 /**
  * The agents' report card.
  *
- *   OPENAI_API_KEY=… npx tsx src/dental/eval.ts [--per 4] [--out ./dental-eval] [--only tr,de] [--max-usd 5]
+ *   ANTHROPIC_API_KEY=… npx tsx src/dental/eval.ts [--per 4] [--out ./dental-eval] [--only tr,de] [--max-usd 5]
+ *
+ * (Claude by default; LLM_PROVIDER=openai with OPENAI_API_KEY runs the OpenAI
+ * models, lib/text-llm.ts.)
  *
  * --max-usd is a hard spend cap (default 5): every chat call, the judge's
  * included, is metered, and once the bill reaches the cap no further call
@@ -35,7 +38,8 @@
  */
 import fs from "node:fs/promises";
 import path from "node:path";
-import OpenAI from "openai";
+import type OpenAI from "openai";
+import { textClient } from "../lib/text-llm.js";
 import { z } from "zod";
 import { AGENT_MODEL, agentJson, JUDGE_MODEL, REVIEW_MODEL } from "./llm.js";
 import { clinicProfileSchema, type ClinicProfile } from "./profile.js";
@@ -175,8 +179,11 @@ export function reportMarkdown(rows: EvalRow[], s: ReturnType<typeof summarise>,
 
 /**
  * USD per 1M tokens (input, output), standard tier. gpt-4o/4o-mini/4.1/5 from
- * OpenAI's price list; gpt-5.4/5.5 from price aggregators (2026 — OpenAI's
- * page was unreachable from here). Unknown models report tokens only.
+ * OpenAI's price list; gpt-5.4/5.5 from price aggregators (2026, OpenAI's
+ * page was unreachable from here). Claude from Anthropic's price list
+ * (claude-haiku-5-5 at prompts up to 100K tokens, which every call here is).
+ * Cache reads are counted at the full input price, so the metered cost is a
+ * ceiling. Unknown models report tokens only.
  */
 export const PRICES: Record<string, [number, number]> = {
   "gpt-4o-mini": [0.15, 0.6],
@@ -189,9 +196,13 @@ export const PRICES: Record<string, [number, number]> = {
   "gpt-5.4-mini": [0.75, 4.5],
   "gpt-5.4": [2.5, 15],
   "gpt-5.5": [5, 30],
+  "claude-haiku-5-5": [0.1, 0.5],
+  "claude-sonnet-5-5": [2, 10],
+  "claude-opus-5-5": [4, 20],
 };
 
-export type Usage = Record<string, { calls: number; input: number; output: number }>;
+/** Tokens per model. `cached`: input tokens read from the prompt cache (counted in `input` too, at the full price). */
+export type Usage = Record<string, { calls: number; input: number; output: number; cached?: number }>;
 
 export function usageCost(usage: Usage): number | undefined {
   let usd = 0;
@@ -243,10 +254,14 @@ export function meterClient(client: OpenAI, usage: Usage, beforeCall?: (model: s
   (completions as unknown as { create: unknown }).create = async (body: { model: string }, opts?: unknown) => {
     beforeCall?.(body.model);
     const res = (await create(body, opts)) as OpenAI.Chat.ChatCompletion;
-    const u = (usage[body.model] ??= { calls: 0, input: 0, output: 0 });
+    // The Claude adapter answers with the model that really ran (an OpenAI id is mapped, lib/claude-chat.ts).
+    const model = typeof res.model === "string" && res.model.startsWith("claude-") ? res.model : body.model;
+    const u = (usage[model] ??= { calls: 0, input: 0, output: 0 });
     u.calls++;
     u.input += res.usage?.prompt_tokens ?? 0;
     u.output += res.usage?.completion_tokens ?? 0;
+    const cached = res.usage?.prompt_tokens_details?.cached_tokens ?? 0;
+    if (cached) u.cached = (u.cached ?? 0) + cached;
     return res;
   };
   return client;
@@ -357,14 +372,14 @@ async function main() {
   const only = arg("only")?.split(",");
   const maxUsd = Number(arg("max-usd") ?? 5);
   if (!(maxUsd > 0)) throw new Error("--max-usd must be a positive number of dollars");
-  const fetchOpt = { fetch: globalThis.fetch as unknown as NonNullable<ConstructorParameters<typeof OpenAI>[0]>["fetch"] };
+  const fetchOpt = { fetch: globalThis.fetch };
   // Production calls are metered; the judge runs on its own client so its
   // tokens (the eval's cost, not a video's) stay out of the bill.
   const usage: Usage = {};
   const judgeUsage: Usage = {};
   const cap = spendCap(maxUsd, usage, judgeUsage);
-  const client = meterClient(new OpenAI(fetchOpt), usage, (m) => cap.check(m));
-  const judgeClient = meterClient(new OpenAI(fetchOpt), judgeUsage, (m) => cap.check(m));
+  const client = meterClient(textClient(fetchOpt), usage, (m) => cap.check(m));
+  const judgeClient = meterClient(textClient(fetchOpt), judgeUsage, (m) => cap.check(m));
   const panel = PANEL.filter((p) => !only || only.includes(p.language));
 
   // Clinics run in parallel; each clinic's videos run in order, as in production.

@@ -1,13 +1,20 @@
 import { cleanError, type OpsStore } from "./ops-alert.js";
 import { providerRefused } from "./retry.js";
 import { ELEVEN_BASE, ttsProvider } from "../dental/elevenlabs.js";
+import { llmProvider } from "../lib/text-llm.js";
+import { isAnthropicError } from "../lib/claude-chat.js";
 
 /**
  * Are the AI providers able to work right now? Checked before a week spends
  * anything (jobs.ts makeWeek) and once a day (index.ts, with the digest),
  * using only free endpoints: no tokens, no audio.
  *
- *   OpenAI      GET /v1/models: free. Catches a revoked or wrong key and a
+ *   Anthropic   GET /v1/models: free. The text provider (scripts, reviews)
+ *               unless LLM_PROVIDER=openai (lib/text-llm.ts). Same rules as
+ *               OpenAI below: a bad key shows in the probe, running out of
+ *               credit only on a real call, which is remembered.
+ *   OpenAI      GET /v1/models: free. Narration (and text with
+ *               LLM_PROVIDER=openai). Catches a revoked or wrong key and a
  *               deactivated account. Running out of credit does not show
  *               there, so a refusal seen on a real call (insufficient_quota,
  *               billing hard limit) is remembered in Redis for a few hours
@@ -21,7 +28,7 @@ import { ELEVEN_BASE, ttsProvider } from "../dental/elevenlabs.js";
  * probe that cannot answer must not hold up a clinic's week.
  */
 
-export type Provider = "OpenAI" | "ElevenLabs";
+export type Provider = "Anthropic" | "OpenAI" | "ElevenLabs";
 export type ProbeResult = { state: "ok" } | { state: "refused"; reason: string } | { state: "unknown"; reason: string };
 
 type Env = Record<string, string | undefined>;
@@ -72,6 +79,32 @@ export async function probeOpenAI(env: Env = process.env, fetchImpl: Fetch = fet
   return { state: "unknown", reason: `HTTP ${r.status}${code ? ` ${code}` : ""}` };
 }
 
+/** Anthropic, free: list models with the worker's key. */
+export async function probeAnthropic(env: Env = process.env, fetchImpl: Fetch = fetch): Promise<ProbeResult> {
+  const key = env.ANTHROPIC_API_KEY?.trim();
+  if (!key) return { state: "refused", reason: "ANTHROPIC_API_KEY is not set" };
+  const r = await getJson(fetchImpl, "https://api.anthropic.com/v1/models", { "x-api-key": key, "anthropic-version": "2023-06-01" });
+  if ("error" in r) return { state: "unknown", reason: r.error };
+  if (r.status >= 200 && r.status < 300) return { state: "ok" };
+  const code = errCode(r.body);
+  if (r.status === 401 || r.status === 403) return { state: "refused", reason: `HTTP ${r.status}${code ? ` ${code}` : ""} (API key or account)` };
+  if (/billing_error|credit balance/i.test(code)) return { state: "refused", reason: `HTTP ${r.status} ${code}` };
+  return { state: "unknown", reason: `HTTP ${r.status}${code ? ` ${code}` : ""}` };
+}
+
+/**
+ * Which text provider a failed call came from: an error from the Anthropic
+ * SDK or the Claude adapter is Anthropic's, anything else OpenAI's.
+ */
+export function providerOfError(e: unknown): Provider {
+  return isAnthropicError(e) ? "Anthropic" : "OpenAI";
+}
+
+/** The providers a week needs before it may spend: the text provider and OpenAI for the voice. */
+export function weekProviders(env: Env = process.env): ("Anthropic" | "OpenAI")[] {
+  return llmProvider(env) === "anthropic" ? ["Anthropic", "OpenAI"] : ["OpenAI"];
+}
+
 /** ElevenLabs, free: characters used against the plan's limit. "ok" when narration does not use ElevenLabs. */
 export async function probeElevenLabs(env: Env = process.env, fetchImpl: Fetch = fetch): Promise<ProbeResult> {
   if (ttsProvider(env) !== "elevenlabs") return { state: "ok" };
@@ -91,23 +124,35 @@ export async function probeElevenLabs(env: Env = process.env, fetchImpl: Fetch =
 export type Preflight = { ok: true } | { ok: false; provider: Provider; reason: string };
 
 /**
- * Before a week spends anything: is OpenAI (scripts, reviews and, by default,
- * narration) able to work? A refusal remembered from a real call, else the
- * free key check. ElevenLabs is not checked here: it falls back to OpenAI.
+ * Before a week spends anything: are the text provider (scripts, reviews)
+ * and OpenAI (narration, by default) able to work? For each, a refusal
+ * remembered from a real call, else the free key check. ElevenLabs is not
+ * checked here: it falls back to OpenAI.
  */
 export async function preflight(store: OpsStore | null, env: Env = process.env, fetchImpl: Fetch = fetch): Promise<Preflight> {
-  const remembered = store ? await store.get(PROVIDER_DOWN_KEY("OpenAI")).catch(() => null) : null;
-  if (remembered) return { ok: false, provider: "OpenAI", reason: `refused on a recent call: ${remembered}` };
-  const probe = await probeOpenAI(env, fetchImpl);
-  if (probe.state === "refused") return { ok: false, provider: "OpenAI", reason: probe.reason };
+  for (const provider of weekProviders(env)) {
+    const one = await checkProvider(provider, store, env, fetchImpl);
+    if (!one.ok) return one;
+  }
+  return { ok: true };
+}
+
+/** One provider: a refusal remembered from a real call, else its free key check. */
+async function checkProvider(provider: "Anthropic" | "OpenAI", store: OpsStore | null, env: Env, fetchImpl: Fetch): Promise<Preflight> {
+  const remembered = store ? await store.get(PROVIDER_DOWN_KEY(provider)).catch(() => null) : null;
+  if (remembered) return { ok: false, provider, reason: `refused on a recent call: ${remembered}` };
+  const probe = provider === "Anthropic" ? await probeAnthropic(env, fetchImpl) : await probeOpenAI(env, fetchImpl);
+  if (probe.state === "refused") return { ok: false, provider, reason: probe.reason };
   return { ok: true };
 }
 
 /** The daily check: every provider in use, free endpoints only. The refusals, for the owner. */
 export async function dailyProviderCheck(store: OpsStore | null, env: Env = process.env, fetchImpl: Fetch = fetch): Promise<{ provider: Provider; reason: string; fallback: boolean }[]> {
   const out: { provider: Provider; reason: string; fallback: boolean }[] = [];
-  const openai = await preflight(store, env, fetchImpl);
-  if (!openai.ok) out.push({ provider: "OpenAI", reason: openai.reason, fallback: false });
+  for (const provider of weekProviders(env)) {
+    const one = await checkProvider(provider, store, env, fetchImpl);
+    if (!one.ok) out.push({ provider, reason: one.reason, fallback: false });
+  }
   const eleven = await probeElevenLabs(env, fetchImpl);
   if (eleven.state === "refused") out.push({ provider: "ElevenLabs", reason: eleven.reason, fallback: true });
   return out;

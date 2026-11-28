@@ -12,12 +12,12 @@ import { sendPush } from "../push.js";
 const COST: Record<string, number> = {
   // Worker pipeline (clipforge.video_jobs)
   job_render:        0.02,    // ffmpeg + storage per job (~12 clips)
-  job_score:         0.001,   // gpt-4o-mini scoring
+  job_score:         0.002,   // moment scoring (thinking tokens included) on the small text model (claude-haiku-5-5; gpt-4o-mini on LLM_PROVIDER=openai)
   // Local faster-whisper service runs on our own server — $0 marginal
   job_transcribe:    0.00,
 
   // Derivatives (clipforge.clip_derivatives)
-  derivative_translation: 0.005,  // gpt-4o-mini + tts-1-hd
+  derivative_translation: 0.005,  // small text model (claude-haiku-5-5) + tts-1-hd
 
   // Avatars (clipforge.video_jobs where source_kind='avatar' — actually
   // tracked via avatar_jobs OR clips.source_kind; we count clips.source_kind).

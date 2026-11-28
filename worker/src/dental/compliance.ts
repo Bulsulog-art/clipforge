@@ -1,6 +1,6 @@
 import type OpenAI from "openai";
 import { z } from "zod";
-import { agentJson, REVIEW_MODEL } from "./llm.js";
+import { agentJson, REVIEW_EFFORT, REVIEW_MODEL } from "./llm.js";
 import type { ClinicProfile } from "./profile.js";
 import { marketLanguage, marketLanguages, marketRules } from "./locale.js";
 import { scanHardRules, scanMarketRules, type HardHit } from "./hard-rules.js";
@@ -115,6 +115,7 @@ export async function reviewCompliance(
     // ("können dazu beitragen" → "können helfen") until good videos ran out
     // of attempts; judgement is what this agent is for.
     model: REVIEW_MODEL,
+    effort: REVIEW_EFFORT,
   });
   // The model sometimes "fixes" a sentence into itself, or flags a plain
   // question as a promise ("Can tartar affect your heart?" — seen live in

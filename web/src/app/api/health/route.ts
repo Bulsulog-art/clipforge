@@ -32,7 +32,7 @@ export async function GET(req: Request) {
   if (!deep) {
     return NextResponse.json({ ok: true, ts: Date.now() });
   }
-  // The deep check calls Supabase, Redis and OpenAI: not for anyone to hammer.
+  // The deep check calls Supabase, Redis, OpenAI and Anthropic: not for anyone to hammer.
   const limited = await rateLimited([{ key: `rl:health:ip:${clientIp(req.headers)}`, rule: LIMITS.healthDeepIp }], () => "too many requests");
   if (limited) return limited;
 
@@ -40,6 +40,7 @@ export async function GET(req: Request) {
     checkSupabase(),
     checkRedis(),
     checkOpenAI(),
+    ...(process.env.ANTHROPIC_API_KEY ? [checkAnthropic()] : []),
   ]);
   const subsystems = Object.fromEntries(results.map((r) => [r.name, r]));
   const allOk = results.every((r) => r.ok);
@@ -186,6 +187,29 @@ async function checkOpenAI(): Promise<Probe> {
       // Not the raw message: this endpoint is public, and errors can name hosts.
       detail: probeError(e),
     };
+  }
+}
+
+/**
+ * Anthropic (the worker's text provider: scripts, reviews, captions). Listed
+ * only where a key is set, so a web app without one is not reported as down.
+ * GET /v1/models is free, like OpenAI's.
+ */
+async function checkAnthropic(): Promise<Probe> {
+  const start = Date.now();
+  try {
+    const res = await withTimeout(
+      fetch("https://api.anthropic.com/v1/models", {
+        headers: { "x-api-key": process.env.ANTHROPIC_API_KEY ?? "", "anthropic-version": "2023-06-01" },
+      }),
+      2500,
+    );
+    return {
+      name: "anthropic", ok: res.ok, latencyMs: Date.now() - start,
+      detail: res.ok ? undefined : `HTTP ${res.status}`,
+    };
+  } catch (e) {
+    return { name: "anthropic", ok: false, latencyMs: Date.now() - start, detail: probeError(e) };
   }
 }
 

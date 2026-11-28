@@ -1,6 +1,8 @@
 import { describe, expect, it, vi } from "vitest";
 import { UnrecoverableError } from "bullmq";
-import { backoffDelay, classifyFailure, isLastAttempt, TransientWeekError, WEEK_JOB_OPTS } from "./retry.js";
+import Anthropic from "@anthropic-ai/sdk";
+import { backoffDelay, classifyFailure, isLastAttempt, providerRefused, TransientWeekError, WEEK_JOB_OPTS } from "./retry.js";
+import { ClaudeStopError } from "../lib/claude-chat.js";
 import { dispatchKey, dispatchWeeks } from "./schedule.js";
 import { MemoryOpsStore } from "./ops-alert.js";
 
@@ -35,6 +37,32 @@ describe("retry classification", () => {
     ["billing hard limit", Object.assign(err("Billing hard limit has been reached", 400), { code: "billing_hard_limit_reached" })],
     ["unrecoverable", new UnrecoverableError("recording path outside the owner's folder")],
   ])("%s → permanent", (_n, e) => expect(classifyFailure(e)).toBe("permanent"));
+});
+
+describe("retry classification: Anthropic (the text provider)", () => {
+  const api = (status: number, type: string, message: string) => Anthropic.APIError.generate(status, { type: "error", error: { type, message } }, message, new Headers());
+
+  it.each([
+    ["Claude 429 rate limit", api(429, "rate_limit_error", "Number of request tokens has exceeded your per-minute rate limit")],
+    ["Claude 529 overloaded", api(529, "overloaded_error", "Overloaded")],
+    ["Claude 500", api(500, "api_error", "Internal server error")],
+    ["Claude connection timeout", new Anthropic.APIConnectionTimeoutError()],
+    ["Claude reply cut off", new ClaudeStopError("max_tokens", "claude-sonnet-5-5")],
+    ["Claude declined one script", new ClaudeStopError("refusal", "claude-sonnet-5-5")],
+  ])("%s → transient, and not a provider refusal", (_n, e) => {
+    expect(classifyFailure(e)).toBe("transient");
+    expect(providerRefused(e)).toBe(false);
+  });
+
+  it.each([
+    ["Claude bad key", api(401, "authentication_error", "invalid x-api-key")],
+    ["Claude out of credit", api(400, "invalid_request_error", "Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits.")],
+    ["Claude billing error", api(402, "billing_error", "billing")],
+    ["Claude no access", api(403, "permission_error", "Your API key does not have permission to use the specified resource.")],
+  ])("%s → permanent and a provider refusal (nothing spent, week budget given back)", (_n, e) => {
+    expect(classifyFailure(e)).toBe("permanent");
+    expect(providerRefused(e)).toBe(true);
+  });
 });
 
 describe("backoff", () => {

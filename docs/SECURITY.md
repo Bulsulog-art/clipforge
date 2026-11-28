@@ -75,7 +75,7 @@ cost model; `worker/src/jobs/cost-monitor.ts` pushes a daily $ alert).
 
 | Endpoint | Cost | Existing gate | Notes |
 |---|---|---|---|
-| `POST /api/jobs`, `/api/jobs/upload` (≤ 4 GB), `/api/jobs/[id]/retry` | download/transcribe/render (CPU), gpt-4o-mini scoring | monthly `videos_limit` quota | upload size checked server-side |
+| `POST /api/jobs`, `/api/jobs/upload` (≤ 4 GB), `/api/jobs/[id]/retry` | download/transcribe/render (CPU), moment scoring on the small text model (claude-haiku-5-5) | monthly `videos_limit` quota | upload size checked server-side |
 | `POST /api/generate`, `/api/generate/assets` (≤ 200 MB) | LLM plan + TTS + render | 1 credit | — |
 | `POST /api/clips/[id]/translate` | LLM + TTS | 2–5 credits | — |
 | `POST /api/clips/[id]/remix` | full pipeline | 1 credit (charged in worker) | — |

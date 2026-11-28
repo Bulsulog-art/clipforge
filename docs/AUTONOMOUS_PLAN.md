@@ -165,7 +165,64 @@ The judge reads formal address as "less warm". Formal address is the clinic's ch
 What the judge still asks for: more surprise in hooks and warmer Turkish narration.
 These are the next levers. The writer brief is fine; the reviewers no longer cost rewrites for nothing.
 
-## Model choice (2026-11-08)
+## Text on Claude (2026-11-28)
+
+**Owner's request:** move every text call (DentVideo and ClipForge) from OpenAI to the Claude API (about $200 a month of credit), Sonnet where quality matters, Haiku where it is enough. OpenAI stays only for what Claude does not do: narration (TTS) and the transcription fallback.
+
+**What runs where now** (`worker/src/lib/text-llm.ts`, `worker/src/lib/claude-chat.ts`):
+
+| Work | Model | Effort |
+|---|---|---|
+| DentVideo writers: scene planner, copywriter, shoot card | claude-sonnet-5-5 | medium |
+| DentVideo reviewers: clinical accuracy, compliance, narrator, strategist, hook editor | claude-sonnet-5-5 | high |
+| Eval judge (fixed, never the candidate) | claude-opus-5-5 | medium |
+| ClipForge: moment scoring, caption translation, trend snapshots, prompt-to-video plan | claude-haiku-5-5 | medium |
+| Narration (TTS), transcription fallback | OpenAI, unchanged | |
+
+- **How:** one adapter gives the Claude Messages API the chat-completions shape every caller already used, so the spend meters, the voice-down breaker and the tests stay as they were. System turns become the cached system prompt; JSON replies are cut out of any code fence; a refusal, a reply cut off at the token limit or a full context throws a clear error, so the existing retry and repair rounds run instead of parsing half an answer.
+- **Roll back without a deploy:** `LLM_PROVIDER=openai` (the OpenAI models above come back). Without `ANTHROPIC_API_KEY` the worker also stays on OpenAI. `DENTVID_AGENT_MODEL`, `DENTVID_REVIEW_MODEL`, `DENTVID_JUDGE_MODEL` still override the models; `DENTVID_AGENT_EFFORT` and `DENTVID_REVIEW_EFFORT` (low, medium, high) change the effort.
+- **Health:** the pre-flight before a week and the daily check probe Anthropic (free `GET /v1/models`) as well as OpenAI; a refusal on a real Claude call (out of credit, bad key) is remembered under "Anthropic" and stops the next weeks before they spend, as it already did for OpenAI. The web deep health check lists Anthropic when the key is set.
+- **Spend guard:** the per-operation estimates follow the provider (`spend-guard.ts` `COST_DEFAULTS_CLAUDE`): week $1.60, top-up $1.00, change $0.40, recording $0.75, restyle $0.03, about twice what was measured.
+- **Legal:** Anthropic is listed as a sub-processor in all 8 languages (privacy policy and DPA table), with OpenAI kept for narration and transcription.
+
+### Eval: tr, de, en, `--per 4`, judge claude-opus-5-5
+
+| Run | Config | Videos | Ready | First pass | Hook | Voice | Voice tr / de / en | $/ready video (metered) |
+|---|---|---|---|---|---|---|---|---|
+| 1 | first port, prompts unchanged | 12 | 100% | 75% | 3.42 | 3.25 | 3.00 / 3.25 / 3.50 | 0.134 |
+| 2 | narrator prompt tuned | 12 | 100% | 42% | 3.75 | 3.58 | 3.50 / 3.75 / 3.50 | 0.146 |
+| 3 | + warning-sign rule (**now**) | 12 | 100% | 83% | 3.67 | 3.50 | 3.50 / 3.50 / 3.50 | 0.137 |
+| 4 | as 3, efforts low / medium | 12 | 92% | 50% | 3.45 | 3.55 | 3.25 / 3.50 / 4.00 | 0.127 |
+| 5 | as 3, second run (**now**) | 12 | 100% | 75% | 3.42 | 3.00 | 2.75 / 3.25 / 3.00 | 0.134 |
+| **3 + 5** | **now** | 24 | **100%** | **79%** | **3.54** | **3.25** | 3.13 / 3.38 / 3.25 | **0.136** |
+
+**Next to the OpenAI baseline** (gpt-5.4-mini / gpt-5.4, judged by gpt-4o, "Model choice" below): ready 96%, first pass 88%, hook 3.96, voice 4.09, $0.034 per ready video.
+
+**The judges are not on the same scale.** No OpenAI call was allowed for this comparison, so gpt-4o could not judge the Claude scripts. To see how much stricter the Claude judge is, it scored the 15 OpenAI-era production scripts in `worker/src/dental/fixtures/baseline-scripts.json` (gpt-4o-mini / gpt-4o era, the config gpt-4o had judged at hook 3.96, voice 3.48): **hook 2.13, voice 1.87** (tr 1.4 / 1.4, de 2.0 / 2.0, es 3.0 / 2.2). So the Claude judge is roughly 1.6 to 1.8 points stricter, and the Claude scripts score 1.4 points higher than those OpenAI scripts under the same judge. How the Claude scripts compare with gpt-5.4 under one judge is not measured.
+
+**What this says, plainly:**
+- **Ready rate held or improved** (100% in 4 of 5 runs). The only lost video was in the low-effort run.
+- **First pass is a little lower: 79% against 88%.** The rewrites are real catches by the reviewers at high effort, not format failures: "tell your dentist at the next check-up" about bleeding or growing pain (fixed in the writer prompts by the warning-sign rule, run 3), a § 3 HWG risk-free reading of an implant line, a point said twice. No video failed on JSON or length.
+- **Voice is the noisiest number:** the same config scored 3.50 and 3.00 in runs 3 and 5. The judge's notes in the latest runs are about rhythm ("short, even sentences", "slightly list-like"), not grammar, register or translation smell.
+- **Lower effort does not pay:** writers low and reviewers medium saved 8% and lost ready rate and first pass (run 4). Effort stays medium / high.
+- **Cost:** $0.136 per ready video metered, about 4 times the OpenAI text cost. The meter counts cache reads at the full input price; about half the input tokens were cache reads, which Anthropic bills at $0.10 instead of $2 per million, so the real figure is nearer $0.11 (estimate, check the Anthropic invoice). A clinic's month (about 22 videos) is about $2.40 to $3.00 of text; $200 a month covers normal weeks for roughly 65 to 80 clinics. ClipForge on Haiku costs about the same as before.
+
+**Prompts changed for Claude:**
+- Narrator (`narrate.ts`): vary the rhythm and join related points with spoken links instead of a row of equally short statements; do not repeat the on-screen hook word for word. Claude followed "no sentence longer than 12 words" literally and the judge called it choppy.
+- Writers and narrator (`week.ts`, `narrate.ts`): a warning sign (bleeding that keeps coming back, pain or swelling that gets worse, something loose) is to be seen soon, never "at your next check-up". The accuracy reviewer kept rejecting that wording.
+- No other prompt needed a change: no "think step by step" boilerplate was in them, and the JSON instruction is added by the adapter.
+
+**ClipForge real check:** one moment-scoring call and one caption translation on Haiku (`/home/user/wt-shots/claude-api-migration/clipforge-real-check.txt` on the build machine): two well-formed moments with hooks, captions, hashtags and keywords in 3.9 s; three phrases into natural Turkish in 0.8 s.
+
+**Spend for this measurement:** $8.58 metered in all (5 eval runs $8.46 including the judge, the judge calibration $0.12, the ClipForge check under a cent), within the owner's $12 cap.
+
+**How to run it:**
+```bash
+cd worker
+ANTHROPIC_API_KEY=… NODE_USE_ENV_PROXY=1 npx tsx src/dental/eval.ts --per 4 --only tr,de,en --max-usd 3 --out eval-<name>
+```
+
+## Model choice (2026-11-08, OpenAI)
 
 **Question from the owner:** are the agents and the voice on the best models?
 
@@ -220,7 +277,7 @@ Per run:
 **Cost:** text costs **$0.034 per ready video, up from $0.024** (+$0.010, +44%), with metered tokens and the judge excluded. That is about $0.05 more per clinic per 5-video week, which is negligible against the $49 Starter plan.
 - Prices per million tokens (input / output): gpt-4o-mini 0.15/0.60, gpt-4o 2.50/10, gpt-4.1-mini 0.40/1.60, gpt-4.1 2/8, gpt-5.4-mini 0.75/4.50, gpt-5.4 2.50/15.
 - The gpt-5.4 prices come from price aggregators, because platform.openai.com is outside this session's allowlist. Check them against the OpenAI invoice.
-- To roll back without a deploy: `DENTVID_AGENT_MODEL=gpt-4o-mini DENTVID_REVIEW_MODEL=gpt-4o`.
+- To roll back without a deploy: `DENTVID_AGENT_MODEL=gpt-4o-mini DENTVID_REVIEW_MODEL=gpt-4o` (with `LLM_PROVIDER=openai` since text moved to Claude).
 
 ### Voice: tts-1-hd vs gpt-4o-mini-tts
 **Setup:**
@@ -269,11 +326,11 @@ In run 1 the judge flagged two mispronunciations, both from gpt-4o-mini-tts: "me
 ```
 cd worker
 DENTVID_AGENT_MODEL=<writer> DENTVID_REVIEW_MODEL=<reviewer> NODE_USE_ENV_PROXY=1 \
-  npx tsx src/dental/eval.ts --per 4 --only tr,de,en --out eval-<name>   # judge stays gpt-4o
+  npx tsx src/dental/eval.ts --per 4 --only tr,de,en --out eval-<name>   # judge stays fixed per provider (gpt-4o on OpenAI, claude-opus-5-5 on Claude)
 npx tsx src/dental/voice-eval.ts --from eval-<name>/eval.json --out voice --per-lang 3
 ```
 - **Text eval:** `eval.json` records `costs` (tokens per model, $ per video and per ready video, judge excluded) and each ready video's narration and planned length.
-- **Model settings:** `worker/src/lib/model-params.ts` handles what each model accepts. The gpt-5/6 reasoning models reject any temperature except 1 and take `reasoning_effort` instead. gpt-5.4 accepts a temperature when its reasoning effort is "none".
+- **Model settings:** `worker/src/lib/model-params.ts` handles what each model accepts. Claude models take no temperature, only an effort (low, medium, high). The gpt-5/6 reasoning models reject any temperature except 1 and take `reasoning_effort` instead. gpt-5.4 accepts a temperature when its reasoning effort is "none".
 - **Models the key can use (2026-11-08):** gpt-4o, gpt-4o-mini, gpt-4.1, gpt-4.1-mini, gpt-5, gpt-5-mini, gpt-5-nano, gpt-5.1, gpt-5.2, gpt-5.4, gpt-5.4-mini, gpt-5.4-nano, gpt-5.5, gpt-5.6-*, gpt-6-*, gpt-6.1-*, o3, tts-1, tts-1-hd, gpt-4o-mini-tts, gpt-audio, gpt-4o-transcribe, whisper-1.
 
 ### Would Anthropic Claude or ElevenLabs be better?
