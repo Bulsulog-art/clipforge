@@ -32,11 +32,11 @@ export const DE: LegalText = {
     },
     anthropic: {
       purpose: "Schreibt und prüft die Skripte und den Text zu jedem Beitrag und führt die automatischen Skriptprüfungen durch. Anthropic verwendet Daten, die über seine API gesendet werden, nicht zum Training seiner Modelle.",
-      data: "In Skripten verwendete Praxisangaben, Skript- und Beitragstext.",
+      data: "In Skripten verwendete Praxisangaben, Skript- und Beitragstext, Transkripte hochgeladener Aufnahmen.",
       location: "USA",
     },
     openai: {
-      purpose: "Erzeugt die synthetische Sprecherstimme und transkribiert hochgeladene Aufnahmen, wenn unser eigener Transkriptionsdienst nicht verfügbar ist. Kann auch das Schreiben und Prüfen der Skripte übernehmen, wenn Anthropic nicht verfügbar ist.",
+      purpose: "Erzeugt die synthetische Sprecherstimme und transkribiert hochgeladene Aufnahmen, wenn unser eigener Transkriptionsdienst nicht verfügbar ist. Wir können es auch anstelle von Anthropic für das Schreiben und Prüfen der Skripte einsetzen.",
       data: "In Skripten verwendete Praxisangaben, Skripttext, Tonspur von Aufnahmen (zur Transkription).",
       location: "USA",
     },

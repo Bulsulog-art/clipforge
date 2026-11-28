@@ -7,6 +7,7 @@ import {
   extractJson,
   fromClaudeMessage,
   JSON_INSTRUCTION,
+  MAX_MAX_TOKENS,
   MIN_MAX_TOKENS,
   toClaudeRequest,
   type MessagesApi,
@@ -99,12 +100,12 @@ describe("request mapping", () => {
     expect(req.messages.at(-1)?.role).toBe("user");
   });
 
-  it("maps reasoning_effort to output_config.effort; OpenAI-only levels become low", () => {
+  it("maps reasoning_effort to output_config.effort; OpenAI-only levels get the default, never low", () => {
     const at = (e?: string) => toClaudeRequest({ model: "claude-sonnet-5-5", reasoning_effort: e, messages: [{ role: "user", content: "x" }] }).output_config;
     expect(at("high")).toEqual({ effort: "high" });
     expect(at("medium")).toEqual({ effort: "medium" });
-    expect(at("none")).toEqual({ effort: "low" });
-    expect(at("minimal")).toEqual({ effort: "low" });
+    expect(at("none")).toEqual({ effort: "medium" });
+    expect(at("minimal")).toEqual({ effort: "medium" });
     expect(at(undefined)).toEqual({ effort: "medium" });
   });
 
@@ -178,6 +179,23 @@ describe("the adapter as a client", () => {
     // The rejected answer and the validator's message are sent back on the repair call.
     expect(calls[1].messages.map((m) => m.role)).toEqual(["user", "assistant", "user"]);
     expect(String(calls[1].messages[2].content)).toMatch(/rejected/);
+  });
+
+  it("a reply cut off at the token limit gets one more try with the largest budget and one step less effort", async () => {
+    const { api, calls } = fakeApi(reply("{\"n\":", { stop_reason: "max_tokens" }), reply('{"n":3}'));
+    const out = await agentJson(claudeChatClient(api), { system: "s", user: "u", schema: z.object({ n: z.number() }), model: "claude-sonnet-5-5", effort: "high" });
+    expect(out).toEqual({ n: 3 });
+    expect(calls).toHaveLength(2);
+    expect(calls[0]).toMatchObject({ max_tokens: MIN_MAX_TOKENS, output_config: { effort: "high" } });
+    expect(calls[1]).toMatchObject({ max_tokens: MAX_MAX_TOKENS, output_config: { effort: "medium" } });
+  });
+
+  it("cut off twice: the video fails with the stop error, after exactly one extra try", async () => {
+    const cut = () => reply("{", { stop_reason: "max_tokens" });
+    const { api, calls } = fakeApi(cut(), cut(), cut());
+    await expect(agentJson(claudeChatClient(api), { system: "s", user: "u", schema: z.object({}), model: "claude-sonnet-5-5", effort: "medium" })).rejects.toThrow(/cut off at the token limit/);
+    expect(calls).toHaveLength(2);
+    expect(calls[1].output_config).toEqual({ effort: "low" });
   });
 
   it("lets a refusal surface as an error, not as an empty JSON object", async () => {

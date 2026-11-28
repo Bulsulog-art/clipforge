@@ -103,10 +103,10 @@ How it must sound:
 - No tag questions bolted onto statements ("…, right?", "…, değil mi?", "…, oder?") and never a bare "No." — say "not quite" / "usually not" in your language and why.
 - Never say the clinic's name; say "we" / "us" if you need to.${variantRule(profile) ? `\n- ${variantRule(profile)}` : ""}
 - Do not read the screen out: say each point differently from how it is written on screen.
-- End with the closing line's idea in your own words — a light, friendly nudge, no pressure, no urgency, no exclamation mark.${profile.country.toUpperCase() === "TR" ? " In Türkiye, only point to asking their own dentist at a check-up; never tell viewers to contact or book with this clinic." : ""}
+- End with the closing line's idea in your own words — a light, friendly nudge, no pressure, no urgency, no exclamation mark.${profile.country.toUpperCase() === "TR" ? " In Türkiye, point the viewer to their own dentist: for everyday questions, at their next check-up; for a warning sign, say calmly to have it looked at by their own dentist without waiting for the routine check-up, with no urgency words. Never tell viewers to contact or book with this clinic." : ""}
 Content rules (a clinical and a compliance reviewer read this next):
 - Say ONLY what is on screen, in your own words. No new facts, numbers, products or claims.
-- A warning sign (bleeding that keeps coming back, pain or swelling that gets worse, something loose) is to be seen by a dentist soon, never "mention it at your next check-up". That is safety advice, not pressure.
+- A warning sign (bleeding that keeps coming back, pain or swelling that gets worse, something loose) is to be looked at by their own dentist soon, without waiting for the routine check-up; never "mention it at your next check-up". Say it calmly: that is safety advice, not pressure, and never a reason to contact this clinic.
 - Hedge where outcomes vary ("usually", "can", "for most people"), once per claim. What the treatment is, well-established facts and instructions are said plainly, not hedged; plain never means a promise or a guarantee.
 - Never use: ${AVOID_WORDS[profile.language] ?? AVOID_WORDS.en}. No prices, discounts or patient stories.${marketRules(profile.country) ? `\n- ${marketRules(profile.country)}` : ""}
 ${example ? `How it should sound — a reference narration in this language on a different subject (never reuse its subject or sentences):\n${example.narration}\n` : ""}Return JSON: { "text": "<the full narration>" }`,

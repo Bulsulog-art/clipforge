@@ -32,11 +32,11 @@ export const TR: LegalText = {
     },
     anthropic: {
       purpose: "Metinleri ve her paylaşımın açıklama yazısını yazar ve inceler, otomatik metin kontrollerini yapar. Anthropic, API'si üzerinden gönderilen verileri modellerini eğitmek için kullanmaz.",
-      data: "Metinlerde kullanılan klinik profili bilgileri, metinler ve paylaşım yazıları.",
+      data: "Metinlerde kullanılan klinik profili bilgileri, metinler ve paylaşım yazıları, yüklenen kayıtların yazıya dökülmüş metni.",
       location: "ABD",
     },
     openai: {
-      purpose: "Yapay seslendirmeyi oluşturur ve kendi transkripsiyon hizmetimiz kullanılamadığında yüklenen kayıtları yazıya döker. Anthropic kullanılamadığında metinleri yazma ve inceleme işini de üstlenebilir.",
+      purpose: "Yapay seslendirmeyi oluşturur ve kendi transkripsiyon hizmetimiz kullanılamadığında yüklenen kayıtları yazıya döker. Metinleri yazmak ve incelemek için Anthropic yerine de kullanabiliriz.",
       data: "Metinlerde kullanılan klinik profili bilgileri, metinler, kayıtların sesi (yazıya dökmek için).",
       location: "ABD",
     },

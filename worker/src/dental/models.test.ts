@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { DEFAULT_AGENT_MODEL, DEFAULT_REVIEW_MODEL, JUDGE_MODEL, resolveEfforts, resolveJudge, resolveModels } from "./llm.js";
+import { DEFAULT_AGENT_MODEL, DEFAULT_REVIEW_MODEL, JUDGE_MODEL, ignoredModelOverrides, resolveEfforts, resolveJudge, resolveModels } from "./llm.js";
 import { params } from "../lib/model-params.js";
 import { resolveVoice, speakingTempo, voiceFor, voiceInstructions } from "./voice.js";
 import { wer } from "./voice-eval.js";
@@ -42,6 +42,26 @@ describe("resolveModels", () => {
     expect(resolveJudge({ ANTHROPIC_API_KEY: "k", DENTVID_JUDGE_MODEL: "claude-sonnet-5-5" })).toBe("claude-sonnet-5-5");
     expect(resolveModels({ ANTHROPIC_API_KEY: "k", LLM_PROVIDER: "openai" })).toEqual({ agent: "gpt-5.4-mini", review: "gpt-5.4" });
     expect(resolveJudge({ ANTHROPIC_API_KEY: "k", LLM_PROVIDER: "openai" })).toBe("gpt-4o");
+  });
+});
+
+describe("an OpenAI id left in DENTVID_*_MODEL while text runs on Claude", () => {
+  it("is ignored: the writers stay on Sonnet, the reviewers on Sonnet at high effort, the judge on Opus", () => {
+    const env = { ANTHROPIC_API_KEY: "k", DENTVID_AGENT_MODEL: "gpt-5.4-mini", DENTVID_REVIEW_MODEL: "gpt-5.4", DENTVID_JUDGE_MODEL: "gpt-4o" };
+    const m = resolveModels(env);
+    expect(m).toEqual({ agent: "claude-sonnet-5-5", review: "claude-sonnet-5-5" });
+    expect(resolveJudge(env)).toBe("claude-opus-5-5");
+    // The reviewers' effort reaches Claude (before: gpt-5.4 gave "none", which the adapter turned into low).
+    expect(params(m.review, 0.1, "high")).toEqual({ reasoning_effort: "high" });
+    expect(ignoredModelOverrides(env)).toEqual(["DENTVID_AGENT_MODEL=gpt-5.4-mini", "DENTVID_REVIEW_MODEL=gpt-5.4", "DENTVID_JUDGE_MODEL=gpt-4o"]);
+  });
+
+  it("the old documented rollback (gpt-4o-mini / gpt-4o) is ignored on Claude, and honoured with LLM_PROVIDER=openai", () => {
+    const old = { DENTVID_AGENT_MODEL: "gpt-4o-mini", DENTVID_REVIEW_MODEL: "gpt-4o" };
+    expect(resolveModels({ ANTHROPIC_API_KEY: "k", ...old })).toEqual({ agent: "claude-sonnet-5-5", review: "claude-sonnet-5-5" });
+    expect(resolveModels({ ANTHROPIC_API_KEY: "k", LLM_PROVIDER: "openai", ...old })).toEqual({ agent: "gpt-4o-mini", review: "gpt-4o" });
+    expect(ignoredModelOverrides({ ANTHROPIC_API_KEY: "k", LLM_PROVIDER: "openai", ...old })).toEqual([]);
+    expect(ignoredModelOverrides({ ANTHROPIC_API_KEY: "k" })).toEqual([]);
   });
 });
 

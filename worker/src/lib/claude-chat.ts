@@ -18,7 +18,7 @@ import type OpenAI from "openai";
  *                   maps to the Claude model of the same tier (`claudeModelFor`)
  *   effort          `reasoning_effort` low|medium|high|xhigh|max becomes
  *                   `output_config.effort`; OpenAI-only values ("none",
- *                   "minimal") become "low"
+ *                   "minimal") get the default effort, never less
  *   temperature     dropped: the current models accept only the default
  *   max tokens      thinking counts toward the limit, so a caller's small cap
  *                   (written for a model without thinking) is raised to
@@ -72,7 +72,7 @@ export function defaultEffort(_model: string): ClaudeEffort {
  * the SDK accepts without streaming.
  */
 export const MIN_MAX_TOKENS = 16_000;
-const MAX_MAX_TOKENS = 20_000;
+export const MAX_MAX_TOKENS = 20_000;
 
 /** Added to the system prompt when the caller asked for JSON. */
 export const JSON_INSTRUCTION =
@@ -181,7 +181,7 @@ export function toClaudeRequest(body: ChatBody): Anthropic.MessageCreateParamsNo
   if (json) systemParts.push(JSON_INSTRUCTION);
 
   const effortIn = body.reasoning_effort ?? undefined;
-  const effort: ClaudeEffort = effortIn && EFFORTS.includes(effortIn) ? (effortIn as ClaudeEffort) : effortIn ? "low" : defaultEffort(model);
+  const effort: ClaudeEffort = effortIn && EFFORTS.includes(effortIn) ? (effortIn as ClaudeEffort) : defaultEffort(model);
   const asked = Number(body.max_completion_tokens ?? body.max_tokens ?? 0) || 0;
   const system = systemParts.join("\n\n");
   return {

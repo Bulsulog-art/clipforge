@@ -93,11 +93,27 @@ export async function probeAnthropic(env: Env = process.env, fetchImpl: Fetch = 
 }
 
 /**
- * Which text provider a failed call came from: an error from the Anthropic
- * SDK or the Claude adapter is Anthropic's, anything else OpenAI's.
+ * Words only Anthropic's refusals use: its out-of-credit message, its key
+ * header, its error types, and the Claude adapter's stop errors.
  */
-export function providerOfError(e: unknown): Provider {
-  return isAnthropicError(e) ? "Anthropic" : "OpenAI";
+const ANTHROPIC_REFUSAL = /credit balance is too low|x-api-key|authentication_error|billing_error|claude (declined the request|reply cut off|returned no text|context window)/i;
+
+/**
+ * Which provider a failed call came from. An error from the Anthropic SDK or
+ * the Claude adapter, or one tagged `provider: "Anthropic"`, is Anthropic's.
+ * Mid-week the per-video errors reach jobs.ts only as text and come back as a
+ * plain Error ("zero usable videos, the AI provider refused (...)"), so while
+ * text runs on Claude the message is read too: Anthropic's own refusal words
+ * mean Anthropic. Anything else is OpenAI's (narration, or text after a
+ * rollback).
+ */
+export function providerOfError(e: unknown, env: Env = process.env): Provider {
+  if (isAnthropicError(e)) return "Anthropic";
+  const tagged = (e as { provider?: unknown } | null)?.provider;
+  if (tagged === "Anthropic" || tagged === "OpenAI") return tagged;
+  const msg = `${(e as Error | null)?.message ?? ""}`;
+  if (llmProvider(env) === "anthropic" && ANTHROPIC_REFUSAL.test(msg)) return "Anthropic";
+  return "OpenAI";
 }
 
 /** The providers a week needs before it may spend: the text provider and OpenAI for the voice. */

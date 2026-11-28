@@ -94,6 +94,9 @@ export const COST_DEFAULTS_OPENAI: Record<SpendOp, number> = { week: 0.5, restyl
  */
 export const COST_DEFAULTS_CLAUDE: Record<SpendOp, number> = { week: 1.6, restyle: 0.03, recording: 0.75, topup: 1.0, change: 0.4 };
 
+/** How many clinics' Monday weeks the default global daily cap covers. */
+export const DAILY_CAP_WEEKS = 40;
+
 /** The estimates for the text provider in use (lib/text-llm.ts). */
 export function costDefaults(env: Record<string, string | undefined> = process.env): Record<SpendOp, number> {
   return llmProvider(env) === "anthropic" ? COST_DEFAULTS_CLAUDE : COST_DEFAULTS_OPENAI;
@@ -132,8 +135,10 @@ export function guardConfig(env: Record<string, string | undefined> = process.en
   const maxChanges = num(env.DENTVID_MAX_CHANGES_PER_CLINIC_WEEK, 3);
   return {
     paused: env.DENTVID_PAUSE_GENERATION === "1" || env.DENTVID_PAUSE_GENERATION === "true",
-    // ~40 paying clinics' Monday runs at the estimate above, with room for retries.
-    dailyUsd: num(env.DENTVID_DAILY_USD_CAP, 20),
+    // About 40 paying clinics' Monday weeks at the provider's estimate, with
+    // room for retries: $20 with text on OpenAI, $64 on Claude. It applies
+    // when the number of paying clinics is unknown (scaledCaps).
+    dailyUsd: num(env.DENTVID_DAILY_USD_CAP, Math.round(DAILY_CAP_WEEKS * defaults.week * 100) / 100),
     monthlyUsd: num(env.DENTVID_MONTHLY_USD_CAP, 300),
     // A Monday whose week needed all 4 attempts (retry.ts) and a top-up each
     // time: 4 × 0.50 + 4 × 0.30 = $3.20, plus a recording or a few restyles.

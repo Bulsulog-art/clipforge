@@ -106,13 +106,13 @@ OPENAI_API_KEY=x npx vitest run src/dental         # includes the baseline snaps
 
 ```bash
 cd worker
-ANTHROPIC_API_KEY=… npx tsx src/dental/eval.ts --only tr,es,de --per 5 --max-usd 3 --out dental-eval
+OPENAI_API_KEY=sk-… npx tsx src/dental/eval.ts --only tr,es,de --per 5 --max-usd 3 --out dental-eval
 npx tsx src/dental/offline-eval.ts --fixtures dental-eval/scripts.json --out dental-eval
 ```
 
 `--max-usd` defaults to 5. Every chat call is metered, the judge's included, and once the bill reaches the cap no further call is made. The clinics still running stop, and the report covers what finished; calls already in flight can overshoot the cap by cents. The eval refuses to start a call for a model without a price in `eval.ts PRICES`, because then the cost could not be capped.
 
-Text runs on Claude since 2026-11-28 (docs/AUTONOMOUS_PLAN.md, "Text on Claude"). At the metered $0.136 per ready video, 15 videos come to about $2.10 plus about $0.15 for the judge, under a $3 cap. The full 10-language panel (`--per 4`, 40 videos) is about $6. With `LLM_PROVIDER=openai` the old figure holds: $0.034 per ready video. The report adds `rubric` and `variety` columns next to ready rate, first pass, hook and voice. `scripts.json` holds every ready script in fixture form, so the run can be re-graded for free after any rubric change.
+At the recorded $0.034 per ready video, 15 videos come to about $0.50 plus the judge, well under a $3 cap. The full 10-language panel (`--per 4`, 40 videos) is about $2. The report adds `rubric` and `variety` columns next to ready rate, first pass, hook and voice. `scripts.json` holds every ready script in fixture form, so the run can be re-graded for free after any rubric change.
 
 ## Follow-ups outside this change
 

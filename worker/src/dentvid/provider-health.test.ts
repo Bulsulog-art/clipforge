@@ -120,6 +120,21 @@ describe("Anthropic, the text provider (lib/text-llm.ts)", () => {
     expect(await preflight(store, BOTH, f as never)).toEqual({ ok: true });
   });
 
+  it("a refusal that reached jobs.ts only as text is Anthropic's by its words while text runs on Claude, OpenAI's after a rollback", () => {
+    const claude = { LLM_PROVIDER: "anthropic", ANTHROPIC_API_KEY: "k" };
+    const rolledBack = { LLM_PROVIDER: "openai", ANTHROPIC_API_KEY: "k" };
+    const midWeek = new Error('zero usable videos — the AI provider refused (3 technical failures; last: 400 {"type":"error","error":{"type":"invalid_request_error","message":"Your credit balance is too low to access the Anthropic API."}})');
+    expect(providerOfError(midWeek, claude)).toBe("Anthropic");
+    expect(providerOfError(new Error('401 {"type":"error","error":{"type":"authentication_error","message":"invalid x-api-key"}}'), claude)).toBe("Anthropic");
+    expect(providerOfError(new Error("claude declined the request (claude-x)"), claude)).toBe("Anthropic");
+    expect(providerOfError(Object.assign(new Error("whatever"), { provider: "Anthropic" }), {})).toBe("Anthropic");
+    // OpenAI's own refusals stay OpenAI's (narration runs on OpenAI under Claude too).
+    expect(providerOfError(new Error("429 You exceeded your current quota"), claude)).toBe("OpenAI");
+    expect(providerOfError(new Error("Incorrect API key provided"), claude)).toBe("OpenAI");
+    // After a rollback text is OpenAI's again: the words alone do not move it to Anthropic.
+    expect(providerOfError(midWeek, rolledBack)).toBe("OpenAI");
+  });
+
   it("an overloaded or rate-limited Claude call is not remembered", async () => {
     const store = new MemoryOpsStore();
     const err = new Anthropic.RateLimitError(429, { type: "error", error: { type: "rate_limit_error", message: "slow down" } }, "slow down", new Headers());

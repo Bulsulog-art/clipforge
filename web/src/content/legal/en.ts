@@ -32,11 +32,11 @@ export const EN: LegalText = {
     },
     anthropic: {
       purpose: "Writes and reviews scripts and the text that goes with each post, and runs the automated script checks. Anthropic does not use data sent through its API to train its models.",
-      data: "Clinic profile details used in scripts, script and post text.",
+      data: "Clinic profile details used in scripts, script and post text, transcripts of uploaded recordings.",
       location: "United States",
     },
     openai: {
-      purpose: "Creates the synthetic narration and transcribes uploaded recordings when our own transcription service is unavailable. Can also take over writing and reviewing scripts if Anthropic is unavailable.",
+      purpose: "Creates the synthetic narration and transcribes uploaded recordings when our own transcription service is unavailable. We can also use it instead of Anthropic for writing and reviewing scripts.",
       data: "Clinic profile details used in scripts, script text, recording audio (for transcription).",
       location: "United States",
     },

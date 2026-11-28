@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { COST_DEFAULTS_CLAUDE, COST_DEFAULTS_OPENAI, costDefaults, guardConfig, MemoryGuardStore, SpendGuard } from "./spend-guard.js";
+import { COST_DEFAULTS_CLAUDE, COST_DEFAULTS_OPENAI, costDefaults, guardConfig, MemoryGuardStore, scaledCaps, SpendGuard } from "./spend-guard.js";
 
 /**
  * With text on Claude a video costs more than on the OpenAI models, so the
@@ -23,6 +23,17 @@ describe("spend guard on Claude", () => {
     expect(c.topup).toBeGreaterThanOrEqual(2 * 3 * (0.14 + 0.02));
     expect(c.change).toBeGreaterThanOrEqual(2 * (0.14 + 0.02));
     for (const op of Object.keys(c) as (keyof typeof c)[]) expect(c[op]).toBeGreaterThanOrEqual(COST_DEFAULTS_OPENAI[op]);
+  });
+
+  it("the global daily cap still covers about 40 clinics' Mondays on Claude when the clinic count is unknown", () => {
+    const claude = guardConfig({ ANTHROPIC_API_KEY: "k" });
+    const openai = guardConfig({ LLM_PROVIDER: "openai" });
+    // OpenAI keeps its $20; on Claude a fixed $20 would have parked the 13th clinic's week.
+    expect(openai.dailyUsd).toBe(20);
+    expect(claude.dailyUsd).toBe(64);
+    expect(scaledCaps(claude, null).dailyUsd / claude.costUsd.week).toBeGreaterThanOrEqual(40);
+    // The owner's own cap still wins.
+    expect(guardConfig({ ANTHROPIC_API_KEY: "k", DENTVID_DAILY_USD_CAP: "25" }).dailyUsd).toBe(25);
   });
 
   it("an explicit DENTVID_COST_*_USD still wins", () => {
