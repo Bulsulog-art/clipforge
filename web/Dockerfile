@@ -31,6 +31,9 @@ ENV NODE_ENV=production NEXT_TELEMETRY_DISABLED=1 PORT=3000
 # (GET localhost:3000/api/health) was refused, rolling back every deploy.
 ENV HOSTNAME=0.0.0.0
 RUN addgroup --system --gid 1001 nodejs && adduser --system --uid 1001 nextjs
+# tini as PID 1: reaps orphaned/zombie children (the 10s healthcheck spawns a
+# node process each time; node as PID 1 never reaps) and forwards SIGTERM.
+RUN apk add --no-cache tini
 
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
@@ -43,4 +46,5 @@ EXPOSE 3000
 # curl is not in node:alpine; check health with node itself.
 HEALTHCHECK --interval=10s --timeout=5s --start-period=15s --retries=3 \
   CMD node -e "fetch('http://127.0.0.1:3000/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"
+ENTRYPOINT ["/sbin/tini", "--"]
 CMD ["node", "server.js"]
