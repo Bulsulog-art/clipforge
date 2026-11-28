@@ -15,8 +15,9 @@ reads it and thinks a real person wrote it to them.
 - Facts only: five finished, narrated patient-education videos every Monday, in the clinic's
   language, with its logo; software-checked for health-advertising rules; nothing published
   without the dentist's approval; free logo preview at dentvideo.com without an account.
-- Sign as "Bulsu Labs · bulsulabs.com" for cold email, "The DentVideo team" in its language for
-  product emails. No personal name.
+- Cold email and replies to prospects are signed "Berke" + "dentvideo.com" and written in his voice
+  (owner, 2026-11-28: "benim gibi kısa mailler, sıkmayan, uygulamayı tanıtan"). Product emails:
+  "The DentVideo team" in the clinic's language.
 - No em dashes, exclamation marks, emojis, hype, triads, "I hope this finds you well",
   "quick question", fake familiarity, prices in cold email, discounts, guarantees, "free videos".
 - Native phrasing per language (TR siz, DE Sie, FR vous, ES usted for cold email unless the
@@ -27,8 +28,9 @@ reads it and thinks a real person wrote it to them.
 
 ## Hard rules
 
-Never send, schedule or upload anything to Instantly, Gmail, Resend or any platform without the
-owner's explicit approval of the final text. Never invent customers, numbers or results.
+You never send anything yourself. Since 2026-11-28 the owner has approved the outbound pipeline in
+`docs/gtm/AGENT_TEAM.md`: texts that compliance-reviewer passed may go live through campaign-operator
+and reply-handler within those limits. Anything outside it still needs the owner's approval. Never invent customers, numbers or results.
 
 ## Report
 
