@@ -1,9 +1,9 @@
-import OpenAI from "openai";
+import { clipforgeModel, textClient } from "../lib/text-llm.js";
+import { modelParams } from "../lib/model-params.js";
 import { supabase } from "../supabase.js";
 import { logger } from "../logger.js";
 import { sendPush } from "../push.js";
 
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
 const NICHES = [
   "motivation", "business", "finance", "health", "tech",
@@ -11,10 +11,11 @@ const NICHES = [
 ];
 
 /**
- * Build a daily trend snapshot per niche using GPT-4o-mini.
+ * Build a daily trend snapshot per niche with the small text model
+ * (claude-haiku-5-5, or gpt-4o-mini with LLM_PROVIDER=openai).
  *
  * NOTE: production version would feed this from TikTok Creative Center scrape
- * + Reddit r/popular + YouTube trending. For MVP we use GPT-4o-mini to
+ * + Reddit r/popular + YouTube trending. For MVP we use the small model to
  * generate 10 plausible "trending hook formats" with examples — costs ~$0.003
  * per niche per day → $0.30/mo for 10 niches.
  *
@@ -23,10 +24,11 @@ const NICHES = [
 export async function buildTrendSnapshot(niche: string) {
   logger.info({ niche }, "trend snapshot start");
 
-  const completion = await openai.chat.completions.create({
-    model: "gpt-4o-mini",
+  const model = clipforgeModel();
+  const completion = await textClient().chat.completions.create({
+    model,
     response_format: { type: "json_object" },
-    temperature: 0.7,
+    ...modelParams(model, 0.7),
     messages: [
       {
         role: "system",
@@ -56,7 +58,7 @@ export async function buildTrendSnapshot(niche: string) {
     niche,
     source: "gpt",
     items,
-    meta: { model: "gpt-4o-mini" },
+    meta: { model },
   });
 
   logger.info({ niche, count: items.length }, "trend snapshot ready");

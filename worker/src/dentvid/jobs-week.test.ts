@@ -865,6 +865,33 @@ describe("provider pre-flight before a week spends", () => {
     await runDentvidWeek({ clinicId: CLINIC, count: 5 }, { attempts: 4 });
     expect(await ops.get(PROVIDER_DOWN_KEY("OpenAI"))).toBeNull();
   });
+
+  it("text on Claude runs out of credit mid-week: every video fails, and the refusal and the next week's alert name Anthropic, not OpenAI", async () => {
+    const { preflight, PROVIDER_DOWN_KEY } = await import("./provider-health.js");
+    // A fake key only so the adapter can be built: produceWeek is a fake and makes no call.
+    const env = { LLM_PROVIDER: "anthropic", ANTHROPIC_API_KEY: "test-not-a-key", OPENAI_API_KEY: "x" };
+    for (const [k, v] of Object.entries(env)) vi.stubEnv(k, v);
+    try {
+      const credit = '400 {"type":"error","error":{"type":"invalid_request_error","message":"Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits."}}';
+      // The top-up asks for more topics and they fail the same way.
+      produceWeek.mockResolvedValue(["a", "b", "c"].map((t) => ({ ...broken(t), error: credit })));
+      await expect(runDentvidWeek({ clinicId: CLINIC, count: 3 }, { attemptsMade: 0, attempts: 4 })).rejects.toBeInstanceOf(UnrecoverableError);
+      expect(await ops.get(PROVIDER_DOWN_KEY("Anthropic"))).toMatch(/credit balance is too low/);
+      expect(await ops.get(PROVIDER_DOWN_KEY("OpenAI"))).toBeNull();
+      // The next clinic's week stops before spending, and the owner is told to top up Anthropic.
+      mails.length = 0;
+      produceWeek.mockReset();
+      _setPreflight(() => preflight(ops, env, (async () => new Response("{}", { status: 200 })) as never));
+      await expect(runDentvidWeek({ clinicId: CLINIC, count: 5 }, { attemptsMade: 0, attempts: 4 })).rejects.toBeInstanceOf(TransientWeekError);
+      expect(produceWeek).not.toHaveBeenCalled();
+      expect(mails).toHaveLength(1);
+      expect(mails[0].subject).toMatch(/Anthropic/);
+      expect(mails[0].subject).not.toMatch(/OpenAI/);
+      expect(mails[0].text).toMatch(/Top up or fix the Anthropic account/);
+    } finally {
+      vi.unstubAllEnvs();
+    }
+  });
 });
 
 describe("a week's runs count against the Monday it delivers (spend-guard.ts countersFor)", () => {

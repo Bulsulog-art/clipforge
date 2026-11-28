@@ -14,7 +14,7 @@
  * higher efforts add latency and output tokens (billed) on every call. Not
  * yet measured against higher efforts in the eval.
  */
-export type Effort = "none" | "minimal" | "low";
+export type Effort = "none" | "minimal" | "low" | "medium" | "high";
 
 /**
  * Typed for the SDK as temperature only: the installed openai types predate
@@ -23,11 +23,18 @@ export type Effort = "none" | "minimal" | "low";
  */
 export type ModelParams = { temperature?: number };
 
-export function modelParams(model: string, temperature: number | undefined): ModelParams {
-  return params(model, temperature) as ModelParams;
+export function modelParams(model: string, temperature: number | undefined, effort?: "low" | "medium" | "high"): ModelParams {
+  return params(model, temperature, effort) as ModelParams;
 }
 
-export function params(model: string, temperature: number | undefined): { temperature?: number; reasoning_effort?: Effort } {
+/**
+ * Claude models (lib/claude-chat.ts) take no temperature: they accept only
+ * the default. They take an effort instead (`reasoning_effort` here, turned
+ * into output_config.effort by the adapter): "medium" for the writers unless
+ * the caller asks for more (the reviewers ask for "high").
+ */
+export function params(model: string, temperature: number | undefined, effort?: "low" | "medium" | "high"): { temperature?: number; reasoning_effort?: Effort } {
+  if (/^claude-/.test(model)) return { reasoning_effort: effort ?? "medium" };
   if (/^(gpt-4|gpt-3|chatgpt|chat-latest)/.test(model)) return temperature === undefined ? {} : { temperature };
   if (/^gpt-5(-mini|-nano)?(-\d{4}-\d{2}-\d{2})?$/.test(model)) return { reasoning_effort: "minimal" };
   if (/^gpt-6\.1/.test(model)) return { reasoning_effort: "low" };

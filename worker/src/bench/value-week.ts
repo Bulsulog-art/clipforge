@@ -2,7 +2,7 @@
  * Value bench: one realistic week for three clinics in three markets, read the
  * way the clinic owner reads it — would a dentist proudly post this?
  *
- *   cd worker && OPENAI_API_KEY=… npx tsx src/bench/value-week.ts --out DIR
+ *   cd worker && ANTHROPIC_API_KEY=… OPENAI_API_KEY=… npx tsx src/bench/value-week.ts --out DIR
  *        [--only tr,de,us] [--count 3] [--render 1] [--ledger FILE] [--max-usd 3] [--label before]
  *
  * Clinics: a general practice in İzmir (TR, formal, information-only market),
@@ -24,7 +24,8 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
-import OpenAI from "openai";
+import type OpenAI from "openai";
+import { textClient } from "../lib/text-llm.js";
 import { clinicProfileSchema, type ClinicProfile } from "../dental/profile.js";
 import { produceWeek, planText, type VideoPackage } from "../dental/week.js";
 import { meterClient, spendCap, usageCost, SpendCapError, type Usage } from "../dental/eval.js";
@@ -175,8 +176,8 @@ async function main() {
 
   const usage: Usage = {};
   const cap = spendCap(room, usage);
-  const fetchOpt = { fetch: globalThis.fetch as unknown as NonNullable<ConstructorParameters<typeof OpenAI>[0]>["fetch"] };
-  const client = meterClient(new OpenAI(fetchOpt), usage, (m) => cap.check(m));
+  const fetchOpt = { fetch: globalThis.fetch };
+  const client = meterClient(textClient(fetchOpt), usage, (m) => cap.check(m));
   await fs.mkdir(out, { recursive: true });
   let ttsUsd = 0;
 

@@ -1,6 +1,6 @@
 import type OpenAI from "openai";
 import { z } from "zod";
-import { agentJson, REVIEW_MODEL } from "./llm.js";
+import { agentJson, REVIEW_EFFORT, REVIEW_MODEL } from "./llm.js";
 import { addressRule, type ClinicProfile } from "./profile.js";
 import { AVOID_WORDS } from "./compliance.js";
 import { exampleFor } from "./examples.js";
@@ -91,20 +91,22 @@ export async function narrate(
   const example = exampleFor(profile, topic);
   const { text } = await agentJson(client, {
     model: REVIEW_MODEL,
+    effort: REVIEW_EFFORT,
     temperature: 0.7,
     system: `You are the dentist at ${profile.name}${profile.city ? ` in ${profile.city}` : ""}, recording the voice-over for a short educational video. You speak native, everyday ${profile.language}.
 How it must sound:
 - One person talking to one patient across the chair. Tone: ${profile.tone}. ${addressRule(profile)} Formal address can still be warm: everyday words, not brochure language.
 - ${SPOKEN_CUES[profile.language] ?? SPOKEN_CUES.en}
-- Open by saying the hook in your own spoken words, in the first sentence (it must land in the first two seconds) — as a question or a moment the viewer recognises, not as a headline. Never open with a stock filler phrase.
-- Short and medium sentences mixed, none longer than about ${profile.language === "tr" || profile.language === "de" ? 12 : 15} words — a voice reads this, and long sentences lose the listener. Connect points with spoken links, never "firstly/secondly" and never read a list as a list.
+- Open by saying the hook in your own spoken words, in the first sentence (it must land in the first two seconds) — as a question or a moment the viewer recognises, not as a headline. Do not repeat the on-screen hook word for word, and do not say it twice. Never open with a stock filler phrase.
+- Short and medium sentences mixed, none longer than about ${profile.language === "tr" || profile.language === "de" ? 12 : 15} words — a voice reads this, and long sentences lose the listener. Vary the rhythm so it flows like speech, not a row of equally short statements: join related points with the spoken links people use ("and", "so", "because", "but" in your language). Never "firstly/secondly", and never read a list as a list, even when the screen shows one.
 - Each sentence adds something new. Do not repeat a word or idea you already said, and do not restate the takeaway at the end.
 - No tag questions bolted onto statements ("…, right?", "…, değil mi?", "…, oder?") and never a bare "No." — say "not quite" / "usually not" in your language and why.
 - Never say the clinic's name; say "we" / "us" if you need to.${variantRule(profile) ? `\n- ${variantRule(profile)}` : ""}
 - Do not read the screen out: say each point differently from how it is written on screen.
-- End with the closing line's idea in your own words — a light, friendly nudge, no pressure, no urgency, no exclamation mark.${profile.country.toUpperCase() === "TR" ? " In Türkiye, only point to asking their own dentist at a check-up; never tell viewers to contact or book with this clinic." : ""}
+- End with the closing line's idea in your own words — a light, friendly nudge, no pressure, no urgency, no exclamation mark.${profile.country.toUpperCase() === "TR" ? " In Türkiye, point the viewer to their own dentist: for everyday questions, at their next check-up; for a warning sign, say calmly to have it looked at by their own dentist without waiting for the routine check-up, with no urgency words. Never tell viewers to contact or book with this clinic." : ""}
 Content rules (a clinical and a compliance reviewer read this next):
 - Say ONLY what is on screen, in your own words. No new facts, numbers, products or claims.
+- A warning sign (bleeding that keeps coming back, pain or swelling that gets worse, something loose) is to be looked at by their own dentist soon, without waiting for the routine check-up; never "mention it at your next check-up". Say it calmly: that is safety advice, not pressure, and never a reason to contact this clinic.
 - Hedge where outcomes vary ("usually", "can", "for most people"), once per claim. What the treatment is, well-established facts and instructions are said plainly, not hedged; plain never means a promise or a guarantee.
 - Never use: ${AVOID_WORDS[profile.language] ?? AVOID_WORDS.en}. No prices, discounts or patient stories.${marketRules(profile.country) ? `\n- ${marketRules(profile.country)}` : ""}
 ${example ? `How it should sound — a reference narration in this language on a different subject (never reuse its subject or sentences):\n${example.narration}\n` : ""}Return JSON: { "text": "<the full narration>" }`,

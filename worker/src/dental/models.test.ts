@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { DEFAULT_AGENT_MODEL, DEFAULT_REVIEW_MODEL, JUDGE_MODEL, resolveModels } from "./llm.js";
+import { DEFAULT_AGENT_MODEL, DEFAULT_REVIEW_MODEL, JUDGE_MODEL, ignoredModelOverrides, resolveEfforts, resolveJudge, resolveModels } from "./llm.js";
 import { params } from "../lib/model-params.js";
 import { resolveVoice, speakingTempo, voiceFor, voiceInstructions } from "./voice.js";
 import { wer } from "./voice-eval.js";
@@ -29,6 +29,49 @@ describe("resolveModels", () => {
   it("keeps the eval judge fixed, whatever the candidates are", () => {
     expect(JUDGE_MODEL).toBe("gpt-4o");
   });
+
+  it("runs on Claude when an Anthropic key is set: Sonnet writes and reviews, Opus judges", () => {
+    const env = { ANTHROPIC_API_KEY: "k" };
+    expect(resolveModels(env)).toEqual({ agent: "claude-sonnet-5-5", review: "claude-sonnet-5-5" });
+    expect(resolveJudge(env)).toBe("claude-opus-5-5");
+    expect(resolveJudge({ ...env, DENTVID_AGENT_MODEL: "claude-haiku-5-5" })).toBe("claude-opus-5-5");
+  });
+
+  it("keeps the env overrides on Claude, and LLM_PROVIDER=openai rolls back to the OpenAI defaults", () => {
+    expect(resolveModels({ ANTHROPIC_API_KEY: "k", DENTVID_AGENT_MODEL: "claude-haiku-5-5" })).toEqual({ agent: "claude-haiku-5-5", review: "claude-sonnet-5-5" });
+    expect(resolveJudge({ ANTHROPIC_API_KEY: "k", DENTVID_JUDGE_MODEL: "claude-sonnet-5-5" })).toBe("claude-sonnet-5-5");
+    expect(resolveModels({ ANTHROPIC_API_KEY: "k", LLM_PROVIDER: "openai" })).toEqual({ agent: "gpt-5.4-mini", review: "gpt-5.4" });
+    expect(resolveJudge({ ANTHROPIC_API_KEY: "k", LLM_PROVIDER: "openai" })).toBe("gpt-4o");
+  });
+});
+
+describe("an OpenAI id left in DENTVID_*_MODEL while text runs on Claude", () => {
+  it("is ignored: the writers stay on Sonnet, the reviewers on Sonnet at high effort, the judge on Opus", () => {
+    const env = { ANTHROPIC_API_KEY: "k", DENTVID_AGENT_MODEL: "gpt-5.4-mini", DENTVID_REVIEW_MODEL: "gpt-5.4", DENTVID_JUDGE_MODEL: "gpt-4o" };
+    const m = resolveModels(env);
+    expect(m).toEqual({ agent: "claude-sonnet-5-5", review: "claude-sonnet-5-5" });
+    expect(resolveJudge(env)).toBe("claude-opus-5-5");
+    // The reviewers' effort reaches Claude (before: gpt-5.4 gave "none", which the adapter turned into low).
+    expect(params(m.review, 0.1, "high")).toEqual({ reasoning_effort: "high" });
+    expect(ignoredModelOverrides(env)).toEqual(["DENTVID_AGENT_MODEL=gpt-5.4-mini", "DENTVID_REVIEW_MODEL=gpt-5.4", "DENTVID_JUDGE_MODEL=gpt-4o"]);
+  });
+
+  it("the old documented rollback (gpt-4o-mini / gpt-4o) is ignored on Claude, and honoured with LLM_PROVIDER=openai", () => {
+    const old = { DENTVID_AGENT_MODEL: "gpt-4o-mini", DENTVID_REVIEW_MODEL: "gpt-4o" };
+    expect(resolveModels({ ANTHROPIC_API_KEY: "k", ...old })).toEqual({ agent: "claude-sonnet-5-5", review: "claude-sonnet-5-5" });
+    expect(resolveModels({ ANTHROPIC_API_KEY: "k", LLM_PROVIDER: "openai", ...old })).toEqual({ agent: "gpt-4o-mini", review: "gpt-4o" });
+    expect(ignoredModelOverrides({ ANTHROPIC_API_KEY: "k", LLM_PROVIDER: "openai", ...old })).toEqual([]);
+    expect(ignoredModelOverrides({ ANTHROPIC_API_KEY: "k" })).toEqual([]);
+  });
+});
+
+describe("resolveEfforts", () => {
+  it("writers at medium and reviewers at high unless the env says otherwise", () => {
+    expect(resolveEfforts({})).toEqual({ agent: "medium", review: "high" });
+    expect(resolveEfforts({ DENTVID_AGENT_EFFORT: " LOW ", DENTVID_REVIEW_EFFORT: "medium" })).toEqual({ agent: "low", review: "medium" });
+    // Anything else (a typo, an OpenAI-only level) keeps the default.
+    expect(resolveEfforts({ DENTVID_AGENT_EFFORT: "none", DENTVID_REVIEW_EFFORT: "max" })).toEqual({ agent: "medium", review: "high" });
+  });
 });
 
 describe("model params", () => {
@@ -41,6 +84,17 @@ describe("model params", () => {
     expect(params("gpt-5.5", 0.7)).toEqual({ reasoning_effort: "none" });
     expect(params("gpt-5-mini", 0.7)).toEqual({ reasoning_effort: "minimal" });
     expect(params("gpt-6.1-sol", 0.7)).toEqual({ reasoning_effort: "low" });
+  });
+
+  it("sends Claude an effort and never a temperature", () => {
+    expect(params("claude-sonnet-5-5", 0.7)).toEqual({ reasoning_effort: "medium" });
+    expect(params("claude-sonnet-5-5", 0, "high")).toEqual({ reasoning_effort: "high" });
+    expect(params("claude-haiku-5-5", 0.4)).toEqual({ reasoning_effort: "medium" });
+  });
+
+  it("leaves the OpenAI params alone when an effort is passed", () => {
+    expect(params("gpt-5.4", 0.5, "high")).toEqual({ reasoning_effort: "none", temperature: 0.5 });
+    expect(params("gpt-4o-mini", 0.4, "high")).toEqual({ temperature: 0.4 });
   });
 
   it("gpt-5.4 takes temperature with reasoning off", () => {

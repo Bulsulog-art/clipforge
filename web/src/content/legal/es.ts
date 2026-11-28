@@ -30,8 +30,13 @@ export const ES: LegalText = {
       data: "Todos los datos del servicio: cuenta, perfil de la clínica, archivos subidos, vídeos, referencias de facturación, registros.",
       location: "Alemania (UE)",
     },
+    anthropic: {
+      purpose: "Escribe y revisa los guiones y el texto de cada publicación, y hace los controles automáticos de los guiones. Anthropic no usa los datos enviados a través de su API para entrenar sus modelos.",
+      data: "Datos del perfil de la clínica usados en los guiones, texto de los guiones y de las publicaciones, transcripciones de las grabaciones subidas.",
+      location: "Estados Unidos",
+    },
     openai: {
-      purpose: "Escribe y revisa guiones, crea la narración con voz sintética y transcribe las grabaciones subidas cuando nuestro propio servicio de transcripción no está disponible.",
+      purpose: "Crea la narración con voz sintética y transcribe las grabaciones subidas cuando nuestro propio servicio de transcripción no está disponible. También podemos usarlo en lugar de Anthropic para escribir y revisar los guiones.",
       data: "Datos del perfil de la clínica usados en los guiones, texto de los guiones, audio de las grabaciones (para transcribir).",
       location: "Estados Unidos",
     },

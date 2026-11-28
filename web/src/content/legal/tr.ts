@@ -30,8 +30,13 @@ export const TR: LegalText = {
       data: "Tüm hizmet verileri: hesap, klinik profili, yüklemeler, videolar, ödeme referansları, kayıtlar (log).",
       location: "Almanya (AB)",
     },
+    anthropic: {
+      purpose: "Metinleri ve her paylaşımın açıklama yazısını yazar ve inceler, otomatik metin kontrollerini yapar. Anthropic, API'si üzerinden gönderilen verileri modellerini eğitmek için kullanmaz.",
+      data: "Metinlerde kullanılan klinik profili bilgileri, metinler ve paylaşım yazıları, yüklenen kayıtların yazıya dökülmüş metni.",
+      location: "ABD",
+    },
     openai: {
-      purpose: "Metinleri yazar ve inceler, yapay seslendirmeyi oluşturur ve kendi transkripsiyon hizmetimiz kullanılamadığında yüklenen kayıtları yazıya döker.",
+      purpose: "Yapay seslendirmeyi oluşturur ve kendi transkripsiyon hizmetimiz kullanılamadığında yüklenen kayıtları yazıya döker. Metinleri yazmak ve incelemek için Anthropic yerine de kullanabiliriz.",
       data: "Metinlerde kullanılan klinik profili bilgileri, metinler, kayıtların sesi (yazıya dökmek için).",
       location: "ABD",
     },

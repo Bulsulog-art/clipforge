@@ -3,10 +3,11 @@ import { logger } from "../logger.js";
 import { ownerAlert } from "./ops.js";
 import { alerts } from "./ops-alert.js";
 import { elevenSurchargePerVideoUsd, ttsCostUsd, type TtsProvider } from "../dental/elevenlabs.js";
+import { llmProvider } from "../lib/text-llm.js";
 
 /**
- * Hard spend guards for DentVideo's metered work (OpenAI text, TTS — OpenAI
- * or ElevenLabs — and Whisper).
+ * Hard spend guards for DentVideo's metered work (text on Claude, or OpenAI
+ * with LLM_PROVIDER=openai; TTS on OpenAI or ElevenLabs; Whisper).
  *
  * Every dentvid job that can call a paid API reserves its estimated cost
  * here BEFORE the first call. A reservation is all-or-nothing across:
@@ -61,7 +62,8 @@ export type GuardConfig = {
 };
 
 /**
- * Per-operation cost estimates (USD), each about 2× what was measured:
+ * Per-operation cost estimates (USD) with text on OpenAI (LLM_PROVIDER=openai),
+ * each about 2× what was measured:
  *  - week: 5 videos. Text ≈ $0.034 per ready video with gpt-5.4-mini/gpt-5.4
  *    (docs/AUTONOMOUS_PLAN.md, eval with metered tokens) incl. rewrites;
  *    TTS tts-1-hd at $30/1M chars × ~600 chars ≈ $0.02 per video. ≈ $0.25
@@ -75,7 +77,33 @@ export type GuardConfig = {
  * Override with DENTVID_COST_WEEK_USD / _RESTYLE_USD / _RECORDING_USD when
  * models or prices change.
  */
-export const COST_DEFAULTS: Record<SpendOp, number> = { week: 0.5, restyle: 0.03, recording: 0.5, topup: 0.3, change: 0.15 };
+export const COST_DEFAULTS_OPENAI: Record<SpendOp, number> = { week: 0.5, restyle: 0.03, recording: 0.5, topup: 0.3, change: 0.15 };
+
+/**
+ * The same with text on Claude (the default when ANTHROPIC_API_KEY is set),
+ * again about 2× what was measured:
+ *  - week: text ≈ $0.14 per ready video on claude-sonnet-5-5 (writers at
+ *    effort medium, reviewers at high; the eval's metered ceiling, which
+ *    counts cache reads at the full input price, docs/AUTONOMOUS_PLAN.md
+ *    "Text on Claude"), plus TTS $0.02 ≈ $0.80 a week → $1.60.
+ *  - topup: up to 3 more videos ≈ $0.48 → $1.00.
+ *  - change: one video and a rewrite round ≈ $0.20 → $0.40.
+ *  - recording: Whisper fallback $0.18, scoring on claude-haiku-5-5 and
+ *    reviews of up to 6 clips on claude-sonnet-5-5 ≈ $0.20 → $0.75.
+ *  - restyle: TTS only, unchanged → $0.03.
+ */
+export const COST_DEFAULTS_CLAUDE: Record<SpendOp, number> = { week: 1.6, restyle: 0.03, recording: 0.75, topup: 1.0, change: 0.4 };
+
+/** How many clinics' Monday weeks the default global daily cap covers. */
+export const DAILY_CAP_WEEKS = 40;
+
+/** The estimates for the text provider in use (lib/text-llm.ts). */
+export function costDefaults(env: Record<string, string | undefined> = process.env): Record<SpendOp, number> {
+  return llmProvider(env) === "anthropic" ? COST_DEFAULTS_CLAUDE : COST_DEFAULTS_OPENAI;
+}
+
+/** The OpenAI estimates, under their old name (ElevenLabs tests compare against them). */
+export const COST_DEFAULTS = COST_DEFAULTS_OPENAI;
 
 function num(v: string | undefined, fallback: number): number {
   const n = Number(v);
@@ -95,7 +123,8 @@ export function guardConfig(env: Record<string, string | undefined> = process.en
   // default, so the same Redis counters cap ElevenLabs spend too. An explicit
   // DENTVID_COST_*_USD is taken as the whole estimate and left as it is.
   const extra = elevenSurchargePerVideoUsd(env);
-  const cost = (op: SpendOp, v: string | undefined) => num(v, Math.round((COST_DEFAULTS[op] + extra * TTS_VIDEOS_PER_OP[op]) * 100) / 100);
+  const defaults = costDefaults(env);
+  const cost = (op: SpendOp, v: string | undefined) => num(v, Math.round((defaults[op] + extra * TTS_VIDEOS_PER_OP[op]) * 100) / 100);
   const costUsd: Record<SpendOp, number> = {
     week: cost("week", env.DENTVID_COST_WEEK_USD),
     restyle: cost("restyle", env.DENTVID_COST_RESTYLE_USD),
@@ -106,8 +135,10 @@ export function guardConfig(env: Record<string, string | undefined> = process.en
   const maxChanges = num(env.DENTVID_MAX_CHANGES_PER_CLINIC_WEEK, 3);
   return {
     paused: env.DENTVID_PAUSE_GENERATION === "1" || env.DENTVID_PAUSE_GENERATION === "true",
-    // ~40 paying clinics' Monday runs at the estimate above, with room for retries.
-    dailyUsd: num(env.DENTVID_DAILY_USD_CAP, 20),
+    // About 40 paying clinics' Monday weeks at the provider's estimate, with
+    // room for retries: $20 with text on OpenAI, $64 on Claude. It applies
+    // when the number of paying clinics is unknown (scaledCaps).
+    dailyUsd: num(env.DENTVID_DAILY_USD_CAP, Math.round(DAILY_CAP_WEEKS * defaults.week * 100) / 100),
     monthlyUsd: num(env.DENTVID_MONTHLY_USD_CAP, 300),
     // A Monday whose week needed all 4 attempts (retry.ts) and a top-up each
     // time: 4 × 0.50 + 4 × 0.30 = $3.20, plus a recording or a few restyles.

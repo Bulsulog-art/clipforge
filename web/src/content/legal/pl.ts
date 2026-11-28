@@ -30,8 +30,13 @@ export const PL: LegalText = {
       data: "Wszystkie dane usługi: konto, profil gabinetu, przesłane pliki, filmy, referencje rozliczeniowe, logi.",
       location: "Niemcy (UE)",
     },
+    anthropic: {
+      purpose: "Pisze i sprawdza scenariusze oraz tekst do każdego posta, a także przeprowadza automatyczne kontrole scenariuszy. Anthropic nie wykorzystuje danych przesyłanych przez swoje API do trenowania swoich modeli.",
+      data: "Dane profilu gabinetu użyte w scenariuszach, tekst scenariuszy i postów, transkrypcje przesłanych nagrań.",
+      location: "Stany Zjednoczone",
+    },
     openai: {
-      purpose: "Pisze i sprawdza scenariusze, tworzy syntetyczną narrację i transkrybuje przesłane nagrania, gdy nasza własna usługa transkrypcji jest niedostępna.",
+      purpose: "Tworzy syntetyczną narrację i transkrybuje przesłane nagrania, gdy nasza własna usługa transkrypcji jest niedostępna. Możemy go też używać zamiast Anthropic do pisania i sprawdzania scenariuszy.",
       data: "Dane profilu gabinetu użyte w scenariuszach, tekst scenariuszy, dźwięk nagrań (do transkrypcji).",
       location: "Stany Zjednoczone",
     },

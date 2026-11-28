@@ -2,13 +2,13 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import { createReadStream } from "node:fs";
 import ffmpeg from "fluent-ffmpeg";
-import OpenAI from "openai";
+import { clipforgeModel, textClient } from "../lib/text-llm.js";
+import { modelParams } from "../lib/model-params.js";
 import { supabase } from "../supabase.js";
 import { logger } from "../logger.js";
 import { buildKaraokeASS } from "./captions.js";
 import type { Word } from "./transcribe.js";
 
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
 const LANGUAGE_LABEL: Record<string, string> = {
   en: "English", tr: "Türkçe", es: "Spanish", fr: "French", de: "German",
@@ -33,7 +33,8 @@ type Args = {
  * Translate the captions of a clip to another language and re-burn them.
  *
  * MVP path (no voice clone): keep original audio, replace burned subtitles in
- * the target language. Costs ~$0.001 in GPT-4o-mini tokens — extremely cheap.
+ * the target language. Costs about $0.001 in tokens on the small model
+ * (claude-haiku-5-5, or gpt-4o-mini with LLM_PROVIDER=openai).
  *
  * Voice clone path (later): pipe ElevenLabs voice clone with translated text
  * into the new audio track + Sync Labs lip sync. ~$0.40/min.
@@ -46,37 +47,13 @@ export async function runTranslation(args: Args) {
   const phrases = chunkPhrases(args.sourceTranscriptWords, args.clipStartSec, args.clipEndSec);
   if (phrases.length === 0) throw new Error("Empty transcript for translation");
 
-  const completion = await openai.chat.completions.create({
-    model: "gpt-4o-mini",
-    response_format: { type: "json_object" },
-    temperature: 0.3,
-    messages: [
-      {
-        role: "system",
-        content: `You translate short video captions to ${labelTarget}.
-Return JSON: { "phrases": ["…", "…"] } — one translated phrase per input.
-Keep natural, conversational, niche-aware tone. Preserve emphasis.`,
-      },
-      {
-        role: "user",
-        content: JSON.stringify({
-          niche: args.niche,
-          phrases: phrases.map((p) => p.text),
-        }),
-      },
-    ],
-  });
-  const raw = completion.choices[0].message.content ?? "{}";
-  const parsed = JSON.parse(raw) as { phrases: string[] };
-  if (!parsed.phrases || parsed.phrases.length !== phrases.length) {
-    throw new Error("translation phrase count mismatch");
-  }
+  const translated = await translatePhrases(phrases.map((p) => p.text), args.niche, labelTarget);
 
   // 2) Distribute translated words back into the same time windows
   const translatedWords: Word[] = [];
   for (let i = 0; i < phrases.length; i++) {
     const p = phrases[i];
-    const targetText = parsed.phrases[i] ?? p.text;
+    const targetText = translated[i] ?? p.text;
     const targetWords = targetText.split(/\s+/).filter(Boolean);
     if (targetWords.length === 0) continue;
     const sliceDur = (p.endSec - p.startSec) / targetWords.length;
@@ -181,4 +158,35 @@ function chunkPhrases(
 
 function escapePath(p: string) {
   return p.replace(/\\/g, "/").replace(/:/g, "\\:").replace(/'/g, "\\'");
+}
+
+/** The model call: one translated phrase per input phrase, in order. Throws when the count does not match. */
+export async function translatePhrases(phrases: string[], niche: string, labelTarget: string): Promise<string[]> {
+  const model = clipforgeModel();
+  const completion = await textClient().chat.completions.create({
+    model,
+    response_format: { type: "json_object" },
+    ...modelParams(model, 0.3),
+    messages: [
+      {
+        role: "system",
+        content: `You translate short video captions to ${labelTarget}.
+Return JSON: { "phrases": ["…", "…"] } — one translated phrase per input.
+Keep natural, conversational, niche-aware tone. Preserve emphasis.`,
+      },
+      {
+        role: "user",
+        content: JSON.stringify({
+          niche,
+          phrases,
+        }),
+      },
+    ],
+  });
+  const raw = completion.choices[0].message.content ?? "{}";
+  const parsed = JSON.parse(raw) as { phrases: string[] };
+  if (!Array.isArray(parsed.phrases) || parsed.phrases.length !== phrases.length) {
+    throw new Error("translation phrase count mismatch");
+  }
+  return parsed.phrases.map((p) => String(p));
 }

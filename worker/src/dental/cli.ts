@@ -17,7 +17,8 @@
  * dollars (eval.ts spendCap). Every run prints what it spent (chat tokens at
  * eval.ts PRICES, plus the narration at a per-character ceiling).
  *
- * Needs OPENAI_API_KEY; --render also needs the Remotion browser (present in
+ * Needs ANTHROPIC_API_KEY for the text (or LLM_PROVIDER=openai) and
+ * OPENAI_API_KEY for the narration; --render also needs the Remotion browser (present in
  * the worker image) and uses PEXELS_API_KEY for stock footage when set.
  * Writes one folder per video: plan.json, caption.txt, checks.json and,
  * with --render, video.mp4, the mastered narration (voiceover.master.wav)
@@ -27,7 +28,8 @@
  */
 import fs from "node:fs/promises";
 import path from "node:path";
-import OpenAI from "openai";
+import type OpenAI from "openai";
+import { textClient } from "../lib/text-llm.js";
 import { z } from "zod";
 import { clinicProfileSchema } from "./profile.js";
 import { topicSchema } from "./strategist.js";
@@ -48,8 +50,9 @@ const TTS_USD_PER_CHAR: Record<string, number> = { "tts-1-hd": 30e-6, "tts-1": 1
 // proxy as well as directly.
 const usage: Usage = {};
 let ttsUsd = 0;
+/** The text client (Claude by default, lib/text-llm.ts), metered and capped by --max-usd. */
 function openaiClient(): OpenAI {
-  const client = new OpenAI({ fetch: globalThis.fetch as unknown as NonNullable<ConstructorParameters<typeof OpenAI>[0]>["fetch"] });
+  const client = textClient({ fetch: globalThis.fetch });
   const maxUsd = Number(arg("max-usd") ?? Infinity);
   const cap = spendCap(maxUsd, usage);
   return meterClient(client, usage, Number.isFinite(maxUsd) ? (m) => cap.check(m) : undefined);

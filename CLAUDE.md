@@ -15,8 +15,14 @@ This repo also contains ClipForge (the older mobile app). DentVideo code lives m
 
 ## Non-negotiable rules
 
-- **Money.** Do not spend paid API credit (OpenAI, ElevenLabs, Firecrawl, Apify, ads) unless the
-  owner approved that specific spend. Tests run with `OPENAI_API_KEY=x` and mocked HTTP.
+- **Money.** Do not spend paid API credit (Anthropic, OpenAI, ElevenLabs, Firecrawl, Apify, ads) unless
+  the owner approved that specific spend. Tests run with `OPENAI_API_KEY=x`, no `ANTHROPIC_API_KEY`
+  and mocked HTTP.
+- **AI providers.** All text (scripts, reviews, captions, ClipForge scoring and translation) runs on
+  the Claude API; OpenAI is used only for narration (TTS) and the transcription fallback.
+  `LLM_PROVIDER=openai` switches text back to OpenAI without a deploy. Before clinics have had the
+  DPA's 30-day sub-processor notice for Anthropic, the worker runs with `LLM_PROVIDER=openai`.
+  Details: `docs/AUTONOMOUS_PLAN.md` ("Text on Claude").
 - **Honesty.** No invented customers, testimonials, ratings, statistics, outcome claims, "#1" or
   "best" claims. No discounts, coupons, referral rewards, free videos, guarantees or refund offers.
 - **No manipulation.** No click bots, fake reviews, fake traffic, doorway pages or keyword stuffing.

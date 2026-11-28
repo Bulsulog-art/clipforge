@@ -18,15 +18,16 @@ export const LEGAL_KINDS = ["terms", "privacy", "refunds", "dpa", "imprint"] as 
 export type LegalKind = (typeof LEGAL_KINDS)[number];
 
 /** The date the legal texts last changed in substance. */
-export const LEGAL_UPDATED = "2026-11-16";
+export const LEGAL_UPDATED = "2026-11-28";
 
 /** Providers that process personal data for DentVideo (the DPA's sub-processor list). */
-export const SUBPROCESSOR_IDS = ["hostinger", "openai", "resend", "dodo"] as const;
+export const SUBPROCESSOR_IDS = ["hostinger", "anthropic", "openai", "resend", "dodo"] as const;
 export type SubprocessorId = (typeof SUBPROCESSOR_IDS)[number];
 
 /** Fixed facts per provider; purpose, data and location wording is per language. */
 export const SUBPROCESSORS: Record<SubprocessorId, { name: string; url: string }> = {
   hostinger: { name: "Hostinger", url: "https://www.hostinger.com/legal/privacy-policy" },
+  anthropic: { name: "Anthropic", url: "https://www.anthropic.com/legal/privacy" },
   openai: { name: "OpenAI", url: "https://openai.com/policies/privacy-policy/" },
   resend: { name: "Resend", url: "https://resend.com/legal/privacy-policy" },
   dodo: { name: "Dodo Payments", url: "https://dodopayments.com/privacy-policy" },

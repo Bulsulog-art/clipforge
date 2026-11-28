@@ -373,7 +373,7 @@ function mutedAlert(max: number): OwnerAlert {
     severity: "urgent",
     titleTr: "Çok fazla uyarı — bu saat sessize alındı",
     titleEn: "Too many alerts — muted for this hour",
-    what: [`More than ${max} different alerts were raised within one hour. Something broad is probably wrong (database, Redis, OpenAI or the worker).`],
+    what: [`More than ${max} different alerts were raised within one hour. Something broad is probably wrong (database, Redis, Anthropic, OpenAI or the worker).`],
     done: ["Further alerts this hour are only logged (and counted in tomorrow's digest). Alerts resume next hour."],
     todo: ["Check the worker logs and /dentvideo/admin now."],
   };
@@ -506,7 +506,7 @@ export const alerts = {
     };
   },
 
-  providerDown(a: { provider: "OpenAI" | "ElevenLabs"; reason: string; when: "preflight" | "daily"; clinic?: ClinicRef; week?: string; fallback?: boolean }): OwnerAlert {
+  providerDown(a: { provider: "Anthropic" | "OpenAI" | "ElevenLabs"; reason: string; when: "preflight" | "daily"; clinic?: ClinicRef; week?: string; fallback?: boolean }): OwnerAlert {
     return {
       key: `provider_down:${a.provider.toLowerCase()}`,
       severity: "urgent",
@@ -731,7 +731,7 @@ export const alerts = {
       done: render
         ? ["Each failed video is re-attempted once; weeks that fail are retried with backoff; short weeks are topped up once."]
         : ["Nothing automatic — each request failed for its user."],
-      todo: render ? ["Check the worker logs: OpenAI / Pexels / storage / disk / memory."] : ["Check the web app logs for the route above."],
+      todo: render ? ["Check the worker logs: Anthropic / OpenAI / Pexels / storage / disk / memory."] : ["Check the web app logs for the route above."],
     };
   },
 

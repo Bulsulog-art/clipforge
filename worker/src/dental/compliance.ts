@@ -1,6 +1,6 @@
 import type OpenAI from "openai";
 import { z } from "zod";
-import { agentJson, REVIEW_MODEL } from "./llm.js";
+import { agentJson, REVIEW_EFFORT, REVIEW_MODEL } from "./llm.js";
 import type { ClinicProfile } from "./profile.js";
 import { marketLanguage, marketLanguages, marketRules } from "./locale.js";
 import { scanHardRules, scanMarketRules, type HardHit } from "./hard-rules.js";
@@ -79,6 +79,7 @@ Flag anything a health regulator, professional body or platform could object to:
 - absolute effect claims ("prevents", "stops", "önler", "engeller" without "can"/"helps"): ask for a hedged form ("can help prevent", "önlemeye yardımcı olur").
 - absolute effect claims in Polish ("zapobiega" → "może pomóc zapobiegać"), Arabic ("يمنع"/"يقي من" → "قد يساعد على الوقاية من") and Japanese ("防ぎます" → "防ぐのに役立ちます").
 - in German ("verhindert" → "kann helfen vorzubeugen") and Spanish ("previene" → "puede ayudar a prevenir") too; celebrity or influencer endorsements, urgency or pressure to book ("hemen randevu alın", "nur noch diese Woche", "no esperes más"), and a COFEPRIS permit number the clinic did not give are issues as well. A calm closing invitation to ask at the next check-up is fine.
+Safety advice is not pressure: telling the viewer to have a warning sign (bleeding that keeps coming back, pain or swelling that gets worse, a loose tooth) looked at by their own dentist soon, without waiting for a routine check-up, must NOT be flagged as urgency, in any market (Türkiye included), as long as it does not steer them to this clinic or to booking. Flag only booking pressure, alarmist wording or a push towards this clinic.
 Educational, accurate, hedged statements are fine and must NOT be flagged. "Often", "in many cases", "oft", "a menudo", "genellikle" ARE hedges, not guarantees; never ask to stack a second hedge on a hedged sentence. Hedging words include "can", "may", "usually", "often", "for most people", "ask your dentist", and in Turkish "-ebilir/-abilir", "olabilir", "genellikle", "çoğu durumda", "hekiminize danışın". Polish "może", "zwykle", "często", "u większości osób", Arabic "قد", "غالباً", "عادةً", "في كثير من الحالات", Japanese "〜ことがあります", "〜場合があります", "一般的に", "多くの場合", "個人差があります" are hedges too. Typical ranges given as typical ("usually 3-6 weeks", "genellikle 3-6 hafta") are fine.
 Only flag what a regulator would actually object to. A fix that merely re-words an already hedged sentence is not a fix — in that case the sentence passes.
 Advice to take medication must defer to the dentist ("as your dentist advises" / "hekiminizin önerdiği şekilde").
@@ -115,6 +116,7 @@ export async function reviewCompliance(
     // ("können dazu beitragen" → "können helfen") until good videos ran out
     // of attempts; judgement is what this agent is for.
     model: REVIEW_MODEL,
+    effort: REVIEW_EFFORT,
   });
   // The model sometimes "fixes" a sentence into itself, or flags a plain
   // question as a promise ("Can tartar affect your heart?" — seen live in

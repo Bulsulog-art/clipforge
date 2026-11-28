@@ -4,7 +4,7 @@ import path from "node:path";
 import { randomUUID } from "node:crypto";
 import { createReadStream } from "node:fs";
 import ffmpeg from "fluent-ffmpeg";
-import OpenAI from "openai";
+import { textClient } from "../lib/text-llm.js";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { logger } from "../logger.js";
 import { clinicProfileSchema, type ClinicProfile } from "../dental/profile.js";
@@ -26,7 +26,7 @@ import { clinicTimeZone } from "./timezone.js";
 import { classifyFailure, isLastAttempt, providerRefused, TransientWeekError } from "./retry.js";
 import { clinicRef, noteRenderFailure, opsStore, ownerAlert, ownerAlertOnce, setWeekDelay } from "./ops.js";
 import { alerts, cleanError } from "./ops-alert.js";
-import { clearProviderDown, noteProviderRefused, preflight, type Preflight } from "./provider-health.js";
+import { clearProviderDown, noteProviderRefused, preflight, providerOfError, weekProviders, type Preflight } from "./provider-health.js";
 import { patientSearches } from "../dental/questions.js";
 import { brandFromLogo, logoStyleOf, readyLogo, type LogoAnalysis } from "../dental/logo.js";
 import type { LogoStyle } from "../remotion/logo-style.js";
@@ -471,7 +471,7 @@ export async function runDentvidWeek(job: WeekJob, ctx: WeekCtx = {}): Promise<W
   try {
     const result = await makeWeek(job, ctx, week);
     // Videos were made: whatever refusal was remembered is over.
-    if (result.ready + result.flagged > 0) await clearProviderDown(opsStore(), "OpenAI");
+    if (result.ready + result.flagged > 0) for (const p of weekProviders()) await clearProviderDown(opsStore(), p);
     await setWeekDelay(job.clinicId, week, null);
     return result;
   } catch (e) {
@@ -482,7 +482,7 @@ export async function runDentvidWeek(job: WeekJob, ctx: WeekCtx = {}): Promise<W
     }
     const kind = classifyFailure(e);
     // A real call refused for a reason on our side: the next weeks stop before spending (provider-health.ts).
-    if (!(e instanceof ProviderPreflightError)) await noteProviderRefused(opsStore(), "OpenAI", e);
+    if (!(e instanceof ProviderPreflightError)) await noteProviderRefused(opsStore(), providerOfError(e), e);
     if (providerRefused(e) && !(e instanceof TransientWeekError)) {
       // The provider refused the week's first call (out of credit, bad key):
       // nothing was spent, so the clinic's week budget is given back and its
@@ -524,7 +524,7 @@ function safeDb(): SupabaseClient | null {
 }
 
 /**
- * Before a week spends anything: can OpenAI work (provider-health.ts: a refusal remembered from a real
+ * Before a week spends anything: can the text provider and OpenAI's voice work (provider-health.ts: a refusal remembered from a real
  * call, else the free key check)? Replaceable in tests, which never reach the network.
  */
 let preflightCheck: () => Promise<Preflight> = () => preflight(opsStore());
@@ -701,7 +701,7 @@ async function makeWeek(job: WeekJob, ctx: WeekCtx, week: string): Promise<WeekR
     const produce = (count: number, avoidTitles: string[], history: PastTopic[], withRequests = false) =>
       produceWeek(
         {
-          client: gatedClient(new OpenAI(), voiceIsDown),
+          client: gatedClient(textClient(), voiceIsDown),
           log: (msg, extra) => logger.info({ clinicId: job.clinicId, ...extra }, `dentvid: ${msg}`),
           searches: (p) => patientSearches(p.services, p.language, p.country),
           // A topic the breaker skipped is not a render failure (the error-spike alert counts those).
@@ -931,7 +931,7 @@ export async function runDentvidRecording(job: RecordingJob, ctx: { jobId?: stri
     }
 
     const clips = await clipsFromRecording(
-      { client: new OpenAI(), workDir, render: true, logoPath, log: (msg, extra) => logger.info({ clinicId: job.clinicId, ...extra }, `dentvid: ${msg}`) },
+      { client: textClient(), workDir, render: true, logoPath, log: (msg, extra) => logger.info({ clinicId: job.clinicId, ...extra }, `dentvid: ${msg}`) },
       profile,
       source,
       undefined,
@@ -1167,7 +1167,7 @@ export async function runDentvidChange(job: ChangeJob): Promise<ChangeResult> {
     let subtitles: Subtitles | undefined;
     const pkg = await produceVideo(
       {
-        client: new OpenAI(),
+        client: textClient(),
         log: (msg, extra) => logger.info({ clinicId: req.clinic_id, requestId: req.id, ...extra }, `dentvid: change ${msg}`),
         onVideoError: (e) => noteRenderFailure(e).catch(() => {}),
         render: async (plan, t) => {

@@ -2,9 +2,9 @@
  * Quality bench: a small real week for a few fixed clinics, scripts and
  * narration through the whole production chain (strategist → hook editor →
  * scene planner → narrator → post-checks → compliance → clinical accuracy →
- * caption → shoot card), with a hard OpenAI spend cap shared across runs.
+ * caption → shoot card), with a hard text spend cap shared across runs.
  *
- *   cd worker && OPENAI_API_KEY=… npx tsx src/bench/quality-week.ts --out DIR
+ *   cd worker && ANTHROPIC_API_KEY=… npx tsx src/bench/quality-week.ts --out DIR
  *        [--only tr,de,en] [--count 3] [--ledger FILE] [--max-usd 3] [--label before]
  *        [--memory titles|full]
  *
@@ -21,7 +21,8 @@
  */
 import fs from "node:fs/promises";
 import path from "node:path";
-import OpenAI from "openai";
+import type OpenAI from "openai";
+import { textClient } from "../lib/text-llm.js";
 import { clinicProfileSchema, type ClinicProfile } from "../dental/profile.js";
 import { produceWeek, planText, type VideoPackage } from "../dental/week.js";
 import { meterClient, spendCap, usageCost, SpendCapError, type Usage } from "../dental/eval.js";
@@ -166,8 +167,8 @@ async function main() {
 
   const usage: Usage = {};
   const cap = spendCap(room, usage);
-  const fetchOpt = { fetch: globalThis.fetch as unknown as NonNullable<ConstructorParameters<typeof OpenAI>[0]>["fetch"] };
-  const client = meterClient(new OpenAI(fetchOpt), usage, (m) => cap.check(m));
+  const fetchOpt = { fetch: globalThis.fetch };
+  const client = meterClient(textClient(fetchOpt), usage, (m) => cap.check(m));
   await fs.mkdir(out, { recursive: true });
 
   const clinics = BENCH_CLINICS.filter((c) => !only || only.includes(c.key));

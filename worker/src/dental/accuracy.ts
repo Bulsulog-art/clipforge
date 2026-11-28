@@ -1,6 +1,6 @@
 import type OpenAI from "openai";
 import { z } from "zod";
-import { agentJson, REVIEW_MODEL } from "./llm.js";
+import { agentJson, REVIEW_EFFORT, REVIEW_MODEL } from "./llm.js";
 import type { ClinicProfile } from "./profile.js";
 import type { Topic } from "./strategist.js";
 
@@ -81,6 +81,7 @@ export async function reviewAccuracy(
     schema: accuracySchema,
     temperature: 0.1,
     model: REVIEW_MODEL,
+    effort: REVIEW_EFFORT,
   });
 }
 

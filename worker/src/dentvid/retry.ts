@@ -61,16 +61,29 @@ function statusOf(e: unknown): number | null {
  * The AI provider refused before doing any work, for a reason on our side
  * that no retry within the hour fixes: the account is out of credit
  * (OpenAI sends this as HTTP 429 with code "insufficient_quota", so the
- * status alone reads as a rate limit), a billing hard limit, or a bad key.
+ * status alone reads as a rate limit; Anthropic as a billing_error or a
+ * "credit balance is too low" request error), a billing or spend limit, or a
+ * bad key.
  * Nothing was spent, so the job's spend reservation is given back
  * (jobs.ts) and the week is not retried four times against a closed door.
  */
 export function providerRefused(e: unknown): boolean {
-  const o = (e ?? {}) as { code?: unknown; type?: unknown; error?: { code?: unknown; type?: unknown } | null };
-  const codes = [o.code, o.type, o.error?.code, o.error?.type].filter((c): c is string => typeof c === "string");
-  if (codes.some((c) => /^(insufficient_quota|billing_hard_limit_reached|billing_not_active|invalid_api_key|account_deactivated)$/i.test(c))) return true;
+  const o = (e ?? {}) as {
+    code?: unknown;
+    type?: unknown;
+    errorCode?: unknown;
+    error?: { code?: unknown; type?: unknown; error?: { type?: unknown } | null } | null;
+  };
+  // OpenAI: code/type on the error or its body. Anthropic SDK: `type` and `errorCode` on the error, the body's error.type.
+  const codes = [o.code, o.type, o.errorCode, o.error?.code, o.error?.type, o.error?.error?.type].filter((c): c is string => typeof c === "string");
+  if (
+    codes.some((c) =>
+      /^(insufficient_quota|billing_hard_limit_reached|billing_not_active|invalid_api_key|account_deactivated|authentication_error|billing_error|permission_error|organization_on_hold|\w*spend_limit_reached)$/i.test(c),
+    )
+  )
+    return true;
   const msg = `${(e as Error)?.message ?? ""}`;
-  return /\binsufficient[_ ]quota\b|exceeded your current quota|billing[_ ]hard[_ ]limit|\bincorrect api key\b|\binvalid[_ ]api[_ ]key\b/i.test(msg);
+  return /\binsufficient[_ ]quota\b|exceeded your current quota|billing[_ ]hard[_ ]limit|\bincorrect api key\b|\binvalid[_ ]api[_ ]key\b|credit balance is too low|invalid x-api-key/i.test(msg);
 }
 
 export function classifyFailure(e: unknown): FailureKind {
