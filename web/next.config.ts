@@ -14,6 +14,10 @@ const cfSupabase = selfHostedSupabase();
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
+  // The production build runs on the 2-core VPS next to live apps. Under load a single
+  // prerendered OG image took over 60 s (the default) and failed the whole deploy
+  // (2026-11-28). 180 s keeps a slow build alive without hiding a real hang.
+  staticPageGenerationTimeout: 180,
   // No "X-Powered-By: Next.js" banner.
   poweredByHeader: false,
   // Required for the Docker runner stage which copies /app/.next/standalone
